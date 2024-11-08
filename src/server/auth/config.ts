@@ -1,6 +1,6 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 import { db } from "~/server/db";
 
@@ -32,7 +32,29 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [
-    DiscordProvider,
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        username: { label: "Username", type: "text", placeholder: "jsmith" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials, req) {
+        console.log(credentials, req);
+        // const res = await fetch("/your/endpoint", {
+        //   method: "POST",
+        //   body: JSON.stringify(credentials),
+        //   headers: { "Content-Type": "application/json" },
+        // });
+        // const user = await res.json();
+
+        // If no error and we have user data, return it
+        // if (res.ok && user) {
+        //   return user;
+        // }
+        // Return null if user data could not be retrieved
+        return null;
+      },
+    }),
     /**
      * ...add more providers here.
      *
