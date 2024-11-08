@@ -38,4 +38,12 @@ export const postRouter = createTRPCRouter({
   getSecretMessage: protectedProcedure.query(() => {
     return "you can now see this secret message!";
   }),
+
+  createTest: publicProcedure.mutation(async ({ ctx }) => {
+    console.log("createTest");
+
+    return await ctx.db.test.create({
+      data: { text: "Nowy tekst" },
+    });
+  }),
 });
