@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import { LatestPost } from "~/app/_components/post";
+import { Test } from "~/app/_components/test";
 import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
-import { Test } from "./_components/test";
 
 export default async function Home() {
   const hello = await api.post.hello({ text: "from tRPC" });
@@ -15,7 +15,7 @@ export default async function Home() {
 
   return (
     <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
+      <main className="bg-gradient-background flex min-h-screen flex-col items-center justify-center">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
           <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
             Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
@@ -58,6 +58,12 @@ export default async function Home() {
                 className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
               >
                 {session ? "Sign out" : "Sign in"}
+              </Link>
+              <Link
+                href={"/api/auth/register"}
+                className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
+              >
+                Register
               </Link>
             </div>
           </div>
