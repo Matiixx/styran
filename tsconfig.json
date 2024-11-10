@@ -8,6 +8,7 @@
     "resolveJsonModule": true,
     "moduleDetection": "force",
     "isolatedModules": true,
+    "allowUnreachableCode": false,
 
     /* Strictness */
     "strict": true,
