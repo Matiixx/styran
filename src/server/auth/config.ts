@@ -2,10 +2,15 @@ import "next-auth/jwt";
 
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcrypt";
-import { type DefaultSession, type NextAuthConfig } from "next-auth";
+import {
+  CredentialsSignin,
+  type DefaultSession,
+  type NextAuthConfig,
+} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 import { db } from "~/server/db";
+import { INVALID_CREDENTIALS } from "~/lib/errorCodes";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -35,6 +40,10 @@ declare module "next-auth/jwt" {
   }
 }
 
+class CredentialsError extends CredentialsSignin {
+  code = INVALID_CREDENTIALS;
+}
+
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -46,7 +55,7 @@ export const authConfig = {
       name: "Credentials",
       type: "credentials",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "john@doe.com" },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -57,7 +66,7 @@ export const authConfig = {
         });
 
         if (!maybeUser) {
-          throw new Error("Either the email or password is incorrect");
+          throw new CredentialsError();
         }
 
         const passwordsMatch = await compare(
@@ -66,7 +75,7 @@ export const authConfig = {
         );
 
         if (!passwordsMatch) {
-          throw new Error("Either the email or password is incorrect");
+          throw new CredentialsError();
         }
 
         return maybeUser;

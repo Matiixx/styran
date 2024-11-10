@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { InputWithLabel } from "~/components/ui/input";
+import { INVALID_CREDENTIALS } from "~/lib/errorCodes";
 
 const SignInSchema = z.object({
   email: z.string().email(),
@@ -26,6 +27,7 @@ const SignInForm = () => {
   const {
     formState: { errors },
     register,
+    setError,
     handleSubmit,
   } = useForm<z.infer<typeof SignInSchema>>({
     mode: "onTouched",
@@ -37,9 +39,11 @@ const SignInForm = () => {
       email: data.email,
       password: data.password,
       redirect: false,
-    })
-      .then(console.log)
-      .catch(console.error);
+    }).then((res) => {
+      if (res?.code === INVALID_CREDENTIALS) {
+        setError("password", { message: INVALID_CREDENTIALS });
+      }
+    });
   });
 
   return (

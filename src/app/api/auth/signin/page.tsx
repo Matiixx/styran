@@ -1,8 +1,9 @@
+import { redirect } from "next/navigation";
+
 import { Header } from "~/app/_components/header";
 import { auth } from "~/server/auth";
 
 import { SignInForm } from "./signinForm";
-import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Styran - Sign In",
