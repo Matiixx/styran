@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 
 import { z } from "zod";
@@ -40,8 +41,14 @@ const SignInForm = () => {
       password: data.password,
       redirect: false,
     }).then((res) => {
+      if (!res?.code) {
+        redirect("/");
+      }
+
       if (res?.code === INVALID_CREDENTIALS) {
         setError("password", { message: INVALID_CREDENTIALS });
+      } else {
+        setError("password", { message: "Something went wrong" });
       }
     });
   });
