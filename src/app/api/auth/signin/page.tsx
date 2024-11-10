@@ -14,7 +14,6 @@ export default async function SignInPage() {
 
   if (session) {
     redirect("/");
-    return null;
   }
 
   return (

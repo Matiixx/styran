@@ -83,7 +83,7 @@ export const authConfig = {
     }),
   ],
   session: { strategy: "jwt" },
-  pages: { newUser: "/register" },
+  pages: { newUser: "/api/auth/register", signOut: "/api/auth/logout" },
   adapter: PrismaAdapter(db),
   callbacks: {
     session: ({ session, token }) => {
