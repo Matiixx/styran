@@ -15,9 +15,9 @@ export default async function Home() {
 
   return (
     <HydrateClient>
-      <main className="bg-gradient-background flex min-h-screen flex-col items-center justify-center">
+      <main className="bg-gradient-background flex h-screen flex-col items-center justify-center">
         <Header />
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+        <div className="flex w-full flex-1 flex-col items-center gap-12 overflow-y-scroll px-4 py-16 pt-24">
           <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
             Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
           </h1>
