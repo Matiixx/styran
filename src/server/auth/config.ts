@@ -1,7 +1,9 @@
+import "next-auth/jwt";
+
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import { compare } from "bcrypt";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { pages } from "next/dist/build/templates/app-page";
 
 import { db } from "~/server/db";
 
@@ -12,18 +14,25 @@ import { db } from "~/server/db";
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  */
 declare module "next-auth" {
+  interface User {
+    firstName?: string;
+    lastName?: string;
+  }
+
   interface Session extends DefaultSession {
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
-    } & DefaultSession["user"];
+      email: string;
+    } & DefaultSession["user"] &
+      User;
   }
+}
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+declare module "next-auth/jwt" {
+  interface JWT {
+    firstName?: string;
+    lastName?: string;
+  }
 }
 
 /**
@@ -35,46 +44,57 @@ export const authConfig = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
+      type: "credentials",
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
+        email: { label: "Email", type: "email", placeholder: "john@doe.com" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, req) {
-        console.log(credentials, req);
-        // const res = await fetch("/your/endpoint", {
-        //   method: "POST",
-        //   body: JSON.stringify(credentials),
-        //   headers: { "Content-Type": "application/json" },
-        // });
-        // const user = await res.json();
+      async authorize(credentials) {
+        if (!credentials) return null;
 
-        // If no error and we have user data, return it
-        // if (res.ok && user) {
-        //   return user;
-        // }
-        // Return null if user data could not be retrieved
-        return null;
+        const maybeUser = await db.user.findFirst({
+          where: { email: credentials.email as string },
+        });
+
+        if (!maybeUser) {
+          throw new Error("Either the email or password is incorrect");
+        }
+
+        const passwordsMatch = await compare(
+          credentials.password as string,
+          maybeUser.password,
+        );
+
+        if (!passwordsMatch) {
+          throw new Error("Either the email or password is incorrect");
+        }
+
+        return maybeUser;
       },
     }),
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
   ],
+  session: { strategy: "jwt" },
   pages: { newUser: "/register" },
   adapter: PrismaAdapter(db),
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    session: ({ session, token }) => {
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: token.sub ?? "",
+          firstName: token.firstName,
+          lastName: token.lastName,
+        },
+      };
+    },
+
+    jwt: ({ token, user }) => {
+      if (user) {
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+      }
+      return token;
+    },
   },
 } satisfies NextAuthConfig;
