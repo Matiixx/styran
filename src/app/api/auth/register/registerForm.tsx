@@ -19,12 +19,18 @@ import { api } from "~/trpc/react";
 import { EMAIL_DUPLICATION } from "~/lib/errorCodes";
 import { InputWithLabel } from "~/components/ui/input";
 
-const RegisterSchema = z.object({
-  email: z.string().email(),
-  firstName: z.string().min(2, "Fill in your first name"),
-  lastName: z.string().min(2, "Fill in your last name"),
-  password: z.string().min(5),
-});
+const RegisterSchema = z
+  .object({
+    email: z.string().email(),
+    firstName: z.string().min(2, "Fill in your first name"),
+    lastName: z.string().min(2, "Fill in your last name"),
+    password: z.string().min(5),
+    repeatPassword: z.string().min(5),
+  })
+  .refine((data) => data.password === data.repeatPassword, {
+    message: "Passwords do not match",
+    path: ["repeatPassword"],
+  });
 
 export const RegisterForm = () => {
   const { mutateAsync: registerUser } = api.user.register.useMutation();
@@ -82,14 +88,25 @@ export const RegisterForm = () => {
             />
           </div>
 
-          <InputWithLabel
-            label="Password"
-            type="password"
-            placeholder="Password"
-            error={!!errors.password}
-            errorMessage={errors.password?.message}
-            {...register("password")}
-          />
+          <div className="flex flex-row items-start justify-between gap-4">
+            <InputWithLabel
+              label="Password"
+              type="password"
+              placeholder="Password"
+              error={!!errors.password}
+              errorMessage={errors.password?.message}
+              {...register("password")}
+            />
+
+            <InputWithLabel
+              label="Repeat Password"
+              type="password"
+              placeholder="Repeat Password"
+              error={!!errors.repeatPassword}
+              errorMessage={errors.repeatPassword?.message}
+              {...register("repeatPassword")}
+            />
+          </div>
         </form>
       </CardContent>
 
