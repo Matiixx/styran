@@ -13,13 +13,14 @@ const RegisterPage = async () => {
 
   if (session) {
     redirect("/");
-    return null;
   }
 
   return (
     <main className="bg-gradient-background flex min-h-screen flex-col items-center justify-center">
       <Header />
-      <RegisterForm />
+      <div className="flex flex-1 flex-col items-center justify-center">
+        <RegisterForm />
+      </div>
     </main>
   );
 };

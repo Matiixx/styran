@@ -17,9 +17,11 @@ export default async function SignInPage() {
   }
 
   return (
-    <main className="bg-gradient-background flex min-h-screen flex-col items-center justify-center">
+    <main className="bg-gradient-background flex min-h-screen flex-col">
       <Header />
-      <SignInForm />
+      <div className="flex flex-1 flex-col items-center justify-center">
+        <SignInForm />
+      </div>
     </main>
   );
 }
