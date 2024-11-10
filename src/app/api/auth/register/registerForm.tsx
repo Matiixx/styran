@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type TRPCError } from "@trpc/server";
+import Link from "next/link";
 
 import isEmpty from "lodash/isEmpty";
 
@@ -54,7 +55,7 @@ export const RegisterForm = () => {
   );
 
   return (
-    <Card>
+    <Card className="w-full max-w-lg">
       <CardHeader>
         <CardTitle>Register</CardTitle>
       </CardHeader>
@@ -111,7 +112,9 @@ export const RegisterForm = () => {
       </CardContent>
 
       <CardFooter className="flex justify-end gap-2">
-        <Button variant="outline">Go to login</Button>
+        <Link href="/api/auth/signin">
+          <Button variant="outline">Go to login</Button>
+        </Link>
         <Button disabled={!isEmpty(errors)} onClick={onSubmit}>
           Register
         </Button>
