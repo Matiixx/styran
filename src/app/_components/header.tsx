@@ -14,7 +14,7 @@ const Header = async () => {
           <h1 className="cursor-pointer text-2xl font-bold">Styran</h1>
         </Link>
 
-        <div>
+        <div className="flex flex-1">
           <HeaderClientButtons session={session} />
         </div>
       </div>

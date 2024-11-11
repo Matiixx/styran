@@ -7,21 +7,24 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model User {
-    id        String    @id @default(cuid())
+    id        String @id @default(cuid())
     firstName String
     lastName  String
-    email     String    @unique
+    email     String @unique
     // emailVerified DateTime? // TODO: Add email verification
     // image     String? // TODO: Add profile pictures
     password  String
-    sessions  Session[]
+
+    projects Project[]
+}
+
+model Project {
+    id        String   @id @default(cuid())
+    name      String
+    ticker    String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    owner     User     @relation(fields: [ownerId], references: [id])
+    ownerId   String
 }

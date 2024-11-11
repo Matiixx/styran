@@ -12,16 +12,23 @@ type HeaderClientButtonsProps = {
 
 const HeaderClientButtons: FC<HeaderClientButtonsProps> = ({ session }) => {
   return (
-    <div>
-      {session?.user ? (
-        <Link href="/api/auth/logout">
-          <Button variant="ghostDesctructive">Logout</Button>
+    <div className="ml-8 flex w-full items-center justify-between">
+      <div>
+        <Link href="/projects">
+          <Button variant="ghost">Projects</Button>
         </Link>
-      ) : (
-        <Link href="/api/auth/signin">
-          <Button variant="ghost">Login</Button>
-        </Link>
-      )}
+      </div>
+      <div>
+        {session?.user ? (
+          <Link href="/api/auth/logout">
+            <Button variant="ghostDesctructive">Logout</Button>
+          </Link>
+        ) : (
+          <Link href="/api/auth/signin">
+            <Button variant="ghost">Login</Button>
+          </Link>
+        )}
+      </div>
     </div>
   );
 };
