@@ -46,6 +46,14 @@ const projectsRouter = createTRPCRouter({
         data: input,
       });
     }),
+
+  deleteProject: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(({ ctx, input }) => {
+      return ctx.db.project.delete({
+        where: { id: input.id, ownerId: ctx.session.user.id },
+      });
+    }),
 });
 
 export type ProjectRouterOutput = inferRouterOutputs<typeof projectsRouter>;
