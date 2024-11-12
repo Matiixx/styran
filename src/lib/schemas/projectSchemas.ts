@@ -10,3 +10,9 @@ export const newProjectSchema = z.object({
     .optional()
     .or(z.literal("")),
 });
+
+export const editProjectSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  ticker: z.string().optional(),
+});

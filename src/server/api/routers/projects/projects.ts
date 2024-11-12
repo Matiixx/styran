@@ -1,5 +1,7 @@
-import { newProjectSchema } from "~/lib/schemas";
+import { z } from "zod";
+import { type inferRouterOutputs } from "@trpc/server";
 
+import { editProjectSchema, newProjectSchema } from "~/lib/schemas";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 const projectsRouter = createTRPCRouter({
@@ -12,6 +14,18 @@ const projectsRouter = createTRPCRouter({
     return projects;
   }),
 
+  getProject: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(({ ctx, input }) => {
+      const { id } = input;
+
+      const project = ctx.db.project.findUnique({
+        where: { id, ownerId: ctx.session.user.id },
+      });
+
+      return project;
+    }),
+
   addProject: protectedProcedure
     .input(newProjectSchema)
     .mutation(({ ctx, input }) => {
@@ -23,6 +37,17 @@ const projectsRouter = createTRPCRouter({
         },
       });
     }),
+
+  editProject: protectedProcedure
+    .input(editProjectSchema)
+    .mutation(({ ctx, input }) => {
+      return ctx.db.project.update({
+        where: { id: input.id, ownerId: ctx.session.user.id },
+        data: input,
+      });
+    }),
 });
+
+export type ProjectRouterOutput = inferRouterOutputs<typeof projectsRouter>;
 
 export default projectsRouter;

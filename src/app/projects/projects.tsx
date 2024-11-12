@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 import map from "lodash/map";
 
@@ -18,13 +19,19 @@ export default function ProjectsComponent() {
     <div className="flex w-full flex-1 flex-row flex-wrap content-start items-start gap-12 overflow-y-scroll px-16 py-16 pt-32">
       {map(data, ({ name, ticker, id }) => {
         return (
-          <Card key={id} className="w-full max-w-sm cursor-pointer">
-            <CardHeader>
-              <CardTitle className="truncate">
-                [{ticker}] - {name}
-              </CardTitle>
-            </CardHeader>
-          </Card>
+          <Link
+            href={`/projects/${id}`}
+            key={id}
+            className="w-full max-w-sm cursor-pointer"
+          >
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle className="truncate">
+                  [{ticker}] - {name}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
         );
       })}
 
