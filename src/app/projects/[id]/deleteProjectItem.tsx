@@ -54,10 +54,10 @@ const DeleteProjectDialog = ({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
+          <DialogTitle>Do you want to delete this project?</DialogTitle>
           <DialogDescription>
             This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
+            project and remove your data from our servers.
           </DialogDescription>
         </DialogHeader>
 
