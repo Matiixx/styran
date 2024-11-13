@@ -7,6 +7,7 @@ export const newProjectSchema = z.object({
   ticker: z
     .string()
     .min(2, { message: "Ticker should have at least 2 characters" })
+    .max(4, { message: "Ticker should have at most 4 characters" })
     .optional()
     .or(z.literal("")),
 });
