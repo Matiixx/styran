@@ -14,6 +14,6 @@ export const newProjectSchema = z.object({
 
 export const editProjectSchema = z.object({
   id: z.string(),
-  name: z.string().optional(),
-  ticker: z.string().optional(),
+  name: newProjectSchema.shape.name,
+  ticker: newProjectSchema.shape.ticker,
 });

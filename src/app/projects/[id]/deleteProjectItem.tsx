@@ -15,30 +15,29 @@ import { DropdownMenuItem } from "~/components/ui/dropdown-menu";
 import { api } from "~/trpc/react";
 
 type DeleteProjectItemProps = {
-  setIsOpen: (isOpen: boolean) => void;
+  openDialog: () => void;
 };
 
-const DeleteProjectItem = ({ setIsOpen }: DeleteProjectItemProps) => {
+const DeleteProjectItem = ({ openDialog }: DeleteProjectItemProps) => {
   return (
-    <>
-      <DropdownMenuItem
-        variant="destructive"
-        className="font-bold"
-        onClick={() => setIsOpen(true)}
-      >
-        Delete
-      </DropdownMenuItem>
-    </>
+    <DropdownMenuItem
+      variant="destructive"
+      className="font-bold"
+      onClick={openDialog}
+    >
+      Delete
+    </DropdownMenuItem>
   );
 };
 
 const DeleteProjectDialog = ({
   id,
   isOpen,
-  setIsOpen,
-}: DeleteProjectItemProps & {
+  closeDialog,
+}: {
   id: string;
   isOpen: boolean;
+  closeDialog: () => void;
 }) => {
   const utils = api.useUtils();
   const { mutateAsync: deleteProject } = api.projects.deleteProject.useMutation(
@@ -51,7 +50,7 @@ const DeleteProjectDialog = ({
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={closeDialog}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Do you want to delete this project?</DialogTitle>
@@ -62,7 +61,7 @@ const DeleteProjectDialog = ({
         </DialogHeader>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
+          <Button variant="outline" onClick={closeDialog}>
             Cancel
           </Button>
           <Button variant="destructive" onClick={() => deleteProject({ id })}>

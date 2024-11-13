@@ -32,7 +32,7 @@ const projectsRouter = createTRPCRouter({
       return ctx.db.project.create({
         data: {
           name: input.name,
-          ticker: input.ticker,
+          ticker: input.ticker ? input.ticker : generateTicker(input.name),
           ownerId: ctx.session.user.id,
         },
       });
@@ -43,7 +43,10 @@ const projectsRouter = createTRPCRouter({
     .mutation(({ ctx, input }) => {
       return ctx.db.project.update({
         where: { id: input.id, ownerId: ctx.session.user.id },
-        data: input,
+        data: {
+          ...input,
+          ticker: input.ticker ? input.ticker : generateTicker(input.name),
+        },
       });
     }),
 
@@ -55,6 +58,18 @@ const projectsRouter = createTRPCRouter({
       });
     }),
 });
+
+const generateTicker = (name: string) => {
+  const first = name[0];
+  const middle = name[Math.floor(name.length / 2)];
+  const last = name[name.length - 1];
+
+  if (!first || !middle || !last) {
+    return name.slice(0, 3).toUpperCase();
+  }
+
+  return [first, middle, last].join("").toUpperCase();
+};
 
 export type ProjectRouterOutput = inferRouterOutputs<typeof projectsRouter>;
 

@@ -10,15 +10,19 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { EllipsisVertical } from "lucide-react";
+import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 
+import { ProjectDialog } from "./projectPage.types";
 import { DeleteProjectDialog, DeleteProjectItem } from "./deleteProjectItem";
+import { EditProjectDialog } from "./editProjectItem";
 
 type ProjectDropdownProps = {
-  id: string;
+  project: NonNullable<ProjectRouterOutput["getProject"]>;
 };
 
-const ProjectDropdown = ({ id }: ProjectDropdownProps) => {
-  const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false);
+const ProjectDropdown = ({ project }: ProjectDropdownProps) => {
+  const [openedDialogType, setOpenedDialogType] =
+    useState<ProjectDialog | null>(null);
 
   return (
     <>
@@ -32,15 +36,27 @@ const ProjectDropdown = ({ id }: ProjectDropdownProps) => {
         <DropdownMenuContent align="end">
           <DropdownMenuItem>Profile</DropdownMenuItem>
           <DropdownMenuItem>Billing</DropdownMenuItem>
-          <DropdownMenuItem>Team</DropdownMenuItem>
-          <DeleteProjectItem setIsOpen={setIsOpenDeleteDialog} />
+          <DropdownMenuItem
+            onClick={() => setOpenedDialogType(ProjectDialog.EDIT)}
+          >
+            Edit
+          </DropdownMenuItem>
+          <DeleteProjectItem
+            openDialog={() => setOpenedDialogType(ProjectDialog.DELETE)}
+          />
         </DropdownMenuContent>
       </DropdownMenu>
 
       <DeleteProjectDialog
-        id={id}
-        isOpen={isOpenDeleteDialog}
-        setIsOpen={setIsOpenDeleteDialog}
+        id={project.id}
+        isOpen={openedDialogType === ProjectDialog.DELETE}
+        closeDialog={() => setOpenedDialogType(null)}
+      />
+
+      <EditProjectDialog
+        isOpen={openedDialogType === ProjectDialog.EDIT}
+        project={project}
+        closeDialog={() => setOpenedDialogType(null)}
       />
     </>
   );
