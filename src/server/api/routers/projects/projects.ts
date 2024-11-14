@@ -7,7 +7,12 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 const projectsRouter = createTRPCRouter({
   getProjects: protectedProcedure.query(async ({ ctx }) => {
     const projects = await ctx.db.project.findMany({
-      where: { ownerId: ctx.session.user.id },
+      where: {
+        OR: [
+          { ownerId: ctx.session.user.id },
+          { users: { some: { id: ctx.session.user.id } } },
+        ],
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -20,7 +25,24 @@ const projectsRouter = createTRPCRouter({
       const { id } = input;
 
       const project = ctx.db.project.findUnique({
-        where: { id, ownerId: ctx.session.user.id },
+        where: {
+          id,
+          OR: [
+            { ownerId: ctx.session.user.id },
+            { users: { some: { id: ctx.session.user.id } } },
+          ],
+        },
+        include: {
+          users: {
+            select: {
+              id: true,
+              email: true,
+              lastName: true,
+              firstName: true,
+              password: false,
+            },
+          },
+        },
       });
 
       return project;
