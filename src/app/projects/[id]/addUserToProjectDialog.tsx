@@ -27,8 +27,12 @@ const AddUserToProjectDialog = ({
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string>();
 
+  const utils = api.useUtils();
+
   const { mutateAsync: addUserToProject } =
-    api.projects.addUserToProject.useMutation();
+    api.projects.addUserToProject.useMutation({
+      onSuccess: () => utils.projects.getProject.invalidate({ id: projectId }),
+    });
 
   const onSubmit = () => {
     setError(undefined);
