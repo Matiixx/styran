@@ -16,7 +16,8 @@ model User {
     // image     String? // TODO: Add profile pictures
     password  String
 
-    projects Project[]
+    ownedProjects Project[]
+    projects      Project[] @relation("ProjectUsers")
 }
 
 model Project {
@@ -25,6 +26,9 @@ model Project {
     ticker    String?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
-    owner     User     @relation(fields: [ownerId], references: [id])
-    ownerId   String
+
+    owner   User   @relation(fields: [ownerId], references: [id])
+    ownerId String
+
+    users User[] @relation("ProjectUsers")
 }

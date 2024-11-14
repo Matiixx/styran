@@ -15,6 +15,7 @@ import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 import { ProjectDialog } from "./projectPage.types";
 import { DeleteProjectDialog, DeleteProjectItem } from "./deleteProjectItem";
 import { EditProjectDialog } from "./editProjectItem";
+import { AddUserToProjectDialog } from "./addUserToProjectDialog";
 
 type ProjectDropdownProps = {
   project: NonNullable<ProjectRouterOutput["getProject"]>;
@@ -35,7 +36,11 @@ const ProjectDropdown = ({ project }: ProjectDropdownProps) => {
 
         <DropdownMenuContent align="end">
           <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setOpenedDialogType(ProjectDialog.ADD_USER)}
+          >
+            Add user
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setOpenedDialogType(ProjectDialog.EDIT)}
           >
@@ -56,6 +61,12 @@ const ProjectDropdown = ({ project }: ProjectDropdownProps) => {
       <EditProjectDialog
         isOpen={openedDialogType === ProjectDialog.EDIT}
         project={project}
+        closeDialog={() => setOpenedDialogType(null)}
+      />
+
+      <AddUserToProjectDialog
+        isOpen={openedDialogType === ProjectDialog.ADD_USER}
+        projectId={project.id}
         closeDialog={() => setOpenedDialogType(null)}
       />
     </>

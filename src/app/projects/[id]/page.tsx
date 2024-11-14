@@ -25,7 +25,7 @@ export default async function ProjectPage({
     <HydrateClient>
       <main className="bg-gradient-background flex h-screen flex-col items-center justify-center">
         <Header />
-        <ProjectComponent id={id} />
+        <ProjectComponent id={id} userId={session.user.id} />
       </main>
     </HydrateClient>
   );

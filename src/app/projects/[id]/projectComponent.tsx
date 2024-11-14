@@ -6,7 +6,7 @@ import { api } from "~/trpc/react";
 
 import ProjectDropdown from "./projectDropdown";
 
-const ProjectComponent = ({ id }: { id: string }) => {
+const ProjectComponent = ({ id, userId }: { id: string; userId: string }) => {
   const [project] = api.projects.getProject.useSuspenseQuery({ id });
 
   if (!project) {
@@ -19,7 +19,7 @@ const ProjectComponent = ({ id }: { id: string }) => {
         <div className="flex flex-row items-center justify-between gap-4">
           <h2 className="text-2xl font-bold">{`[${project.ticker}] ${project.name}`}</h2>
 
-          <ProjectDropdown project={project} />
+          {project.ownerId === userId && <ProjectDropdown project={project} />}
         </div>
 
         <br />

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type inferRouterOutputs } from "@trpc/server";
+import { TRPCError, type inferRouterOutputs } from "@trpc/server";
 
 import { editProjectSchema, newProjectSchema } from "~/lib/schemas";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
@@ -55,6 +55,29 @@ const projectsRouter = createTRPCRouter({
     .mutation(({ ctx, input }) => {
       return ctx.db.project.delete({
         where: { id: input.id, ownerId: ctx.session.user.id },
+      });
+    }),
+
+  addUserToProject: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        email: z.string().email(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { projectId, email } = input;
+
+      // TODO: Add new user invitation logic
+      // If user doesn't exist, create them and send them an email with a link to sign in, temp password etc.
+      const user = await ctx.db.user.findUnique({ where: { email } });
+      if (!user) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      }
+
+      return ctx.db.project.update({
+        where: { id: projectId, ownerId: ctx.session.user.id },
+        data: { users: { connect: { email } } },
       });
     }),
 });
