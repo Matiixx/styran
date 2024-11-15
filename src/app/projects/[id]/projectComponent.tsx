@@ -3,8 +3,10 @@
 import { redirect } from "next/navigation";
 
 import { api } from "~/trpc/react";
+import { Button } from "~/components/ui/button";
 
-import ProjectDropdown from "./projectDropdown";
+import Link from "next/link";
+import ProjectPageShell from "./projectPageShell";
 
 const ProjectComponent = ({ id, userId }: { id: string; userId: string }) => {
   const [project] = api.projects.getProject.useSuspenseQuery({ id });
@@ -14,18 +16,17 @@ const ProjectComponent = ({ id, userId }: { id: string; userId: string }) => {
   }
 
   return (
-    <div className="flex h-full flex-1 px-16 py-16 pt-32">
-      <div>
-        <div className="flex flex-row items-center justify-between gap-4">
-          <h2 className="text-2xl font-bold">{`[${project.ticker}] ${project.name}`}</h2>
+    <ProjectPageShell userId={userId} project={project}>
+      <div className="flex flex-row gap-4">
+        <Button variant="default">Main</Button>
 
-          {project.ownerId === userId && <ProjectDropdown project={project} />}
-        </div>
-
-        <br />
-        {JSON.stringify(project)}
+        <Link href={`/projects/${id}/users`}>
+          <Button variant="ghost">Users</Button>
+        </Link>
       </div>
-    </div>
+
+      {JSON.stringify(project)}
+    </ProjectPageShell>
   );
 };
 

@@ -1,28 +1,28 @@
-import { type Metadata } from "next";
 import { redirect } from "next/navigation";
+import { type Metadata } from "next";
 
 import { auth } from "~/server/auth";
+
+import UsersProjectComponent from "./usersPage";
 import { api, HydrateClient } from "~/trpc/server";
 
-import ProjectComponent from "./projectComponent";
-
-export default async function ProjectPage({
-  params,
-}: {
+type UsersProjectPageProps = {
   params: Promise<{ id: string }>;
-}) {
+};
+
+async function UsersProjectPage({ params }: UsersProjectPageProps) {
+  const { id } = await params;
   const session = await auth();
 
   if (!session?.user) {
     redirect("/login");
   }
 
-  const id = (await params).id;
   void api.projects.getProject.prefetch({ id });
 
   return (
     <HydrateClient>
-      <ProjectComponent id={id} userId={session.user.id} />
+      <UsersProjectComponent userId={session.user.id} projectId={id} />
     </HydrateClient>
   );
 }
@@ -36,6 +36,8 @@ export async function generateMetadata({
   const project = await api.projects.getProject({ id });
 
   return {
-    title: project?.name ?? `Project`,
+    title: `${project?.name ?? `Project`} - Users`,
   };
 }
+
+export default UsersProjectPage;
