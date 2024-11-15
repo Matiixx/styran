@@ -92,7 +92,14 @@ const projectsRouter = createTRPCRouter({
 
       // TODO: Add new user invitation logic
       // If user doesn't exist, create them and send them an email with a link to sign in, temp password etc.
-      const user = await ctx.db.user.findUnique({ where: { email } });
+      const user = await ctx.db.user.findUnique({
+        where: {
+          email,
+          projects: { none: { id: projectId } },
+          ownedProjects: { none: { id: projectId } },
+        },
+      });
+
       if (!user) {
         throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
       }
