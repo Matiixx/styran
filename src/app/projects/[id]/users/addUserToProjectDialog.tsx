@@ -52,7 +52,7 @@ const AddUserToProjectDialog = ({
           <DialogTitle>Add user to project</DialogTitle>
         </DialogHeader>
 
-        <form className="flex flex-col gap-4">
+        <form className="flex flex-col gap-4" onSubmit={onSubmit}>
           <InputWithLabel
             label="User email"
             placeholder="User email"

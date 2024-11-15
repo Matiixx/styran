@@ -102,6 +102,17 @@ const projectsRouter = createTRPCRouter({
         data: { users: { connect: { email } } },
       });
     }),
+
+  removeUserFromProject: protectedProcedure
+    .input(z.object({ id: z.string(), userId: z.string() }))
+    .mutation(({ ctx, input }) => {
+      const newProject = ctx.db.project.update({
+        where: { id: input.id, ownerId: ctx.session.user.id },
+        data: { users: { disconnect: { id: input.userId } } },
+      });
+
+      return newProject;
+    }),
 });
 
 const generateTicker = (name: string) => {

@@ -34,7 +34,7 @@ const UsersProjectComponent = ({
         <Button variant="default">Users</Button>
       </div>
 
-      <UsersList users={project.users} />
+      <UsersList users={project.users} projectId={projectId} />
     </ProjectPageShell>
   );
 };
