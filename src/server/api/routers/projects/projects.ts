@@ -113,12 +113,14 @@ const projectsRouter = createTRPCRouter({
   removeUserFromProject: protectedProcedure
     .input(z.object({ id: z.string(), userId: z.string() }))
     .mutation(({ ctx, input }) => {
-      const newProject = ctx.db.project.update({
-        where: { id: input.id, ownerId: ctx.session.user.id },
+      return ctx.db.project.update({
+        where: {
+          id: input.id,
+          ownerId: ctx.session.user.id,
+          users: { some: { id: input.userId } },
+        },
         data: { users: { disconnect: { id: input.userId } } },
       });
-
-      return newProject;
     }),
 });
 
