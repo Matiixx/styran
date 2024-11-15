@@ -22,7 +22,7 @@ async function UsersProjectPage({ params }: UsersProjectPageProps) {
 
   return (
     <HydrateClient>
-      <UsersProjectComponent userId={session.user.id} projectId={id} />
+      <UsersProjectComponent user={session.user} projectId={id} />
     </HydrateClient>
   );
 }

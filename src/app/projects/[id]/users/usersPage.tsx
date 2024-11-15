@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { type Session } from "next-auth";
 
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
@@ -10,12 +11,12 @@ import ProjectPageShell from "../projectPageShell";
 import UsersList from "./usersList";
 
 type UsersProjectComponentProps = {
-  userId: string;
+  user: Session["user"];
   projectId: string;
 };
 
 const UsersProjectComponent = ({
-  userId,
+  user,
   projectId,
 }: UsersProjectComponentProps) => {
   const [project] = api.projects.getProject.useSuspenseQuery({ id: projectId });
@@ -25,7 +26,7 @@ const UsersProjectComponent = ({
   }
 
   return (
-    <ProjectPageShell userId={userId} project={project}>
+    <ProjectPageShell userId={user.id} project={project}>
       <div className="flex flex-row gap-4">
         <Link href={`/projects/${projectId}`}>
           <Button variant="ghost">Main</Button>
@@ -34,7 +35,17 @@ const UsersProjectComponent = ({
         <Button variant="default">Users</Button>
       </div>
 
-      <UsersList users={project.users} projectId={projectId} />
+      <UsersList
+        users={[
+          {
+            ...user,
+            firstName: user.firstName ?? "",
+            lastName: user.lastName ?? "",
+          },
+          ...project.users,
+        ]}
+        project={project}
+      />
     </ProjectPageShell>
   );
 };

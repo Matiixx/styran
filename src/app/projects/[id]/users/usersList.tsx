@@ -6,7 +6,7 @@ import filter from "lodash/filter";
 import includes from "lodash/includes";
 import map from "lodash/map";
 
-import { EllipsisVertical, UserPlus } from "lucide-react";
+import { EllipsisVertical, Trash2, UserPlus } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -25,29 +25,39 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { api } from "~/trpc/react";
+import { Card, CardContent } from "~/components/ui/card";
+import { Badge } from "~/components/ui/badge";
+
 import { AddUserToProjectDialog } from "./addUserToProjectDialog";
 
 type User = NonNullable<ProjectRouterOutput["getProject"]>["users"][number];
 
 type UsersListProps = {
   users: User[];
-  projectId: string;
+  project: NonNullable<ProjectRouterOutput["getProject"]>;
 };
 
-const UsersList = ({ users, projectId }: UsersListProps) => {
+const UsersList = ({ users, project }: UsersListProps) => {
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
 
   const filteredUsers = useMemo(
-    () => filter(users, (user) => includes(user.email, search)),
+    () =>
+      filter(
+        users,
+        (user) =>
+          includes(user.email, search) ||
+          includes(user.firstName, search) ||
+          includes(user.lastName, search),
+      ),
     [users, search],
   );
 
   return (
     <>
-      <div className="mx-4 my-8 flex w-full flex-col gap-6">
-        <div className="flex w-full flex-row items-center gap-4">
+      <div className="mx-4 my-8 flex w-full flex-col gap-6 overflow-hidden">
+        <div className="flex w-full flex-row items-center justify-between gap-4">
           <Input
             className="w-fit"
             placeholder="Search user..."
@@ -61,22 +71,27 @@ const UsersList = ({ users, projectId }: UsersListProps) => {
           </Button>
         </div>
 
-        <div className="flex w-full flex-1 flex-col overflow-y-scroll">
+        <div className="flex w-full flex-1 flex-col gap-4 overflow-y-auto">
           {map(filteredUsers, (user) => (
-            <UserItem key={user.id} user={user} setUser={setSelectedUser} />
+            <UserItem
+              key={user.id}
+              user={user}
+              isOwner={user.id === project.ownerId}
+              setUser={setSelectedUser}
+            />
           ))}
         </div>
       </div>
 
       <DeleteUserModal
         user={selectedUser}
-        projectId={projectId}
+        projectId={project.id}
         setUser={setSelectedUser}
       />
 
       <AddUserToProjectDialog
         isOpen={openAddUserDialog}
-        projectId={projectId}
+        projectId={project.id}
         closeDialog={() => setOpenAddUserDialog(false)}
       />
     </>
@@ -85,40 +100,50 @@ const UsersList = ({ users, projectId }: UsersListProps) => {
 
 const UserItem = ({
   user,
+  isOwner,
   setUser,
 }: {
   user: User;
+  isOwner: boolean;
   setUser: (user: User) => void;
 }) => {
   return (
-    <div className="flex w-full flex-row items-center justify-between border px-4 py-2">
-      <div className="flex flex-col">
-        <span className="text-lg font-bold">{user.email}</span>
-        <span className="text-md">
-          {user.firstName} {user.lastName}
-        </span>
-      </div>
+    <Card className="flex w-full p-4">
+      <CardContent className="flex w-full flex-row items-center justify-between">
+        <div className="flex flex-col">
+          <div className="flex flex-row items-center gap-2">
+            <span className="text-lg font-bold">
+              {user.firstName} {user.lastName}
+            </span>
+            {isOwner && <Badge>Owner</Badge>}
+          </div>
+          <span className="text-sm text-muted-foreground">{user.email}</span>
+        </div>
 
-      <div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <EllipsisVertical />
-            </Button>
-          </DropdownMenuTrigger>
+        {!isOwner && (
+          <div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <EllipsisVertical />
+                </Button>
+              </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              variant="destructive"
-              className="font-bold"
-              onClick={() => setUser(user)}
-            >
-              Delete user
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  variant="destructive"
+                  className="font-bold"
+                  onClick={() => setUser(user)}
+                >
+                  <Trash2 />
+                  Delete user
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
