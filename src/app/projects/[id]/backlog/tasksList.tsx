@@ -22,17 +22,27 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { NewTaskSchema } from "~/lib/schemas/taskSchemas";
-import { api } from "~/trpc/react";
+import { api, type RouterOutputs } from "~/trpc/react";
+import { Badge } from "~/components/ui/badge";
 
 type TaskListProps = {
   userId: string;
   projectId: string;
 };
 
+type Task = RouterOutputs["tasks"]["getTasks"][number];
+
 const TaskList = ({ projectId }: TaskListProps) => {
+  const [tasks] = api.tasks.getTasks.useSuspenseQuery({ projectId });
+
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <AddNewTaskCard projectId={projectId} />
+    <div className="mx-4 my-8 flex w-full flex-col gap-6 overflow-hidden">
+      <div className="flex flex-col gap-4 overflow-y-auto">
+        {map(tasks, (task) => (
+          <TaskCard key={task.id} task={task} />
+        ))}
+        <AddNewTaskCard projectId={projectId} />
+      </div>
     </div>
   );
 };
@@ -44,14 +54,29 @@ const TaskTypeIcon: Record<TaskType, React.ReactNode> = {
   TASK: <Vote className="text-blue-500" />,
 };
 
+const TaskCard = ({ task }: { task: Task }) => {
+  return (
+    <Card>
+      <CardContent>
+        <div className="flex flex-row items-center gap-2">
+          {TaskTypeIcon[task.type]}
+          <Badge variant="outline">{task.ticker}</Badge>
+          <p>{task.title}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const AddNewTaskCard = ({ projectId }: { projectId: string }) => {
+  const utils = api.useUtils();
   const { mutateAsync: createTask } = api.tasks.createTask.useMutation({
     onSuccess: () => {
-      return;
+      return utils.tasks.getTasks.invalidate({ projectId });
     },
   });
 
-  const { control, register, handleSubmit } = useForm<
+  const { control, register, handleSubmit, reset } = useForm<
     z.infer<typeof NewTaskSchema>
   >({
     mode: "onChange",
@@ -60,7 +85,7 @@ const AddNewTaskCard = ({ projectId }: { projectId: string }) => {
   });
 
   const onSubmit = handleSubmit((data) => {
-    return createTask({ ...data, projectId });
+    return createTask({ ...data, projectId }).then(() => reset());
   });
 
   return (

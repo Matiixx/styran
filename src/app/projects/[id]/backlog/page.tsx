@@ -19,6 +19,7 @@ export default async function BacklogPage({
 
   const id = (await params).id;
   void api.projects.getProject.prefetch({ id });
+  void api.tasks.getTasks.prefetch({ projectId: id });
 
   return (
     <HydrateClient>
