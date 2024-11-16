@@ -9,6 +9,11 @@ const cardVariants = cva(
   {
     variants: {
       variant: { muted: "bg-card-muted" },
+      size: {
+        default: "",
+        compact: "p-4",
+        dense: "p-2",
+      },
     },
   },
 );
@@ -16,10 +21,10 @@ const cardVariants = cva(
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof cardVariants>
->(({ className, variant, ...props }, ref) => (
+>(({ className, variant, size, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn(cardVariants({ variant, className }))}
+    className={cn(cardVariants({ variant, size, className }))}
     {...props}
   />
 ));

@@ -32,6 +32,10 @@ const UsersProjectComponent = ({
           <Button variant="ghost">Main</Button>
         </Link>
 
+        <Link href={`/projects/${projectId}/backlog`}>
+          <Button variant="ghost">Backlog</Button>
+        </Link>
+
         <Button variant="default">Users</Button>
       </div>
 

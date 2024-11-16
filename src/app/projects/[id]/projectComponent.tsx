@@ -20,6 +20,10 @@ const ProjectComponent = ({ id, userId }: { id: string; userId: string }) => {
       <div className="flex flex-row gap-4">
         <Button variant="default">Main</Button>
 
+        <Link href={`/projects/${id}/backlog`}>
+          <Button variant="ghost">Backlog</Button>
+        </Link>
+
         <Link href={`/projects/${id}/users`}>
           <Button variant="ghost">Users</Button>
         </Link>
