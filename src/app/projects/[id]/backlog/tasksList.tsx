@@ -1,10 +1,12 @@
+import { TaskType } from "@prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
+import { type z } from "zod";
 
 import map from "lodash/map";
+import toLower from "lodash/toLower";
 import upperFirst from "lodash/upperFirst";
 
-import { z } from "zod";
 import { Bookmark, Bug, Lightbulb, Plus, Vote } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
@@ -19,7 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { NewTaskSchema, TaskType } from "~/lib/schemas/taskSchemas";
+import { NewTaskSchema } from "~/lib/schemas/taskSchemas";
+import { api } from "~/trpc/react";
 
 type TaskListProps = {
   userId: string;
@@ -29,19 +32,25 @@ type TaskListProps = {
 const TaskList = ({ projectId }: TaskListProps) => {
   return (
     <div className="flex flex-col gap-4 p-4">
-      <AddNewTaskCard />
+      <AddNewTaskCard projectId={projectId} />
     </div>
   );
 };
 
 const TaskTypeIcon: Record<TaskType, React.ReactNode> = {
-  bug: <Bug className="text-red-500" />,
-  feature: <Lightbulb className="text-yellow-500" />,
-  story: <Bookmark className="text-green-500" />,
-  task: <Vote className="text-blue-500" />,
+  BUG: <Bug className="text-red-500" />,
+  FEATURE: <Lightbulb className="text-yellow-500" />,
+  STORY: <Bookmark className="text-green-500" />,
+  TASK: <Vote className="text-blue-500" />,
 };
 
-const AddNewTaskCard = () => {
+const AddNewTaskCard = ({ projectId }: { projectId: string }) => {
+  const { mutateAsync: createTask } = api.tasks.createTask.useMutation({
+    onSuccess: () => {
+      return;
+    },
+  });
+
   const { control, register, handleSubmit } = useForm<
     z.infer<typeof NewTaskSchema>
   >({
@@ -51,7 +60,7 @@ const AddNewTaskCard = () => {
   });
 
   const onSubmit = handleSubmit((data) => {
-    console.log(data);
+    return createTask({ ...data, projectId });
   });
 
   return (
@@ -77,7 +86,7 @@ const AddNewTaskCard = () => {
                         key={key}
                         value={type}
                       >
-                        {upperFirst(type)}
+                        {upperFirst(toLower(type))}
                       </SelectItem>
                     ))}
                   </SelectGroup>
