@@ -1,9 +1,10 @@
+import { type Prisma, TaskStatus } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import padStart from "lodash/padStart";
 
-import { NewTaskSchema } from "~/lib/schemas/taskSchemas";
+import { NewTaskSchema, UpdateTaskSchema } from "~/lib/schemas/taskSchemas";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
@@ -56,7 +57,42 @@ const tasksRouter = createTRPCRouter({
             ],
           },
         },
-        include: { createdBy: true },
+        orderBy: { createdAt: "asc" },
+      });
+    }),
+
+  updateTask: protectedProcedure
+    .input(UpdateTaskSchema)
+    .mutation(({ ctx, input }) => {
+      const updates: Prisma.TaskUpdateInput = {};
+
+      if (input.status) {
+        updates.status = input.status;
+        if (updates.status === TaskStatus.TODO) {
+          updates.doneAt = null;
+          updates.startAt = null;
+        } else if (updates.status === TaskStatus.DONE) {
+          updates.doneAt = new Date();
+        } else if (
+          updates.status === TaskStatus.IN_PROGRESS ||
+          updates.status === TaskStatus.IN_REVIEW
+        ) {
+          updates.startAt = new Date();
+        }
+      }
+
+      return ctx.db.task.update({
+        where: {
+          id: input.taskId,
+          project: {
+            id: input.projectId,
+            OR: [
+              { users: { some: { id: ctx.session.user.id } } },
+              { ownerId: ctx.session.user.id },
+            ],
+          },
+        },
+        data: updates,
       });
     }),
 });

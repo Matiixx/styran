@@ -1,4 +1,4 @@
-import { TaskType } from "@prisma/client";
+import { TaskStatus, TaskType } from "@prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { type z } from "zod";
@@ -57,14 +57,68 @@ const TaskTypeIcon: Record<TaskType, React.ReactNode> = {
 const TaskCard = ({ task }: { task: Task }) => {
   return (
     <Card>
-      <CardContent>
+      <CardContent className="flex flex-row justify-between">
         <div className="flex flex-row items-center gap-2">
           {TaskTypeIcon[task.type]}
-          <Badge variant="outline">{task.ticker}</Badge>
-          <p>{task.title}</p>
+          <Badge
+            variant="outline"
+            className={task.status === TaskStatus.DONE ? "line-through" : ""}
+          >
+            {task.ticker}
+          </Badge>
+          <p className={task.status === TaskStatus.DONE ? "line-through" : ""}>
+            {task.title}
+          </p>
+        </div>
+        <div>
+          <TaskStatusSelect task={task} />
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+const statusColor: Record<TaskStatus, string> = {
+  TODO: "bg-gray-400",
+  IN_PROGRESS: "bg-blue-400",
+  IN_REVIEW: "bg-blue-400",
+  DONE: "bg-green-400",
+};
+
+const TaskStatusSelect = ({ task }: { task: Task }) => {
+  const utils = api.useUtils();
+  const { mutateAsync: updateTaskStatus, isPending } =
+    api.tasks.updateTask.useMutation({
+      onSuccess: () =>
+        utils.tasks.getTasks.invalidate({ projectId: task.projectId }),
+    });
+
+  const onStatusChange = (status: TaskStatus) => {
+    return updateTaskStatus({
+      status,
+      taskId: task.id,
+      projectId: task.projectId,
+    });
+  };
+
+  return (
+    <Select
+      value={task.status}
+      onValueChange={onStatusChange}
+      disabled={isPending}
+    >
+      <SelectTrigger size="sm" className={statusColor[task.status]}>
+        <span className="capitalize">{task.status}</span>
+      </SelectTrigger>
+
+      <SelectContent>
+        {map(TaskStatus, (status, key) => (
+          <SelectItem key={key} value={status}>
+            {status.replace("_", " ")}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 };
 
