@@ -24,6 +24,7 @@ import {
 import { NewTaskSchema } from "~/lib/schemas/taskSchemas";
 import { api, type RouterOutputs } from "~/trpc/react";
 import { Badge } from "~/components/ui/badge";
+import Link from "next/link";
 
 type TaskListProps = {
   userId: string;
@@ -56,25 +57,29 @@ const TaskTypeIcon: Record<TaskType, React.ReactNode> = {
 
 const TaskCard = ({ task }: { task: Task }) => {
   return (
-    <Card>
-      <CardContent className="flex flex-row justify-between">
-        <div className="flex flex-row items-center gap-2">
-          {TaskTypeIcon[task.type]}
-          <Badge
-            variant="outline"
-            className={task.status === TaskStatus.DONE ? "line-through" : ""}
-          >
-            {task.ticker}
-          </Badge>
-          <p className={task.status === TaskStatus.DONE ? "line-through" : ""}>
-            {task.title}
-          </p>
-        </div>
-        <div>
-          <TaskStatusSelect task={task} />
-        </div>
-      </CardContent>
-    </Card>
+    <Link href={`/projects/${task.projectId}/backlog/task/${task.id}`}>
+      <Card className="cursor-pointer">
+        <CardContent className="flex flex-row justify-between">
+          <div className="flex flex-row items-center gap-2">
+            {TaskTypeIcon[task.type]}
+            <Badge
+              variant="outline"
+              className={task.status === TaskStatus.DONE ? "line-through" : ""}
+            >
+              {task.ticker}
+            </Badge>
+            <p
+              className={task.status === TaskStatus.DONE ? "line-through" : ""}
+            >
+              {task.title}
+            </p>
+          </div>
+          <div>
+            <TaskStatusSelect task={task} />
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 };
 

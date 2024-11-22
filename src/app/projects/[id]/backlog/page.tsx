@@ -11,6 +11,14 @@ export default async function BacklogPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  return <BacklogPageComponent params={params} />;
+}
+
+export async function BacklogPageComponent({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const session = await auth();
 
   if (!session?.user) {

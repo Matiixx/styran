@@ -61,6 +61,28 @@ const tasksRouter = createTRPCRouter({
       });
     }),
 
+  getTask: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        taskId: z.string(),
+      }),
+    )
+    .query(({ ctx, input }) => {
+      return ctx.db.task.findUnique({
+        where: {
+          id: input.taskId,
+          projectId: input.projectId,
+          project: {
+            OR: [
+              { users: { some: { id: ctx.session.user.id } } },
+              { ownerId: ctx.session.user.id },
+            ],
+          },
+        },
+      });
+    }),
+
   updateTask: protectedProcedure
     .input(UpdateTaskSchema)
     .mutation(({ ctx, input }) => {
