@@ -6,15 +6,15 @@ import { api, HydrateClient } from "~/trpc/server";
 
 import BacklogComponent from "./backlogComponent";
 
-export default async function BacklogPage({
+export default async function _BacklogPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  return <BacklogPageComponent params={params} />;
+  return <BacklogPage params={params} />;
 }
 
-export async function BacklogPageComponent({
+export async function BacklogPage({
   params,
 }: {
   params: Promise<{ id: string }>;

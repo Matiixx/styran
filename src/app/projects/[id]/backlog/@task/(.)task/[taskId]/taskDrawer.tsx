@@ -1,6 +1,7 @@
 "use client";
-
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+
 import { api } from "~/trpc/react";
 
 import { Button } from "~/components/ui/button";
@@ -20,6 +21,7 @@ type TaskDrawerProps = {
 
 const TaskDrawer = ({ taskId, projectId }: TaskDrawerProps) => {
   const router = useRouter();
+  const [open, setOpen] = useState(true);
   const [task] = api.tasks.getTask.useSuspenseQuery({ taskId, projectId });
 
   if (!task) {
@@ -27,11 +29,27 @@ const TaskDrawer = ({ taskId, projectId }: TaskDrawerProps) => {
   }
 
   const closeDrawer = () => {
-    router.push(`/projects/cm3g62xo90003vx1yhzgic29d/backlog`);
+    setOpen(false);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setOpen(false);
+    }
+  };
+
+  const onAnimationEnd = (open: boolean) => {
+    if (!open) {
+      router.push(`/projects/${projectId}/backlog`);
+    }
   };
 
   return (
-    <Drawer open onOpenChange={closeDrawer} direction="right">
+    <Drawer
+      open={open}
+      onOpenChange={handleOpenChange}
+      onAnimationEnd={onAnimationEnd}
+    >
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Task Details</DrawerTitle>
