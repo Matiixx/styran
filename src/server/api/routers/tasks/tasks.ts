@@ -1,5 +1,5 @@
 import { type Prisma, TaskStatus } from "@prisma/client";
-import { TRPCError } from "@trpc/server";
+import { type inferRouterOutputs, TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import padStart from "lodash/padStart";
@@ -103,6 +103,10 @@ const tasksRouter = createTRPCRouter({
         }
       }
 
+      if (input.title) {
+        updates.title = input.title;
+      }
+
       return ctx.db.task.update({
         where: {
           id: input.taskId,
@@ -126,5 +130,7 @@ export const generateTaskTicker = (
   const paddedTaskCount = padStart(`${taskCount + 1}`, 3, "0");
   return `${projectTicker}-${paddedTaskCount}`;
 };
+
+export type TasksRouterOutput = inferRouterOutputs<typeof tasksRouter>;
 
 export default tasksRouter;

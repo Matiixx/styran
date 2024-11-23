@@ -3,16 +3,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { api } from "~/trpc/react";
+import { Drawer } from "~/components/ui/drawer";
 
-import { Button } from "~/components/ui/button";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "~/components/ui/drawer";
+import TaskDrawerContent from "./taskDrawerContent";
 
 type TaskDrawerProps = {
   taskId: string;
@@ -38,27 +31,18 @@ const TaskDrawer = ({ taskId, projectId }: TaskDrawerProps) => {
     }
   };
 
-  const onAnimationEnd = (open: boolean) => {
-    if (!open) {
-      router.push(`/projects/${projectId}/backlog`);
-    }
+  const onAnimationEnd = () => {
+    router.push(`/projects/${projectId}/backlog`);
   };
 
   return (
     <Drawer
       open={open}
+      direction="right"
       onOpenChange={handleOpenChange}
       onAnimationEnd={onAnimationEnd}
     >
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>Task Details</DrawerTitle>
-          <DrawerDescription>Details for task: </DrawerDescription>
-        </DrawerHeader>
-        <DrawerFooter>
-          <Button onClick={closeDrawer}>Close</Button>
-        </DrawerFooter>
-      </DrawerContent>
+      <TaskDrawerContent task={task} closeDrawer={closeDrawer} />
     </Drawer>
   );
 };

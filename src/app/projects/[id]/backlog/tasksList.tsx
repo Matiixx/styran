@@ -2,6 +2,7 @@ import { TaskStatus, TaskType } from "@prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { type z } from "zod";
+import Link from "next/link";
 
 import map from "lodash/map";
 import toLower from "lodash/toLower";
@@ -22,16 +23,16 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { NewTaskSchema } from "~/lib/schemas/taskSchemas";
-import { api, type RouterOutputs } from "~/trpc/react";
+import { api } from "~/trpc/react";
+import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { Badge } from "~/components/ui/badge";
-import Link from "next/link";
 
 type TaskListProps = {
   userId: string;
   projectId: string;
 };
 
-type Task = RouterOutputs["tasks"]["getTasks"][number];
+type Task = TasksRouterOutput["getTasks"][number];
 
 const TaskList = ({ projectId }: TaskListProps) => {
   const [tasks] = api.tasks.getTasks.useSuspenseQuery({ projectId });
@@ -90,12 +91,24 @@ const statusColor: Record<TaskStatus, string> = {
   DONE: "bg-green-400",
 };
 
-const TaskStatusSelect = ({ task }: { task: Task }) => {
+export const TaskStatusSelect = ({
+  task,
+  size = "sm",
+}: {
+  task: Task;
+  size?: "sm" | "default";
+}) => {
   const utils = api.useUtils();
   const { mutateAsync: updateTaskStatus, isPending } =
     api.tasks.updateTask.useMutation({
       onSuccess: () =>
-        utils.tasks.getTasks.invalidate({ projectId: task.projectId }),
+        Promise.all([
+          utils.tasks.getTasks.invalidate({ projectId: task.projectId }),
+          utils.tasks.getTask.invalidate({
+            taskId: task.id,
+            projectId: task.projectId,
+          }),
+        ]),
     });
 
   const onStatusChange = (status: TaskStatus) => {
@@ -112,7 +125,7 @@ const TaskStatusSelect = ({ task }: { task: Task }) => {
       onValueChange={onStatusChange}
       disabled={isPending}
     >
-      <SelectTrigger size="sm" className={statusColor[task.status]}>
+      <SelectTrigger size={size} className={statusColor[task.status]}>
         <span className="capitalize">{task.status}</span>
       </SelectTrigger>
 
