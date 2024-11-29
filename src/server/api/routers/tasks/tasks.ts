@@ -80,6 +80,7 @@ const tasksRouter = createTRPCRouter({
             ],
           },
         },
+        include: { asignee: true },
       });
     }),
 

@@ -1,3 +1,5 @@
+import noop from "lodash/noop";
+
 import { Badge } from "~/components/ui/badge";
 import {
   DrawerContent,
@@ -7,11 +9,11 @@ import {
 } from "~/components/ui/drawer";
 import { Textarea } from "~/components/ui/textarea";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
-import { TaskStatusSelect } from "../../../tasksList";
 import { Label } from "~/components/ui/label";
 import { EditableInput } from "~/components/ui/editableInput";
 import { api } from "~/trpc/react";
-import { noop } from "lodash";
+import { TaskStatusSelect } from "../../../tasksList";
+import AsigneeSelect from "./asigneeSelect";
 
 type TaskDrawerContentProps = {
   task: NonNullable<TasksRouterOutput["getTask"]>;
@@ -67,6 +69,8 @@ export default function TaskDrawerContent({
           <Label>Description</Label>
           <Textarea placeholder="Type your message here." className="h-24" />
         </div>
+
+        <AsigneeSelect task={task} />
       </DrawerHeader>
     </DrawerContent>
   );
