@@ -5,6 +5,7 @@ import map from "lodash/map";
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { api } from "~/trpc/react";
+import { UNASSIGNED_USER_ID } from "~/lib/schemas/taskSchemas";
 
 import {
   Select,
@@ -12,6 +13,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "~/components/ui/select";
+import { Label } from "~/components/ui/label";
 
 type Task = NonNullable<TasksRouterOutput["getTask"]>;
 type AssingeeUser = NonNullable<
@@ -20,9 +22,15 @@ type AssingeeUser = NonNullable<
 
 type AsigneeSelectProps = {
   task: Task;
+  isUpdating: boolean;
+  updateTask: (assigneeId: string) => Promise<void>;
 };
 
-export default function AsigneeSelect({ task }: AsigneeSelectProps) {
+export default function AsigneeSelect({
+  task,
+  isUpdating,
+  updateTask,
+}: AsigneeSelectProps) {
   const [project] = api.projects.getProject.useSuspenseQuery({
     id: task.projectId,
   });
@@ -32,17 +40,29 @@ export default function AsigneeSelect({ task }: AsigneeSelectProps) {
     [project?.users],
   );
 
+  const handleChange = (value: string) => {
+    return updateTask(value === UNASSIGNED_VALUE ? UNASSIGNED_USER_ID : value);
+  };
+
   return (
-    <div className="flex w-full flex-row items-center gap-4">
-      Asignee
-      <Select>
+    <div className="flex w-full flex-col gap-1">
+      <Label>Asignee</Label>
+      <Select disabled={isUpdating} onValueChange={handleChange}>
         <SelectTrigger>
-          <span className="capitalize">Unassigned</span>
+          <span className="capitalize">
+            {task.asignee
+              ? `${task.asignee?.firstName} ${task.asignee?.lastName}`
+              : "Unassigned"}
+          </span>
         </SelectTrigger>
 
         <SelectContent>
           {map(options, (opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
+            <SelectItem
+              key={opt.value}
+              value={opt.value}
+              className="cursor-pointer"
+            >
               {opt.label}
             </SelectItem>
           ))}
@@ -52,11 +72,13 @@ export default function AsigneeSelect({ task }: AsigneeSelectProps) {
   );
 }
 
+const UNASSIGNED_VALUE = "unassigned";
+
 const getAssigneeOptions = (users: AssingeeUser[] | undefined) => {
   return [
     {
       label: "Unassigned",
-      value: "unassigned",
+      value: UNASSIGNED_VALUE,
     },
     ...map(users, (u) => ({
       label: `${u.firstName} ${u.lastName}`,

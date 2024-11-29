@@ -1,10 +1,18 @@
 import { type Prisma, TaskStatus } from "@prisma/client";
-import { type inferRouterOutputs, TRPCError } from "@trpc/server";
+import {
+  type inferRouterInputs,
+  type inferRouterOutputs,
+  TRPCError,
+} from "@trpc/server";
 import { z } from "zod";
 
 import padStart from "lodash/padStart";
 
-import { NewTaskSchema, UpdateTaskSchema } from "~/lib/schemas/taskSchemas";
+import {
+  NewTaskSchema,
+  UNASSIGNED_USER_ID,
+  UpdateTaskSchema,
+} from "~/lib/schemas/taskSchemas";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
@@ -108,6 +116,12 @@ const tasksRouter = createTRPCRouter({
         updates.title = input.title;
       }
 
+      if (input.assigneeId && input.assigneeId !== UNASSIGNED_USER_ID) {
+        updates.asignee = { connect: { id: input.assigneeId } };
+      } else if (input.assigneeId === UNASSIGNED_USER_ID) {
+        updates.asignee = { disconnect: true };
+      }
+
       return ctx.db.task.update({
         where: {
           id: input.taskId,
@@ -133,5 +147,6 @@ export const generateTaskTicker = (
 };
 
 export type TasksRouterOutput = inferRouterOutputs<typeof tasksRouter>;
+export type TasksRouterInput = inferRouterInputs<typeof tasksRouter>;
 
 export default tasksRouter;
