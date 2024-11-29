@@ -122,6 +122,14 @@ const tasksRouter = createTRPCRouter({
         updates.asignee = { disconnect: true };
       }
 
+      if (input.description !== undefined) {
+        if (input.description.trim() === "") {
+          updates.description = null;
+        } else {
+          updates.description = input.description;
+        }
+      }
+
       return ctx.db.task.update({
         where: {
           id: input.taskId,

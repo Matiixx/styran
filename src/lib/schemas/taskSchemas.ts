@@ -6,6 +6,8 @@ export const NewTaskSchema = z.object({
   type: z.nativeEnum(TaskType),
 });
 
+export const UNASSIGNED_USER_ID = "unassigned";
+
 export const UpdateTaskSchema = z.object({
   taskId: z.string(),
   projectId: z.string(),
@@ -13,4 +15,5 @@ export const UpdateTaskSchema = z.object({
   title: z.string().optional(),
   status: z.nativeEnum(TaskStatus).optional(),
   assigneeId: z.string().optional(),
+  description: z.string().optional(),
 });

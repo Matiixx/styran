@@ -1,5 +1,7 @@
 import noop from "lodash/noop";
 
+import { api } from "~/trpc/react";
+
 import { Badge } from "~/components/ui/badge";
 import {
   DrawerContent,
@@ -7,13 +9,12 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "~/components/ui/drawer";
-import { Textarea } from "~/components/ui/textarea";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
-import { Label } from "~/components/ui/label";
 import { EditableInput } from "~/components/ui/editableInput";
-import { api } from "~/trpc/react";
-import { TaskStatusSelect } from "../../../tasksList";
+
+import { TaskStatusSelect } from "~/app/projects/[id]/backlog/tasksList";
 import AsigneeSelect from "./asigneeSelect";
+import TaskDescription from "./taskDescription";
 
 type TaskDrawerContentProps = {
   task: NonNullable<TasksRouterOutput["getTask"]>;
@@ -25,16 +26,17 @@ export default function TaskDrawerContent({
   closeDrawer,
 }: TaskDrawerContentProps) {
   const utils = api.useUtils();
-  const { mutateAsync: updateTask } = api.tasks.updateTask.useMutation({
-    onSuccess: () =>
-      Promise.all([
-        utils.tasks.getTasks.invalidate({ projectId: task.projectId }),
-        utils.tasks.getTask.invalidate({
-          taskId: task.id,
-          projectId: task.projectId,
-        }),
-      ]),
-  });
+  const { mutateAsync: updateTask, isPending: isUpdating } =
+    api.tasks.updateTask.useMutation({
+      onSuccess: () =>
+        Promise.all([
+          utils.tasks.getTasks.invalidate({ projectId: task.projectId }),
+          utils.tasks.getTask.invalidate({
+            taskId: task.id,
+            projectId: task.projectId,
+          }),
+        ]),
+    });
 
   const saveTitle = (value: string) => {
     return updateTask({
@@ -65,12 +67,28 @@ export default function TaskDrawerContent({
           <TaskStatusSelect task={task} size="default" />
         </div>
 
-        <div>
-          <Label>Description</Label>
-          <Textarea placeholder="Type your message here." className="h-24" />
-        </div>
+        <TaskDescription
+          description={task.description}
+          updateDescription={(description) =>
+            updateTask({
+              taskId: task.id,
+              projectId: task.projectId,
+              description,
+            }).then(noop)
+          }
+        />
 
-        <AsigneeSelect task={task} />
+        <AsigneeSelect
+          task={task}
+          isUpdating={isUpdating}
+          updateTask={(assigneeId) =>
+            updateTask({
+              taskId: task.id,
+              projectId: task.projectId,
+              assigneeId,
+            }).then(noop)
+          }
+        />
       </DrawerHeader>
     </DrawerContent>
   );
