@@ -34,7 +34,7 @@ export default function CurrentSprint() {
 }
 
 const StartSprintSchema = z.object({
-  name: z.string(),
+  name: z.string().min(3),
   goal: z.string().optional(),
   startDate: z.date(),
   endDate: z.date(),
