@@ -35,7 +35,8 @@ model Project {
 
     users User[] @relation("ProjectUsers")
 
-    tasks Task[]
+    tasks  Task[]
+    Sprint Sprint[]
 }
 
 enum TaskType {
@@ -72,4 +73,22 @@ model Task {
 
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
     projectId String
+    Sprint    Sprint? @relation(fields: [sprintId], references: [id])
+    sprintId  String?
+}
+
+model Sprint {
+    id        String   @id @default(cuid())
+    name      String
+    goal      String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    startAt DateTime
+    endAt   DateTime
+
+    project   Project @relation(fields: [projectId], references: [id])
+    projectId String
+
+    tasks Task[]
 }

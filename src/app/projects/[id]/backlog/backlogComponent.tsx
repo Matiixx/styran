@@ -8,6 +8,7 @@ import ProjectPageShell from "../projectPageShell";
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import TaskList from "./tasksList";
+import CurrentSprint from "./curentSprint";
 
 type BacklogComponentProps = {
   id: string;
@@ -34,6 +35,8 @@ const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
           <Button variant="ghost">Users</Button>
         </Link>
       </div>
+
+      <CurrentSprint />
 
       <TaskList userId={userId} projectId={id} />
     </ProjectPageShell>
