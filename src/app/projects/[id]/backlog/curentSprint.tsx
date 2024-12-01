@@ -2,6 +2,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { addDays, addMonths, isBefore, subDays } from "date-fns";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import {
 import { InputWithLabel } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
+import { DatePicker } from "~/components/ui/datePicker";
 
 export default function CurrentSprint() {
   const [open, setOpen] = useState(false);
@@ -34,9 +36,9 @@ export default function CurrentSprint() {
 const StartSprintSchema = z.object({
   name: z.string(),
   goal: z.string().optional(),
-  startDate: z.date().default(new Date()),
+  startDate: z.date(),
   endDate: z.date(),
-  includeTasksFromBacklog: z.boolean().default(false),
+  includeTasksFromBacklog: z.boolean(),
 });
 
 const StartSprintModal = ({
@@ -46,11 +48,22 @@ const StartSprintModal = ({
   isOpen: boolean;
   closeDialog: () => void;
 }) => {
-  const { control, register, reset, handleSubmit } = useForm<
-    z.infer<typeof StartSprintSchema>
-  >({
+  const {
+    control,
+    formState: { errors },
+    reset,
+    register,
+    setValue,
+    getValues,
+    handleSubmit,
+  } = useForm<z.infer<typeof StartSprintSchema>>({
     mode: "onChange",
     resolver: zodResolver(StartSprintSchema),
+    defaultValues: {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 14),
+      includeTasksFromBacklog: false,
+    },
   });
 
   const onSubmit = handleSubmit((data) => {
@@ -66,7 +79,7 @@ const StartSprintModal = ({
               name: "",
               goal: "",
               startDate: new Date(),
-              endDate: new Date(new Date().setDate(new Date().getDate() + 14)),
+              endDate: addDays(new Date(), 14),
               includeTasksFromBacklog: false,
             });
           }
@@ -80,8 +93,8 @@ const StartSprintModal = ({
           <InputWithLabel
             label="Sprint name"
             placeholder="Sprint name"
-            // error={!!errors.name}
-            // errorMessage={errors.name?.message}
+            error={!!errors.name}
+            errorMessage={errors.name?.message}
             {...register("name")}
           />
 
@@ -90,6 +103,45 @@ const StartSprintModal = ({
             placeholder="Sprint goal"
             {...register("goal")}
           />
+
+          <div>
+            <Label>Start date</Label>
+            <Controller
+              control={control}
+              name="startDate"
+              render={({ field: { value, onChange } }) => (
+                <DatePicker
+                  date={value}
+                  setDate={(date) => {
+                    onChange(date);
+                    if (date && isBefore(getValues("endDate"), date)) {
+                      setValue("endDate", addDays(date, 1));
+                    }
+                  }}
+                  className="w-full"
+                  minDate={subDays(new Date(), 1)}
+                  maxDate={addMonths(new Date(), 1)}
+                />
+              )}
+            />
+          </div>
+
+          <div>
+            <Label>End date</Label>
+            <Controller
+              control={control}
+              name="endDate"
+              render={({ field: { value, onChange } }) => (
+                <DatePicker
+                  date={value}
+                  setDate={onChange}
+                  minDate={addDays(getValues("startDate"), 1)}
+                  maxDate={addMonths(getValues("startDate"), 1)}
+                  className="w-full"
+                />
+              )}
+            />
+          </div>
 
           <Controller
             control={control}
