@@ -26,6 +26,7 @@ import { NewTaskSchema } from "~/lib/schemas/taskSchemas";
 import { api } from "~/trpc/react";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { Badge } from "~/components/ui/badge";
+import filter from "lodash/filter";
 
 type TaskListProps = {
   userId: string;
@@ -40,9 +41,12 @@ const TaskList = ({ projectId }: TaskListProps) => {
   return (
     <div className="mx-4 my-8 flex w-full flex-col gap-6 overflow-hidden">
       <div className="flex flex-col gap-4 overflow-y-auto">
-        {map(tasks, (task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
+        {map(
+          filter(tasks, (task) => !task.sprintId),
+          (task) => (
+            <TaskCard key={task.id} task={task} />
+          ),
+        )}
         <AddNewTaskCard projectId={projectId} />
       </div>
     </div>

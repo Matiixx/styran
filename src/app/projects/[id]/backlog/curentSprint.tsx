@@ -1,8 +1,13 @@
 import { useState } from "react";
-import { z } from "zod";
+import { type z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addDays, addMonths, isBefore, subDays } from "date-fns";
+import isEmpty from "lodash/isEmpty";
+
+import { api } from "~/trpc/react";
+import { type ProjectRouterOutput } from "~/server/api/routers/projects";
+import { StartSprintSchema } from "~/lib/schemas/sprintSchemas";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -17,37 +22,52 @@ import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { DatePicker } from "~/components/ui/datePicker";
 
-export default function CurrentSprint() {
+type Project = NonNullable<ProjectRouterOutput["getProject"]>;
+
+export default function CurrentSprint({ project }: { project: Project }) {
   const [open, setOpen] = useState(false);
+
+  const isSprintActive = !isEmpty(project.sprint);
 
   return (
     <>
       <div className="flex flex-row justify-end gap-4">
-        <Button variant="secondary" onClick={() => setOpen(true)}>
-          Start new sprint
-        </Button>
+        {isSprintActive ? (
+          <>End sprint</>
+        ) : (
+          <Button variant="secondary" onClick={() => setOpen(true)}>
+            Start new sprint
+          </Button>
+        )}
       </div>
 
-      <StartSprintModal isOpen={open} closeDialog={() => setOpen(false)} />
+      <StartSprintModal
+        isOpen={open}
+        projectId={project.id}
+        closeDialog={() => setOpen(false)}
+      />
     </>
   );
 }
 
-const StartSprintSchema = z.object({
-  name: z.string().min(3),
-  goal: z.string().optional(),
-  startDate: z.date(),
-  endDate: z.date(),
-  includeTasksFromBacklog: z.boolean(),
-});
-
 const StartSprintModal = ({
   isOpen,
+  projectId,
   closeDialog,
 }: {
   isOpen: boolean;
+  projectId: string;
   closeDialog: () => void;
 }) => {
+  const utils = api.useUtils();
+  const { mutateAsync: startSprint } = api.sprint.startSprint.useMutation({
+    onSuccess: () =>
+      Promise.all([
+        utils.tasks.getTasks.invalidate({ projectId }),
+        utils.projects.getProject.invalidate({ id: projectId }),
+      ]),
+  });
+
   const {
     control,
     formState: { errors },
@@ -67,7 +87,7 @@ const StartSprintModal = ({
   });
 
   const onSubmit = handleSubmit((data) => {
-    console.log(data);
+    return startSprint({ ...data, projectId });
   });
 
   return (

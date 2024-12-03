@@ -36,7 +36,7 @@ const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
         </Link>
       </div>
 
-      <CurrentSprint />
+      <CurrentSprint project={project} />
 
       <TaskList userId={userId} projectId={id} />
     </ProjectPageShell>

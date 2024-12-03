@@ -36,7 +36,7 @@ model Project {
     users User[] @relation("ProjectUsers")
 
     tasks  Task[]
-    Sprint Sprint[]
+    sprint Sprint[]
 }
 
 enum TaskType {
@@ -81,6 +81,7 @@ model Sprint {
     id        String   @id @default(cuid())
     name      String
     goal      String?
+    isActive  Boolean  @default(true)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 

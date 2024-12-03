@@ -42,6 +42,7 @@ const projectsRouter = createTRPCRouter({
               password: false,
             },
           },
+          sprint: { where: { isActive: true } },
         },
       });
 
