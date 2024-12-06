@@ -85,6 +85,7 @@ export const authConfig = {
   session: { strategy: "jwt" },
   pages: { newUser: "/api/auth/register", signOut: "/api/auth/logout" },
   adapter: PrismaAdapter(db),
+  trustHost: true,
   callbacks: {
     session: ({ session, token }) => {
       return {
