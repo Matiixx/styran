@@ -17,6 +17,7 @@ type BacklogComponentProps = {
 
 const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
   const [project] = api.projects.getProject.useSuspenseQuery({ id });
+  const [tasks] = api.tasks.getTasks.useSuspenseQuery({ projectId: id });
 
   if (!project) {
     redirect("/projects");
@@ -36,9 +37,13 @@ const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
         </Link>
       </div>
 
-      <CurrentSprint project={project} />
+      <div className="mx-4 my-8 flex w-full flex-col gap-6 overflow-hidden">
+        <div className="overflow-y-auto">
+          <CurrentSprint project={project} tasks={tasks} />
 
-      <TaskList userId={userId} projectId={id} />
+          <TaskList tasks={tasks} projectId={id} />
+        </div>
+      </div>
     </ProjectPageShell>
   );
 };

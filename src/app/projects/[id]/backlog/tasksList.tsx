@@ -28,21 +28,19 @@ import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { Badge } from "~/components/ui/badge";
 import filter from "lodash/filter";
 
+type Task = TasksRouterOutput["getTasks"][number];
 type TaskListProps = {
-  userId: string;
+  tasks: Task[];
   projectId: string;
 };
 
-type Task = TasksRouterOutput["getTasks"][number];
-
-const TaskList = ({ projectId }: TaskListProps) => {
-  const [tasks] = api.tasks.getTasks.useSuspenseQuery({ projectId });
-
+const TaskList = ({ tasks, projectId }: TaskListProps) => {
   return (
-    <div className="mx-4 my-8 flex w-full flex-col gap-6 overflow-hidden">
-      <div className="flex flex-col gap-4 overflow-y-auto">
+    <div className="mt-8">
+      <span className="text-lg font-semibold">Backlog</span>
+      <div className="flex flex-col gap-4">
         {map(
-          filter(tasks, (task) => !task.sprintId),
+          filter(tasks, (t) => !t.sprintId),
           (task) => (
             <TaskCard key={task.id} task={task} />
           ),
@@ -60,7 +58,7 @@ const TaskTypeIcon: Record<TaskType, React.ReactNode> = {
   TASK: <Vote className="text-blue-500" />,
 };
 
-const TaskCard = ({ task }: { task: Task }) => {
+export const TaskCard = ({ task }: { task: Task }) => {
   return (
     <Link href={`/projects/${task.projectId}/backlog/task/${task.id}`}>
       <Card className="cursor-pointer">
