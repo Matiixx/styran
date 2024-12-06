@@ -56,7 +56,9 @@ export const StartSprintModal = ({
   });
 
   const onSubmit = handleSubmit((data) => {
-    return startSprint({ ...data, projectId });
+    return startSprint({ ...data, projectId }).then(() => {
+      closeDialog();
+    });
   });
 
   return (

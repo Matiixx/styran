@@ -5,6 +5,7 @@ import filter from "lodash/filter";
 import map from "lodash/map";
 
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
+import { cn } from "~/lib/utils";
 
 import { Button } from "~/components/ui/button";
 
@@ -34,7 +35,12 @@ export default function CurrentSprint({
 
   return (
     <div className="bg-white/20">
-      <div className="my-2 flex flex-row items-center justify-between gap-4">
+      <div
+        className={cn(
+          "my-2 flex flex-row items-center gap-4",
+          isSprintActive ? "justify-between" : "justify-end",
+        )}
+      >
         {isSprintActive ? (
           <>
             <div>
