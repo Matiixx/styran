@@ -5,6 +5,7 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { StartSprintSchema } from "~/lib/schemas/sprintSchemas";
 import { startOfDay } from "date-fns";
 import { UTCDate } from "@date-fns/utc";
+import { TaskStatus } from "@prisma/client";
 
 const sprintRouter = createTRPCRouter({
   startSprint: protectedProcedure
@@ -73,6 +74,32 @@ const sprintRouter = createTRPCRouter({
 
         return sprint;
       }
+    }),
+
+  endSprint: protectedProcedure
+    .input(z.object({ sprintId: z.string(), projectId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.$transaction([
+        ctx.db.task.updateMany({
+          where: {
+            project: { id: input.projectId, ownerId: ctx.session.user.id },
+            sprintId: input.sprintId,
+            status: { not: TaskStatus.DONE },
+          },
+          data: { sprintId: null },
+        }),
+
+        ctx.db.sprint.update({
+          where: {
+            id: input.sprintId,
+            project: { id: input.projectId, ownerId: ctx.session.user.id },
+          },
+          data: {
+            endAt: new UTCDate(),
+            isActive: false,
+          },
+        }),
+      ]);
     }),
 });
 

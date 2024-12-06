@@ -64,6 +64,7 @@ const tasksRouter = createTRPCRouter({
               { ownerId: ctx.session.user.id },
             ],
           },
+          OR: [{ Sprint: { isActive: true } }, { sprintId: null }],
         },
         orderBy: { createdAt: "asc" },
       });
