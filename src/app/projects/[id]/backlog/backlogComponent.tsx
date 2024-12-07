@@ -1,12 +1,12 @@
 "use client";
 
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 import { api } from "~/trpc/react";
+import { Button } from "~/components/ui/button";
 
 import ProjectPageShell from "../projectPageShell";
-import { Button } from "~/components/ui/button";
-import Link from "next/link";
 import TaskList from "./tasksList";
 import CurrentSprint from "./curentSprint";
 
@@ -31,6 +31,10 @@ const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
         </Link>
 
         <Button variant="default">Backlog</Button>
+
+        <Link href={`/projects/${id}/board`}>
+          <Button variant="ghost">Board</Button>
+        </Link>
 
         <Link href={`/projects/${id}/users`}>
           <Button variant="ghost">Users</Button>

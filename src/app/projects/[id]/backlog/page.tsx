@@ -27,11 +27,7 @@ export async function BacklogPage({
 
   const id = (await params).id;
 
-  return (
-    <HydrateClient>
-      <BacklogComponent id={id} userId={session.user.id} />
-    </HydrateClient>
-  );
+  return <BacklogComponent id={id} userId={session.user.id} />;
 }
 
 export async function generateMetadata({
