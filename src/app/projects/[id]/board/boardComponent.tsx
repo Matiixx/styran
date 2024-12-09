@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { TaskStatus } from "@prisma/client";
 import { redirect } from "next/navigation";
-import { DndContext, DragEndEvent } from "@dnd-kit/core";
+import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 
 import groupBy from "lodash/groupBy";
 import map from "lodash/map";
@@ -11,10 +12,9 @@ import map from "lodash/map";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { api } from "~/trpc/react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { cn } from "~/lib/utils";
 
 import ProjectPageShell from "../projectPageShell";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { cn } from "~/lib/utils";
 
 type BoardComponentProps = {
   userId: string;
@@ -29,10 +29,11 @@ export default function BoardComponent({
   const [project] = api.projects.getProject.useSuspenseQuery({ id: projectId });
   const [tasks] = api.tasks.getTasks.useSuspenseQuery({ projectId });
 
+  const [tempTasks, setTempTasks] = useState<Tasks>(tasks);
+  const [disabledTasks, setDisabledTasks] = useState<string[]>([]);
+
   const { mutateAsync: updateTask } = api.tasks.updateTask.useMutation({
-    onSuccess: () => {
-      return utils.tasks.getTasks.invalidate({ projectId });
-    },
+    onSuccess: () => utils.tasks.getTasks.invalidate({ projectId }),
   });
 
   if (!project) {
@@ -40,8 +41,8 @@ export default function BoardComponent({
   }
 
   const groupedTasks = useMemo(() => {
-    return groupBy(tasks, (t) => t.status);
-  }, [tasks]);
+    return groupBy(tempTasks, (t) => t.status);
+  }, [tempTasks]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const taskItem = event.active.data.current?.task as Tasks[number];
@@ -51,10 +52,20 @@ export default function BoardComponent({
       return;
     }
 
+    setDisabledTasks((prev) => [...prev, taskItem.id]);
+    setTempTasks((prev) => {
+      const newTasks = prev.map((t) =>
+        t.id === taskItem.id ? { ...t, status: newStatus } : t,
+      );
+      return newTasks;
+    });
+
     return updateTask({
       taskId: taskItem.id,
       status: newStatus,
       projectId,
+    }).finally(() => {
+      setDisabledTasks((prev) => prev.filter((id) => id !== taskItem.id));
     });
   };
 
@@ -68,6 +79,7 @@ export default function BoardComponent({
                 key={status}
                 tasks={groupedTasks[status] ?? []}
                 status={status}
+                disabledTasks={disabledTasks}
               />
             ))}
           </div>
@@ -82,9 +94,10 @@ type Tasks = TasksRouterOutput["getTasks"];
 type BoardColumnProps = {
   tasks: Tasks;
   status: TaskStatus;
+  disabledTasks: string[];
 };
 
-const BoardColumn = ({ tasks, status }: BoardColumnProps) => {
+const BoardColumn = ({ tasks, status, disabledTasks }: BoardColumnProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
   });
@@ -103,7 +116,11 @@ const BoardColumn = ({ tasks, status }: BoardColumnProps) => {
 
       <div className="flex flex-1 flex-col gap-2 p-2">
         {map(tasks, (t) => (
-          <TaskCard key={t.id} task={t} />
+          <TaskCard
+            key={t.id}
+            task={t}
+            disabled={disabledTasks.includes(t.id)}
+          />
         ))}
       </div>
     </div>
@@ -112,12 +129,14 @@ const BoardColumn = ({ tasks, status }: BoardColumnProps) => {
 
 type TaskCardProps = {
   task: Tasks[number];
+  disabled?: boolean;
 };
 
-const TaskCard = ({ task }: TaskCardProps) => {
+const TaskCard = ({ task, disabled }: TaskCardProps) => {
   const { attributes, listeners, transform, setNodeRef } = useDraggable({
     id: task.id,
     data: { task },
+    disabled,
   });
 
   const style = transform
@@ -128,7 +147,10 @@ const TaskCard = ({ task }: TaskCardProps) => {
 
   return (
     <Card
-      className="flex cursor-move flex-col border border-black/50 bg-white/10 p-2 text-white will-change-transform hover:text-black"
+      className={cn(
+        "flex cursor-move flex-col border border-black/50 bg-white/10 p-2 text-white will-change-transform hover:text-black",
+        disabled && "opacity-50",
+      )}
       style={style}
       ref={setNodeRef}
       {...listeners}
