@@ -42,33 +42,3 @@ export async function generateMetadata({
 }
 
 export default BoardPage;
-
-/**
- * 
- * 
- * <ProjectPageShell userId={user.id} project={project}>
-      <div className="flex flex-row gap-4">
-        <Link href={`/projects/${projectId}`}>
-          <Button variant="ghost">Main</Button>
-        </Link>
-
-        <Link href={`/projects/${projectId}/backlog`}>
-          <Button variant="ghost">Backlog</Button>
-        </Link>
-
-        <Button variant="default">Users</Button>
-      </div>
-
-      <UsersList
-        users={[
-          {
-            ...user,
-            firstName: user.firstName ?? "",
-            lastName: user.lastName ?? "",
-          },
-          ...project.users,
-        ]}
-        project={project}
-      />
-    </ProjectPageShell>
- */
