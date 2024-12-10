@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { TaskStatus } from "@prisma/client";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
@@ -13,6 +14,7 @@ import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { api } from "~/trpc/react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
+import { Button } from "~/components/ui/button";
 
 import ProjectPageShell from "../projectPageShell";
 
@@ -72,6 +74,22 @@ export default function BoardComponent({
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <ProjectPageShell project={project} userId={userId}>
+        <div className="flex flex-row gap-4">
+          <Link href={`/projects/${projectId}`}>
+            <Button variant="ghost">Main</Button>
+          </Link>
+
+          <Link href={`/projects/${projectId}/backlog`}>
+            <Button variant="ghost">Backlog</Button>
+          </Link>
+
+          <Button variant="default">Board</Button>
+
+          <Link href={`/projects/${projectId}/users`}>
+            <Button variant="ghost">Users</Button>
+          </Link>
+        </div>
+
         <div className="mt-4 w-full flex-1 overflow-y-auto">
           <div className="flex min-h-full flex-row justify-between gap-4">
             {map(TaskStatus, (status) => (
@@ -105,7 +123,7 @@ const BoardColumn = ({ tasks, status, disabledTasks }: BoardColumnProps) => {
   return (
     <div
       className={cn(
-        "flex flex-1 select-none flex-col border border-black bg-black/20 shadow",
+        "flex flex-1 select-none flex-col border border-black bg-black/20 shadow transition-colors",
         isOver ? "border-green-500" : "",
       )}
       ref={setNodeRef}

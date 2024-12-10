@@ -145,6 +145,49 @@ const tasksRouter = createTRPCRouter({
         data: updates,
       });
     }),
+
+  moveTask: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        taskId: z.string(),
+        sprint: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { projectId, taskId, sprint } = input;
+      if (sprint) {
+        const currentSprint = await ctx.db.sprint.findFirst({
+          where: {
+            project: {
+              id: projectId,
+              OR: [
+                { users: { some: { id: ctx.session.user.id } } },
+                { ownerId: ctx.session.user.id },
+              ],
+            },
+            isActive: true,
+          },
+        });
+
+        if (!currentSprint) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "No active sprint found",
+          });
+        }
+
+        return ctx.db.task.update({
+          where: { id: taskId, projectId },
+          data: { sprintId: currentSprint.id },
+        });
+      }
+
+      return ctx.db.task.update({
+        where: { id: taskId, projectId },
+        data: { Sprint: { disconnect: true } },
+      });
+    }),
 });
 
 export const generateTaskTicker = (

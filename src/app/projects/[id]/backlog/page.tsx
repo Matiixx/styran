@@ -2,7 +2,7 @@ import { type Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { auth } from "~/server/auth";
-import { api, HydrateClient } from "~/trpc/server";
+import { api } from "~/trpc/server";
 
 import BacklogComponent from "./backlogComponent";
 

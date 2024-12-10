@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDroppable } from "@dnd-kit/core";
 
 import isEmpty from "lodash/isEmpty";
 import filter from "lodash/filter";
@@ -29,12 +30,19 @@ export default function CurrentSprint({
   tasks: Task[];
   project: Project;
 }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: "currentSprint",
+  });
+
   const [open, setOpen] = useState<DialogType | null>(null);
 
   const isSprintActive = !isEmpty(project.sprint);
 
   return (
-    <div className="bg-white/20">
+    <div
+      className={cn("bg-white/20", isOver ? "bg-white/40" : "")}
+      ref={setNodeRef}
+    >
       <div
         className={cn(
           "my-2 flex flex-row items-center gap-4",

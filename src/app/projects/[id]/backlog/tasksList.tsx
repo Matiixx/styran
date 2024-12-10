@@ -1,9 +1,13 @@
+"use client";
+
 import { TaskStatus, TaskType } from "@prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { type z } from "zod";
-import Link from "next/link";
+import { redirect } from "next/navigation";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 
+import filter from "lodash/filter";
 import map from "lodash/map";
 import toLower from "lodash/toLower";
 import upperFirst from "lodash/upperFirst";
@@ -26,7 +30,7 @@ import { NewTaskSchema } from "~/lib/schemas/taskSchemas";
 import { api } from "~/trpc/react";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { Badge } from "~/components/ui/badge";
-import filter from "lodash/filter";
+import { cn } from "~/lib/utils";
 
 type Task = TasksRouterOutput["getTasks"][number];
 type TaskListProps = {
@@ -35,8 +39,15 @@ type TaskListProps = {
 };
 
 const TaskList = ({ tasks, projectId }: TaskListProps) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: "backlog",
+  });
+
   return (
-    <div className="mt-8">
+    <div
+      className={cn("mt-8 transition-all", isOver ? "bg-black/30" : "")}
+      ref={setNodeRef}
+    >
       <span className="text-lg font-semibold">Backlog</span>
       <div className="flex flex-col gap-4">
         {map(
@@ -59,30 +70,46 @@ const TaskTypeIcon: Record<TaskType, React.ReactNode> = {
 };
 
 export const TaskCard = ({ task }: { task: Task }) => {
+  const { attributes, listeners, transform, setNodeRef } = useDraggable({
+    id: task.id,
+    data: { task },
+  });
+
+  const style = transform
+    ? { transform: `translate3d(0, ${transform.y}px, 0)` }
+    : undefined;
+
+  const handleClick = () => {
+    redirect(`/projects/${task.projectId}/backlog/task/${task.id}`);
+  };
+
   return (
-    <Link href={`/projects/${task.projectId}/backlog/task/${task.id}`}>
-      <Card className="cursor-pointer">
-        <CardContent className="flex flex-row justify-between">
-          <div className="flex flex-row items-center gap-2">
-            {TaskTypeIcon[task.type]}
-            <Badge
-              variant="outline"
-              className={task.status === TaskStatus.DONE ? "line-through" : ""}
-            >
-              {task.ticker}
-            </Badge>
-            <p
-              className={task.status === TaskStatus.DONE ? "line-through" : ""}
-            >
-              {task.title}
-            </p>
-          </div>
-          <div>
-            <TaskStatusSelect task={task} />
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
+    <Card
+      className="cursor-pointer"
+      style={style}
+      ref={setNodeRef}
+      onClick={handleClick}
+      {...attributes}
+      {...listeners}
+    >
+      <CardContent className="flex flex-row justify-between">
+        <div className="flex flex-row items-center gap-2">
+          {TaskTypeIcon[task.type]}
+          <Badge
+            variant="outline"
+            className={task.status === TaskStatus.DONE ? "line-through" : ""}
+          >
+            {task.ticker}
+          </Badge>
+          <p className={task.status === TaskStatus.DONE ? "line-through" : ""}>
+            {task.title}
+          </p>
+        </div>
+        <div>
+          <TaskStatusSelect task={task} />
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
