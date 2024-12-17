@@ -151,8 +151,8 @@ export const TaskStatusSelect = ({
   return (
     <Select
       value={task.status}
-      onValueChange={onStatusChange}
       disabled={isPending}
+      onValueChange={onStatusChange}
     >
       <SelectTrigger size={size} className={statusColor[task.status]}>
         <span className="capitalize">{task.status}</span>
