@@ -10,8 +10,6 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 
-import filter from "lodash/filter";
-
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
@@ -19,7 +17,7 @@ import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import ProjectPageShell from "../projectPageShell";
 import TaskList from "./tasksList";
 import CurrentSprint from "./curentSprint";
-import { ALL_SELECT, SortTasksHeader } from "./sortHeader";
+import { ALL_SELECT, filterTasks, SortTasksHeader } from "./sortHeader";
 
 type BacklogComponentProps = {
   id: string;
@@ -64,27 +62,10 @@ const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
     });
   };
 
-  const filteredTasks = useMemo(() => {
-    let filtered = filter(tasks, (task) => {
-      return (
-        task.title.toLowerCase().includes(search.toLowerCase()) ||
-        task.ticker.toLowerCase().includes(search.toLowerCase())
-      );
-    });
-
-    if (statusFilter !== ALL_SELECT) {
-      filtered = filter(
-        filtered,
-        (task) => task.status.toLowerCase() === statusFilter.toLowerCase(),
-      );
-    }
-
-    if (userFilter !== ALL_SELECT) {
-      filtered = filter(filtered, (task) => task.asigneeId === userFilter);
-    }
-
-    return filtered;
-  }, [tasks, statusFilter, userFilter, search]);
+  const filteredTasks = useMemo(
+    () => filterTasks(tasks, search, statusFilter, userFilter),
+    [tasks, statusFilter, userFilter, search],
+  );
 
   if (!project) {
     redirect("/projects");

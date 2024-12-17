@@ -1,9 +1,10 @@
 import { type FC } from "react";
 import { TaskStatus } from "@prisma/client";
 
-import { map } from "lodash";
+import { filter, map } from "lodash";
 
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
+import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { Input } from "~/components/ui/input";
 import {
   Select,
@@ -14,15 +15,16 @@ import {
 } from "~/components/ui/select";
 
 type User = NonNullable<ProjectRouterOutput["getProject"]>["users"][number];
+type Task = TasksRouterOutput["getTasks"][number];
 
 type SortTasksHeaderProps = {
   users: User[];
   search: string;
   userFilter: string;
-  statusFilter: string;
+  statusFilter?: string;
   setSearch: (search: string) => void;
   setUserFilter: (filter: string) => void;
-  setStatusFilter: (filter: string) => void;
+  setStatusFilter?: (filter: string) => void;
 };
 
 export const ALL_SELECT = "ALL";
@@ -44,21 +46,22 @@ const SortTasksHeader: FC<SortTasksHeaderProps> = ({
         className="max-w-[180px]"
         onChange={(e) => setSearch(e.currentTarget.value)}
       />
+      {statusFilter && setStatusFilter && (
+        <Select value={statusFilter} onValueChange={(e) => setStatusFilter(e)}>
+          <SelectTrigger className="w-[160px] text-black">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
 
-      <Select value={statusFilter} onValueChange={(e) => setStatusFilter(e)}>
-        <SelectTrigger className="w-[160px] text-black">
-          <SelectValue placeholder="Select status" />
-        </SelectTrigger>
-
-        <SelectContent>
-          <SelectItem value={ALL_SELECT}>All statuses</SelectItem>
-          {map(TaskStatus, (status, key) => (
-            <SelectItem key={key} value={status}>
-              {status.replace("_", " ")}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          <SelectContent>
+            <SelectItem value={ALL_SELECT}>All statuses</SelectItem>
+            {map(TaskStatus, (status, key) => (
+              <SelectItem key={key} value={status}>
+                {status.replace("_", " ")}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
       <Select value={userFilter} onValueChange={(e) => setUserFilter(e)}>
         <SelectTrigger className="w-[160px] text-black">
@@ -76,6 +79,33 @@ const SortTasksHeader: FC<SortTasksHeaderProps> = ({
       </Select>
     </div>
   );
+};
+
+export const filterTasks = (
+  tasks: Task[],
+  search: string,
+  userFilter: string,
+  statusFilter?: string,
+) => {
+  let filtered = filter(tasks, (task) => {
+    return (
+      task.title.toLowerCase().includes(search.toLowerCase()) ||
+      task.ticker.toLowerCase().includes(search.toLowerCase())
+    );
+  });
+
+  if (statusFilter && statusFilter !== ALL_SELECT) {
+    filtered = filter(
+      filtered,
+      (task) => task.status.toLowerCase() === statusFilter.toLowerCase(),
+    );
+  }
+
+  if (userFilter !== ALL_SELECT) {
+    filtered = filter(filtered, (task) => task.asigneeId === userFilter);
+  }
+
+  return filtered;
 };
 
 export { SortTasksHeader };

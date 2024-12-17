@@ -17,6 +17,11 @@ import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 
 import ProjectPageShell from "../projectPageShell";
+import {
+  ALL_SELECT,
+  filterTasks,
+  SortTasksHeader,
+} from "../backlog/sortHeader";
 
 type BoardComponentProps = {
   userId: string;
@@ -38,13 +43,21 @@ export default function BoardComponent({
     onSuccess: () => utils.tasks.getTasks.invalidate({ projectId }),
   });
 
+  const [search, setSearch] = useState("");
+  const [userFilter, setUserFilter] = useState(ALL_SELECT);
+
   if (!project) {
     redirect("/projects");
   }
 
+  const filteredTasks = useMemo(
+    () => filterTasks(tempTasks, search, userFilter),
+    [tempTasks, userFilter, search],
+  );
+
   const groupedTasks = useMemo(() => {
-    return groupBy(tempTasks, (t) => t.status);
-  }, [tempTasks]);
+    return groupBy(filteredTasks, (t) => t.status);
+  }, [filteredTasks]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const taskItem = event.active.data.current?.task as Tasks[number];
@@ -88,6 +101,16 @@ export default function BoardComponent({
           <Link href={`/projects/${projectId}/users`}>
             <Button variant="ghost">Users</Button>
           </Link>
+        </div>
+
+        <div className="m-4">
+          <SortTasksHeader
+            users={project.users}
+            search={search}
+            userFilter={userFilter}
+            setSearch={setSearch}
+            setUserFilter={setUserFilter}
+          />
         </div>
 
         <div className="mt-4 w-full flex-1 overflow-y-auto">
