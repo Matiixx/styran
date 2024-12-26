@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import {
   DndContext,
   PointerSensor,
@@ -11,8 +10,8 @@ import {
 } from "@dnd-kit/core";
 
 import { api } from "~/trpc/react";
-import { Button } from "~/components/ui/button";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
+import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
 
 import ProjectPageShell from "../projectPageShell";
 import TaskList from "./tasksList";
@@ -73,21 +72,7 @@ const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
 
   return (
     <ProjectPageShell project={project} userId={userId}>
-      <div className="flex flex-row gap-4">
-        <Link href={`/projects/${id}`}>
-          <Button variant="ghost">Main</Button>
-        </Link>
-
-        <Button variant="default">Backlog</Button>
-
-        <Link href={`/projects/${id}/board`}>
-          <Button variant="ghost">Board</Button>
-        </Link>
-
-        <Link href={`/projects/${id}/users`}>
-          <Button variant="ghost">Users</Button>
-        </Link>
-      </div>
+      <ProjectNavigationButtons id={id} />
 
       <div className="m-4">
         <SortTasksHeader

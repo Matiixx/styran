@@ -16,4 +16,6 @@ export const UpdateTaskSchema = z.object({
   status: z.nativeEnum(TaskStatus).optional(),
   assigneeId: z.string().optional(),
   description: z.string().optional(),
+  startAt: z.date().optional(),
+  doneAt: z.date().optional(),
 });

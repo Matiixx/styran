@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { type Session } from "next-auth";
 
 import { api } from "~/trpc/react";
-import { Button } from "~/components/ui/button";
+import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
 
 import ProjectPageShell from "../projectPageShell";
 import UsersList from "./usersList";
@@ -27,21 +26,7 @@ const UsersProjectComponent = ({
 
   return (
     <ProjectPageShell userId={user.id} project={project}>
-      <div className="flex flex-row gap-4">
-        <Link href={`/projects/${projectId}`}>
-          <Button variant="ghost">Main</Button>
-        </Link>
-
-        <Link href={`/projects/${projectId}/backlog`}>
-          <Button variant="ghost">Backlog</Button>
-        </Link>
-
-        <Link href={`/projects/${projectId}/board`}>
-          <Button variant="ghost">Board</Button>
-        </Link>
-
-        <Button variant="default">Users</Button>
-      </div>
+      <ProjectNavigationButtons id={projectId} />
 
       <UsersList
         users={[

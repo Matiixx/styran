@@ -3,9 +3,8 @@
 import { redirect } from "next/navigation";
 
 import { api } from "~/trpc/react";
-import { Button } from "~/components/ui/button";
+import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
 
-import Link from "next/link";
 import ProjectPageShell from "./projectPageShell";
 
 const ProjectComponent = ({ id, userId }: { id: string; userId: string }) => {
@@ -17,21 +16,7 @@ const ProjectComponent = ({ id, userId }: { id: string; userId: string }) => {
 
   return (
     <ProjectPageShell userId={userId} project={project}>
-      <div className="flex flex-row gap-4">
-        <Button variant="default">Main</Button>
-
-        <Link href={`/projects/${id}/backlog`}>
-          <Button variant="ghost">Backlog</Button>
-        </Link>
-
-        <Link href={`/projects/${id}/board`}>
-          <Button variant="ghost">Board</Button>
-        </Link>
-
-        <Link href={`/projects/${id}/users`}>
-          <Button variant="ghost">Users</Button>
-        </Link>
-      </div>
+      <ProjectNavigationButtons id={id} />
 
       {JSON.stringify(project)}
     </ProjectPageShell>

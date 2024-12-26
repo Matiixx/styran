@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { TaskStatus } from "@prisma/client";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
@@ -14,7 +13,7 @@ import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { api } from "~/trpc/react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
-import { Button } from "~/components/ui/button";
+import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
 
 import ProjectPageShell from "../projectPageShell";
 import {
@@ -87,21 +86,7 @@ export default function BoardComponent({
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <ProjectPageShell project={project} userId={userId}>
-        <div className="flex flex-row gap-4">
-          <Link href={`/projects/${projectId}`}>
-            <Button variant="ghost">Main</Button>
-          </Link>
-
-          <Link href={`/projects/${projectId}/backlog`}>
-            <Button variant="ghost">Backlog</Button>
-          </Link>
-
-          <Button variant="default">Board</Button>
-
-          <Link href={`/projects/${projectId}/users`}>
-            <Button variant="ghost">Users</Button>
-          </Link>
-        </div>
+        <ProjectNavigationButtons id={projectId} />
 
         <div className="m-4">
           <SortTasksHeader

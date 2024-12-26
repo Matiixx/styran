@@ -100,21 +100,22 @@ const tasksRouter = createTRPCRouter({
 
       if (input.status) {
         updates.status = input.status;
-        if (updates.status === TaskStatus.TODO) {
-          updates.doneAt = null;
-          updates.startAt = null;
-        } else if (updates.status === TaskStatus.DONE) {
+
+        if (updates.status === TaskStatus.DONE) {
           updates.doneAt = new Date();
-        } else if (
-          updates.status === TaskStatus.IN_PROGRESS ||
-          updates.status === TaskStatus.IN_REVIEW
-        ) {
-          updates.startAt = new Date();
         }
       }
 
       if (input.title) {
         updates.title = input.title;
+      }
+
+      if (input.startAt) {
+        updates.startAt = input.startAt;
+      }
+
+      if (input.doneAt) {
+        updates.doneAt = input.doneAt;
       }
 
       if (input.assigneeId && input.assigneeId !== UNASSIGNED_USER_ID) {
