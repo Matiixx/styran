@@ -1,4 +1,4 @@
-import { type FC } from "react";
+import { type PropsWithChildren, type FC } from "react";
 import { TaskStatus } from "@prisma/client";
 
 import { filter, map } from "lodash";
@@ -17,7 +17,7 @@ import {
 type User = NonNullable<ProjectRouterOutput["getProject"]>["users"][number];
 type Task = TasksRouterOutput["getTasks"][number];
 
-type SortTasksHeaderProps = {
+type SortTasksHeaderProps = PropsWithChildren<{
   users: User[];
   search: string;
   userFilter: string;
@@ -25,13 +25,14 @@ type SortTasksHeaderProps = {
   setSearch: (search: string) => void;
   setUserFilter: (filter: string) => void;
   setStatusFilter?: (filter: string) => void;
-};
+}>;
 
 export const ALL_SELECT = "ALL";
 
 const SortTasksHeader: FC<SortTasksHeaderProps> = ({
   users,
   search,
+  children,
   userFilter,
   statusFilter,
   setSearch,
@@ -77,6 +78,8 @@ const SortTasksHeader: FC<SortTasksHeaderProps> = ({
           ))}
         </SelectContent>
       </Select>
+
+      {children}
     </div>
   );
 };

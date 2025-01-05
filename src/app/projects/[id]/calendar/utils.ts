@@ -2,21 +2,36 @@ import dayjs from "dayjs";
 import { type Event } from "react-big-calendar";
 import stc from "string-to-color";
 
+import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 
 type Task = TasksRouterOutput["getTasks"][number];
+type Sprint = NonNullable<ProjectRouterOutput["getProject"]>["sprint"];
 
 interface TaskEvent extends Event {
   start: Date;
   end: Date;
-  resource: {
-    id: string;
-  };
+  resource: { id: string };
 }
 
-const toBigCalendarEvent = (task: Task): TaskEvent => {
+const sprintToCalendarEvent = (
+  sprint: Sprint | undefined,
+): TaskEvent | null => {
+  if (!sprint?.[0]) return null;
+
+  const currentSprint = sprint[0];
+
   return {
-    title: task.title,
+    title: currentSprint.name,
+    start: dayjs(currentSprint.startAt).toDate(),
+    end: dayjs(currentSprint.endAt).toDate(),
+    resource: { id: currentSprint.id },
+  };
+};
+
+const taskToCalendarEvent = (task: Task): TaskEvent => {
+  return {
+    title: `[${task.ticker}] ${task.title}`,
     start: dayjs(task.startAt).toDate(),
     end: task.doneAt ? dayjs(task.doneAt).toDate() : dayjs().toDate(),
     resource: { id: task.id },
@@ -48,4 +63,9 @@ const stringToRGB = (str: string) => {
   return { background, foreground: contrastColor(background) };
 };
 
-export { toBigCalendarEvent, type TaskEvent, stringToRGB };
+export {
+  taskToCalendarEvent,
+  sprintToCalendarEvent,
+  type TaskEvent,
+  stringToRGB,
+};

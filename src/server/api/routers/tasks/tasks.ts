@@ -95,11 +95,30 @@ const tasksRouter = createTRPCRouter({
 
   updateTask: protectedProcedure
     .input(UpdateTaskSchema)
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const updates: Prisma.TaskUpdateInput = {};
+      const currentState = await ctx.db.task.findUnique({
+        where: {
+          id: input.taskId,
+          project: {
+            id: input.projectId,
+            OR: [
+              { users: { some: { id: ctx.session.user.id } } },
+              { ownerId: ctx.session.user.id },
+            ],
+          },
+        },
+      });
 
       if (input.status) {
         updates.status = input.status;
+
+        if (
+          !currentState?.startAt &&
+          updates.status === TaskStatus.IN_PROGRESS
+        ) {
+          updates.startAt = new Date();
+        }
 
         if (updates.status === TaskStatus.DONE) {
           updates.doneAt = new Date();
