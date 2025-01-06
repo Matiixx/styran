@@ -15,6 +15,7 @@ import { EditableInput } from "~/components/ui/editableInput";
 import { TaskStatusSelect } from "~/app/projects/[id]/backlog/tasksList";
 import AsigneeSelect from "./asigneeSelect";
 import TaskDescription from "./taskDescription";
+import TaskStoryPoints from "./taskStorypoints";
 
 type TaskDrawerContentProps = {
   task: NonNullable<TasksRouterOutput["getTask"]>;
@@ -43,6 +44,14 @@ export default function TaskDrawerContent({
       taskId: task.id,
       projectId: task.projectId,
       title: value,
+    }).then(noop);
+  };
+
+  const saveStoryPoints = (value: number | null) => {
+    return updateTask({
+      taskId: task.id,
+      projectId: task.projectId,
+      storyPoints: value,
     }).then(noop);
   };
 
@@ -88,6 +97,13 @@ export default function TaskDrawerContent({
               assigneeId,
             }).then(noop)
           }
+        />
+
+        <TaskStoryPoints
+          storyPoints={
+            task.storyPoints !== null ? task.storyPoints.toString() : null
+          }
+          updateStoryPoints={saveStoryPoints}
         />
       </DrawerHeader>
     </DrawerContent>

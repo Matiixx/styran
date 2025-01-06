@@ -64,9 +64,10 @@ model Task {
     createdBy   User     @relation(name: "TaskCreatedBy", fields: [createdById], references: [id])
     createdById String
 
-    status  TaskStatus @default(TODO)
-    startAt DateTime?
-    doneAt  DateTime?
+    status      TaskStatus @default(TODO)
+    startAt     DateTime?
+    doneAt      DateTime?
+    storyPoints Int?
 
     asignee   User?   @relation(name: "TaskAsignee", fields: [asigneeId], references: [id])
     asigneeId String?

@@ -18,4 +18,5 @@ export const UpdateTaskSchema = z.object({
   description: z.string().optional(),
   startAt: z.date().optional(),
   doneAt: z.date().optional(),
+  storyPoints: z.number().nullable().optional(),
 });
