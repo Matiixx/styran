@@ -105,7 +105,11 @@ export const TaskCard = ({ task }: { task: Task }) => {
             {task.title}
           </p>
         </div>
-        <div>
+
+        <div className="flex flex-row items-center gap-2">
+          {task.storyPoints !== null && (
+            <Badge variant="outline">{task.storyPoints}</Badge>
+          )}
           <TaskStatusSelect task={task} />
         </div>
       </CardContent>
