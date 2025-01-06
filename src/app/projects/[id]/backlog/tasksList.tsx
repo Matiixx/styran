@@ -113,7 +113,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
   );
 };
 
-const statusColor: Record<TaskStatus, string> = {
+export const statusColor: Record<TaskStatus, string> = {
   TODO: "bg-gray-400",
   IN_PROGRESS: "bg-blue-400",
   IN_REVIEW: "bg-blue-400",
