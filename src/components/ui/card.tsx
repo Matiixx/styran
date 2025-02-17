@@ -14,17 +14,23 @@ const cardVariants = cva(
         compact: "p-4",
         dense: "p-2",
       },
+      disableHover: {
+        true: "hover:bg-card",
+      },
     },
   },
 );
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof cardVariants>
->(({ className, variant, size, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> &
+    VariantProps<typeof cardVariants> & {
+      disableHover?: boolean;
+    }
+>(({ className, variant, size, disableHover, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn(cardVariants({ variant, size, className }))}
+    className={cn(cardVariants({ variant, size, className, disableHover }))}
     {...props}
   />
 ));

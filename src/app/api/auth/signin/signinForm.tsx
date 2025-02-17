@@ -54,7 +54,7 @@ const SignInForm = () => {
   });
 
   return (
-    <Card className="w-full max-w-lg">
+    <Card className="w-full max-w-lg" disableHover>
       <CardHeader>
         <CardTitle>Login</CardTitle>
       </CardHeader>

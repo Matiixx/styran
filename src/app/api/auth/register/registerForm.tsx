@@ -55,7 +55,7 @@ export const RegisterForm = () => {
   );
 
   return (
-    <Card className="w-full max-w-lg">
+    <Card className="w-full max-w-lg" disableHover>
       <CardHeader>
         <CardTitle>Register</CardTitle>
       </CardHeader>
