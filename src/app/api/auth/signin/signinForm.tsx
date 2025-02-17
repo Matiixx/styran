@@ -87,6 +87,12 @@ const SignInForm = () => {
         </Link>
         <Button onClick={onSubmit}>Login</Button>
       </CardFooter>
+
+      <div className="mt-4 flex justify-center">
+        <Link href="/api/auth/forget">
+          <Button variant="link">Forgot password?</Button>
+        </Link>
+      </div>
     </Card>
   );
 };

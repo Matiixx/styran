@@ -1,11 +1,14 @@
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { z } from "zod";
+
+import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { EMAIL_DUPLICATION } from "~/lib/errorCodes";
 
 import { registerSchema } from "./types";
-import { TRPCError } from "@trpc/server";
+import { sendEmail } from "~/server/mailgun";
 
 const SALT_ROUNDS = 12;
 
@@ -33,6 +36,49 @@ const userRouter = createTRPCRouter({
           }
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         });
+    }),
+
+  sendResetEmail: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db.user.findUnique({
+        where: { email: input.email },
+      });
+
+      if (!user) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const resetPasswordCode = user.id;
+
+      return `http://localhost:3000/api/auth/reset/${resetPasswordCode}`;
+
+      return sendEmail(
+        "Reset Password",
+        `Open this link to set new password: http://localhost:3000/api/auth/reset/${resetPasswordCode}`,
+      );
+    }),
+
+  resetPassword: publicProcedure
+    .input(
+      z.object({
+        code: z.string(),
+        password: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db.user.findUnique({
+        where: { id: input.code },
+      });
+
+      if (!user) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      return ctx.db.user.update({
+        where: { id: input.code },
+        data: { password: await bcrypt.hash(input.password, SALT_ROUNDS) },
+      });
     }),
 });
 

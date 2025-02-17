@@ -24,7 +24,7 @@ export default async function SignOutPage() {
 
   return (
     <main className="bg-gradient-background flex min-h-screen flex-col items-center justify-center">
-      <Card className="w-full max-w-lg">
+      <Card className="w-full max-w-lg" disableHover>
         <CardHeader>
           <CardTitle>Logout</CardTitle>
           <CardDescription>Are you sure you want to logout?</CardDescription>
