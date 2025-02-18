@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -25,6 +26,7 @@ const SignInSchema = z.object({
 });
 
 const SignInForm = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const {
     formState: { errors },
     register,
@@ -36,21 +38,26 @@ const SignInForm = () => {
   });
 
   const onSubmit = handleSubmit((data) => {
+    setIsLoading(true);
     return signIn("credentials", {
       email: data.email,
       password: data.password,
       redirect: false,
-    }).then((res) => {
-      if (!res?.code) {
-        redirect("/");
-      }
+    })
+      .then((res) => {
+        if (!res?.code) {
+          redirect("/");
+        }
 
-      if (res?.code === INVALID_CREDENTIALS) {
-        setError("password", { message: INVALID_CREDENTIALS });
-      } else {
-        setError("password", { message: "Something went wrong" });
-      }
-    });
+        if (res?.code === INVALID_CREDENTIALS) {
+          setError("password", { message: INVALID_CREDENTIALS });
+        } else {
+          setError("password", { message: "Something went wrong" });
+        }
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   });
 
   return (
@@ -60,13 +67,14 @@ const SignInForm = () => {
       </CardHeader>
 
       <CardContent>
-        <form className="flex w-full flex-col gap-4">
+        <form className="flex w-full flex-col gap-4" onSubmit={onSubmit}>
           <InputWithLabel
             label="Email"
             type="email"
             placeholder="Email"
             error={!!errors.email}
             errorMessage={errors.email?.message}
+            disabled={isLoading}
             {...register("email")}
           />
 
@@ -76,7 +84,14 @@ const SignInForm = () => {
             placeholder="Password"
             error={!!errors.password}
             errorMessage={errors.password?.message}
+            disabled={isLoading}
             {...register("password")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onSubmit();
+              }
+            }}
           />
         </form>
       </CardContent>
@@ -85,7 +100,9 @@ const SignInForm = () => {
         <Link href="/api/auth/register">
           <Button variant="outline">Create account</Button>
         </Link>
-        <Button onClick={onSubmit}>Login</Button>
+        <Button onClick={onSubmit} isLoading={isLoading}>
+          Login
+        </Button>
       </CardFooter>
 
       <div className="mt-4 flex justify-center">
