@@ -41,19 +41,23 @@ export interface ButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onClick">,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  isLoading?: boolean;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<unknown>;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, onClick, ...props }, ref) => {
+  (
+    { className, variant, size, asChild = false, onClick, isLoading, ...props },
+    ref,
+  ) => {
     const Comp = asChild ? Slot : "button";
-    const [isLoading, setIsLoading] = React.useState(false);
+    const [localIsLoading, setLocalIsLoading] = React.useState(false);
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
       const maybePromise = onClick?.(e);
       if (maybePromise instanceof Promise) {
-        setIsLoading(true);
-        return maybePromise.finally(() => setIsLoading(false));
+        setLocalIsLoading(true);
+        return maybePromise.finally(() => setLocalIsLoading(false));
       }
     };
 
@@ -61,14 +65,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(
           buttonVariants({ variant, size, className }),
-          isLoading && "text-transparent",
+          (isLoading ?? localIsLoading) && "text-transparent",
         )}
         ref={ref}
         onClick={handleClick}
         {...props}
-        disabled={props.disabled ?? isLoading}
+        disabled={props.disabled ?? isLoading ?? localIsLoading}
       >
-        {isLoading && (
+        {(isLoading ?? localIsLoading) && (
           <Icons.spinner className="absolute flex animate-spin text-gray-400" />
         )}
         {props.children}
