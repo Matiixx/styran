@@ -17,6 +17,9 @@ const HeaderClientButtons: FC<HeaderClientButtonsProps> = ({ session }) => {
         <Link href="/projects">
           <Button variant="ghost">Projects</Button>
         </Link>
+        <Link href="/my-profile">
+          <Button variant="ghost">My Profile</Button>
+        </Link>
       </div>
       <div>
         {session?.user ? (
