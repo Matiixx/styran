@@ -22,7 +22,7 @@ import { INVALID_CREDENTIALS } from "~/lib/errorCodes";
 
 const SignInSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(5),
+  password: z.string().min(1, "Password is required"),
 });
 
 const SignInForm = () => {
@@ -89,7 +89,7 @@ const SignInForm = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                onSubmit();
+                return onSubmit();
               }
             }}
           />

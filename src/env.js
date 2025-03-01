@@ -19,6 +19,7 @@ export const env = createEnv({
       .default("development"),
     SENDGRID_API_KEY: z.string(),
     SENDGRID_FROM_EMAIL: z.string(),
+    RESET_PASSWORD_SECRET: z.string(),
   },
 
   /**
@@ -42,6 +43,7 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
     SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL,
+    RESET_PASSWORD_SECRET: process.env.RESET_PASSWORD_SECRET,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

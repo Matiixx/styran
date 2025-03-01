@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { z } from "zod";
+import dayjs from "dayjs";
 
 import { TRPCError } from "@trpc/server";
 
@@ -11,10 +12,17 @@ import {
 } from "~/server/api/trpc";
 import { EMAIL_DUPLICATION } from "~/lib/errorCodes";
 import { sendEmail, forgetPasswordEmailTemplate } from "~/server/sendgrid";
+import { decryptText, encryptObject } from "~/server/encryption";
+import { env } from "~/env";
 
-import { registerSchema } from "./types";
+import {
+  registerSchema,
+  type ResetPasswordCode,
+  resetPasswordCodeSchema,
+} from "./types";
 
 const SALT_ROUNDS = 12;
+const EMAIL_EXPIRATION_TIME = 24; // hours
 
 const userRouter = createTRPCRouter({
   register: publicProcedure
@@ -52,20 +60,44 @@ const userRouter = createTRPCRouter({
       if (!user) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
+      const emailExpiration = dayjs()
+        .add(EMAIL_EXPIRATION_TIME, "hours")
+        .valueOf();
 
-      const resetPasswordCode = user.id;
+      const encryptedCode = encryptObject(
+        { userId: user.id, emailExpiration } satisfies ResetPasswordCode,
+        env.RESET_PASSWORD_SECRET,
+      );
 
-      const urlWithCode = `http://localhost:3000/api/auth/reset/${resetPasswordCode}`;
+      const urlWithCode = `http://localhost:3000/api/auth/reset/${encryptedCode}`;
       const html = forgetPasswordEmailTemplate(urlWithCode);
+      return urlWithCode;
 
-      return sendEmail("Reset Password", html, "corodab304@egvoo.com");
+      return sendEmail("Reset Password", html, input.email);
     }),
 
   resetPassword: publicProcedure
     .input(z.object({ code: z.string(), password: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const decryptedCode = decryptText<ResetPasswordCode>(
+        input.code,
+        env.RESET_PASSWORD_SECRET,
+      );
+
+      console.log(decryptedCode);
+
+      if (!resetPasswordCodeSchema.safeParse(decryptedCode).success) {
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+
+      const { userId, emailExpiration } = decryptedCode;
+
+      if (dayjs().isAfter(dayjs(emailExpiration))) {
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+
       const user = await ctx.db.user.findUnique({
-        where: { id: input.code },
+        where: { id: userId },
       });
 
       if (!user) {
@@ -73,7 +105,7 @@ const userRouter = createTRPCRouter({
       }
 
       return ctx.db.user.update({
-        where: { id: input.code },
+        where: { id: userId },
         data: { password: await bcrypt.hash(input.password, SALT_ROUNDS) },
       });
     }),

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -28,6 +29,7 @@ const ResetSchema = z
 
 export const ResetForm = ({ code }: { code: string }) => {
   const { mutateAsync: resetPassword } = api.user.resetPassword.useMutation();
+  const router = useRouter();
 
   const {
     formState: { errors },
@@ -39,7 +41,9 @@ export const ResetForm = ({ code }: { code: string }) => {
   });
 
   const onSubmit = handleSubmit((data) => {
-    return resetPassword({ password: data.password, code });
+    return resetPassword({ password: data.password, code }).then(() => {
+      router.push("/api/auth/signin");
+    });
   });
 
   return (
