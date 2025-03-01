@@ -43,7 +43,7 @@ const forgetPasswordEmailTemplate = (urlWithCode: string) => {
       }
       .plain-url {
         word-break: break-all;
-        color: #6B7280;
+        color: #2563EB;
         font-size: 14px;
       }
       .footer {
