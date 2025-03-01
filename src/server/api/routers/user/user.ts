@@ -10,7 +10,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { EMAIL_DUPLICATION } from "~/lib/errorCodes";
-import { sendEmail } from "~/server/mailgun";
+import { sendEmail, forgetPasswordEmailTemplate } from "~/server/sendgrid";
 
 import { registerSchema } from "./types";
 
@@ -55,21 +55,14 @@ const userRouter = createTRPCRouter({
 
       const resetPasswordCode = user.id;
 
-      return `http://localhost:3000/api/auth/reset/${resetPasswordCode}`;
+      const urlWithCode = `http://localhost:3000/api/auth/reset/${resetPasswordCode}`;
+      const html = forgetPasswordEmailTemplate(urlWithCode);
 
-      return sendEmail(
-        "Reset Password",
-        `Open this link to set new password: http://localhost:3000/api/auth/reset/${resetPasswordCode}`,
-      );
+      return sendEmail("Reset Password", html, "corodab304@egvoo.com");
     }),
 
   resetPassword: publicProcedure
-    .input(
-      z.object({
-        code: z.string(),
-        password: z.string(),
-      }),
-    )
+    .input(z.object({ code: z.string(), password: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const user = await ctx.db.user.findUnique({
         where: { id: input.code },

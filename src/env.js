@@ -17,8 +17,8 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    MAILTRAP_API_TOKEN: z.string(),
-    MAILTRAP_HOST: z.string(),
+    SENDGRID_API_KEY: z.string(),
+    SENDGRID_FROM_EMAIL: z.string(),
   },
 
   /**
@@ -40,8 +40,8 @@ export const env = createEnv({
     // AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    MAILTRAP_API_TOKEN: process.env.MAILTRAP_API_TOKEN,
-    MAILTRAP_HOST: process.env.MAILTRAP_HOST,
+    SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
+    SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
