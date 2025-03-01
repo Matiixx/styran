@@ -91,8 +91,6 @@ const userRouter = createTRPCRouter({
         env.RESET_PASSWORD_SECRET,
       );
 
-      console.log(decryptedCode);
-
       if (!resetPasswordCodeSchema.safeParse(decryptedCode).success) {
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
