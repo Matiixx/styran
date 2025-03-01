@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import { z } from "zod";
 import dayjs from "dayjs";
 
+import noop from "lodash/noop";
+
 import { TRPCError } from "@trpc/server";
 
 import { env } from "~/env";
@@ -14,7 +16,11 @@ import {
 import { EMAIL_DUPLICATION } from "~/lib/errorCodes";
 import { sendEmail, forgetPasswordEmailTemplate } from "~/server/sendgrid";
 import { decryptText, encryptObject } from "~/server/encryption";
-import { SALT_ROUNDS, EMAIL_EXPIRATION_TIME } from "~/server/constant";
+import {
+  SALT_ROUNDS,
+  EMAIL_EXPIRATION_TIME,
+  SHOULD_SEND_EMAIL,
+} from "~/server/constant";
 
 import {
   registerSchema,
@@ -68,10 +74,13 @@ const userRouter = createTRPCRouter({
       );
 
       const urlWithCode = `http://localhost:3000/api/auth/reset/${encryptedCode}`;
-      const html = forgetPasswordEmailTemplate(urlWithCode);
-      return urlWithCode;
 
-      return sendEmail("Reset Password", html, input.email);
+      if (SHOULD_SEND_EMAIL) {
+        const html = forgetPasswordEmailTemplate(urlWithCode);
+        return sendEmail("Reset Password", html, input.email).then(noop);
+      }
+
+      return urlWithCode;
     }),
 
   resetPassword: publicProcedure
