@@ -3,9 +3,10 @@
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Check, ChevronRight, Circle } from "lucide-react";
+import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "~/lib/utils";
-import { cva, type VariantProps } from "class-variance-authority";
+import { Icons } from "./icons";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
@@ -88,20 +89,52 @@ const dropdownMenuItemVariants = cva(
 
 const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
+  Omit<
+    React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
+    "onClick"
+  > & {
+    icon?: React.ReactNode;
     inset?: boolean;
+    isLoading?: boolean;
+    onClick?: (e: React.MouseEvent<HTMLDivElement>) => void | Promise<unknown>;
   } & VariantProps<typeof dropdownMenuItemVariants>
->(({ className, inset, variant, ...props }, ref) => (
-  <DropdownMenuPrimitive.Item
-    ref={ref}
-    className={cn(
-      dropdownMenuItemVariants({ variant, className }),
-      inset && "pl-8",
-      className,
-    )}
-    {...props}
-  />
-));
+>(
+  (
+    { className, inset, variant, icon, children, isLoading, onClick, ...props },
+    ref,
+  ) => {
+    const [localIsLoading, setLocalIsLoading] = React.useState(false);
+
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+      const maybePromise = onClick?.(e);
+      if (maybePromise instanceof Promise) {
+        setLocalIsLoading(true);
+        return maybePromise.finally(() => setLocalIsLoading(false));
+      }
+    };
+
+    return (
+      <DropdownMenuPrimitive.Item
+        ref={ref}
+        className={cn(
+          dropdownMenuItemVariants({ variant, className }),
+          inset && "pl-8",
+          className,
+        )}
+        onClick={handleClick}
+        disabled={isLoading ?? localIsLoading}
+        {...props}
+      >
+        {(isLoading ?? localIsLoading) ? (
+          <Icons.spinner className="animate-spin text-gray-400" />
+        ) : (
+          icon
+        )}
+        {children}
+      </DropdownMenuPrimitive.Item>
+    );
+  },
+);
 DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName;
 
 const DropdownMenuCheckboxItem = React.forwardRef<

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { type inferRouterOutputs } from "@trpc/server";
+import { TRPCError, type inferRouterOutputs } from "@trpc/server";
 
 import { editProjectSchema, newProjectSchema } from "~/lib/schemas";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
@@ -154,6 +154,43 @@ const projectsRouter = createTRPCRouter({
         },
         data: { users: { disconnect: { id: input.userId } } },
       });
+    }),
+
+  resendInvitation: protectedProcedure
+    .input(z.object({ email: z.string().email(), projectId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { email, projectId } = input;
+
+      const isProjectOwnerAndUserExists = await ctx.db.project.findUnique({
+        where: {
+          ownerId: ctx.session.user.id,
+          id: projectId,
+          users: { some: { email } },
+        },
+      });
+
+      if (!isProjectOwnerAndUserExists) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const tempPassword = generateTempPassword();
+      const hashedPassword = await bcrypt.hash(tempPassword, SALT_ROUNDS);
+
+      return ctx.db.user
+        .update({
+          where: { email },
+          data: { password: hashedPassword },
+        })
+        .then(() => {
+          if (SHOULD_SEND_EMAIL) {
+            const html = inviteUserEmailTemplate(tempPassword);
+            return sendEmail("Invitation to join project", html, email).then(
+              () => "true",
+            );
+          }
+
+          return tempPassword;
+        });
     }),
 });
 

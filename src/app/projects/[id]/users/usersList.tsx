@@ -5,8 +5,9 @@ import { useMemo, useState } from "react";
 import filter from "lodash/filter";
 import includes from "lodash/includes";
 import map from "lodash/map";
+import noop from "lodash/noop";
 
-import { EllipsisVertical, Trash2, UserPlus } from "lucide-react";
+import { EllipsisVertical, Mail, Trash2, UserPlus } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -41,6 +42,9 @@ const UsersList = ({ users, project }: UsersListProps) => {
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
+
+  const { mutateAsync: resendInvitation } =
+    api.projects.resendInvitation.useMutation();
 
   const filteredUsers = useMemo(
     () =>
@@ -78,6 +82,9 @@ const UsersList = ({ users, project }: UsersListProps) => {
               user={user}
               isOwner={user.id === project.ownerId}
               setUser={setSelectedUser}
+              resendInvitation={({ email }) =>
+                resendInvitation({ email, projectId: project.id }).then(noop)
+              }
             />
           ))}
         </div>
@@ -102,10 +109,12 @@ const UserItem = ({
   user,
   isOwner,
   setUser,
+  resendInvitation,
 }: {
   user: User;
   isOwner: boolean;
   setUser: (user: User) => void;
+  resendInvitation: (user: User) => Promise<void>;
 }) => {
   return (
     <Card className="flex w-full p-4">
@@ -129,7 +138,18 @@ const UserItem = ({
                 </Button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent
+                align="end"
+                onSelect={(e) => e.preventDefault()}
+              >
+                <DropdownMenuItem
+                  icon={<Mail />}
+                  onSelect={(e) => e.preventDefault()}
+                  onClick={() => resendInvitation(user)}
+                >
+                  Resend invitation
+                </DropdownMenuItem>
+
                 <DropdownMenuItem
                   variant="destructive"
                   className="font-bold"
