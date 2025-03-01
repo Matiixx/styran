@@ -1,8 +1,14 @@
 import { z } from "zod";
-import { TRPCError, type inferRouterOutputs } from "@trpc/server";
+import bcrypt from "bcrypt";
+import { type inferRouterOutputs } from "@trpc/server";
 
 import { editProjectSchema, newProjectSchema } from "~/lib/schemas";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { SALT_ROUNDS, SHOULD_SEND_EMAIL } from "~/server/constant";
+import { inviteUserEmailTemplate } from "~/server/sendgrid/inviteUserEmail";
+import { sendEmail } from "~/server/sendgrid";
+
+import { generateTempPassword, generateTicker } from "./utils";
 
 const projectsRouter = createTRPCRouter({
   getProjects: protectedProcedure.query(async ({ ctx }) => {
@@ -86,14 +92,14 @@ const projectsRouter = createTRPCRouter({
       z.object({
         projectId: z.string(),
         email: z.string().email(),
+        lastName: z.string(),
+        firstName: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { projectId, email } = input;
+      const { projectId, email, lastName, firstName } = input;
 
-      // TODO: Add new user invitation logic
-      // If user doesn't exist, create them and send them an email with a link to sign in, temp password etc.
-      const user = await ctx.db.user.findUnique({
+      const userExists = await ctx.db.user.findUnique({
         where: {
           email,
           projects: { none: { id: projectId } },
@@ -101,14 +107,40 @@ const projectsRouter = createTRPCRouter({
         },
       });
 
-      if (!user) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      if (userExists) {
+        return ctx.db.project.update({
+          where: { id: projectId, ownerId: ctx.session.user.id },
+          data: { users: { connect: { email } } },
+        });
       }
 
-      return ctx.db.project.update({
-        where: { id: projectId, ownerId: ctx.session.user.id },
-        data: { users: { connect: { email } } },
-      });
+      const tempPassword = generateTempPassword();
+      const hashedPassword = await bcrypt.hash(tempPassword, SALT_ROUNDS);
+
+      return ctx.db
+        .$transaction([
+          ctx.db.user.create({
+            data: {
+              email,
+              lastName,
+              firstName,
+              password: hashedPassword,
+            },
+          }),
+          ctx.db.project.update({
+            where: { id: projectId, ownerId: ctx.session.user.id },
+            data: { users: { connect: { email } } },
+          }),
+        ])
+        .then(() => {
+          if (SHOULD_SEND_EMAIL) {
+            const html = inviteUserEmailTemplate(tempPassword);
+            return sendEmail("Invitation to join project", html, email).then(
+              () => "true",
+            );
+          }
+          return Promise.resolve(tempPassword);
+        });
     }),
 
   removeUserFromProject: protectedProcedure
@@ -124,18 +156,6 @@ const projectsRouter = createTRPCRouter({
       });
     }),
 });
-
-const generateTicker = (name: string) => {
-  const first = name[0];
-  const middle = name[Math.floor(name.length / 2)];
-  const last = name[name.length - 1];
-
-  if (!first || !middle || !last) {
-    return name.slice(0, 3).toUpperCase();
-  }
-
-  return [first, middle, last].join("").toUpperCase();
-};
 
 export type ProjectRouterOutput = inferRouterOutputs<typeof projectsRouter>;
 

@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 
 import { TRPCError } from "@trpc/server";
 
+import { env } from "~/env";
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -13,16 +14,13 @@ import {
 import { EMAIL_DUPLICATION } from "~/lib/errorCodes";
 import { sendEmail, forgetPasswordEmailTemplate } from "~/server/sendgrid";
 import { decryptText, encryptObject } from "~/server/encryption";
-import { env } from "~/env";
+import { SALT_ROUNDS, EMAIL_EXPIRATION_TIME } from "~/server/constant";
 
 import {
   registerSchema,
   type ResetPasswordCode,
   resetPasswordCodeSchema,
 } from "./types";
-
-const SALT_ROUNDS = 12;
-const EMAIL_EXPIRATION_TIME = 24; // hours
 
 const userRouter = createTRPCRouter({
   register: publicProcedure
