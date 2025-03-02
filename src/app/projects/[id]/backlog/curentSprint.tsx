@@ -105,7 +105,7 @@ export default function CurrentSprint({
         )}
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         {map(
           filter(tasks, (t) => !!t.sprintId),
           (task) => (

@@ -30,6 +30,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 
 import { AddUserToProjectDialog } from "./addUserToProjectDialog";
+import { UserAvatar } from "~/app/_components/UserAvatar";
 
 type User = NonNullable<ProjectRouterOutput["getProject"]>["users"][number];
 
@@ -119,14 +120,17 @@ const UserItem = ({
   return (
     <Card className="flex w-full p-4">
       <CardContent className="flex w-full flex-row items-center justify-between">
-        <div className="flex flex-col">
-          <div className="flex flex-row items-center gap-2">
-            <span className="text-lg font-bold">
-              {user.firstName} {user.lastName}
-            </span>
-            {isOwner && <Badge>Owner</Badge>}
+        <div className="flex flex-row items-center gap-4">
+          <UserAvatar user={user} size="md" />
+          <div className="flex flex-col">
+            <div className="flex flex-row items-center gap-2">
+              <span className="text-lg font-bold">
+                {user.firstName} {user.lastName}
+              </span>
+              {isOwner && <Badge>Owner</Badge>}
+            </div>
+            <span className="text-sm text-muted-foreground">{user.email}</span>
           </div>
-          <span className="text-sm text-muted-foreground">{user.email}</span>
         </div>
 
         {!isOwner && (

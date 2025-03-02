@@ -14,6 +14,7 @@ import { api } from "~/trpc/react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
 import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
+import { UserAvatar } from "~/app/_components/UserAvatar";
 
 import ProjectPageShell from "../projectPageShell";
 import {
@@ -166,9 +167,7 @@ const TaskCard = ({ task, disabled }: TaskCardProps) => {
   });
 
   const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      }
+    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
     : undefined;
 
   return (
@@ -186,10 +185,14 @@ const TaskCard = ({ task, disabled }: TaskCardProps) => {
         <CardTitle>{task.title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div
-          className={cn("text-sm", task.status === "DONE" && "line-through")}
-        >
-          {task.ticker}
+        <div className="flex flex-row items-center gap-2">
+          <div
+            className={cn("text-sm", task.status === "DONE" && "line-through")}
+          >
+            {task.ticker}
+          </div>
+
+          {task.asigneeId && <UserAvatar user={task.asignee!} />}
         </div>
       </CardContent>
     </Card>

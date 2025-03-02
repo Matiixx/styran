@@ -31,6 +31,7 @@ import { api } from "~/trpc/react";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
+import { UserAvatar } from "~/app/_components/UserAvatar";
 
 type Task = TasksRouterOutput["getTasks"][number];
 type TaskListProps = {
@@ -49,7 +50,7 @@ const TaskList = ({ tasks, projectId }: TaskListProps) => {
       ref={setNodeRef}
     >
       <span className="text-lg font-semibold">Backlog</span>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         {map(
           filter(tasks, (t) => !t.sprintId),
           (task) => (
@@ -85,7 +86,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
 
   return (
     <Card
-      className="cursor-pointer"
+      className="cursor-pointer p-4"
       style={style}
       ref={setNodeRef}
       onClick={handleClick}
@@ -107,6 +108,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
         </div>
 
         <div className="flex flex-row items-center gap-2">
+          {task.asigneeId && <UserAvatar user={task.asignee!} />}
           {task.storyPoints !== null && (
             <Badge variant="outline">{task.storyPoints}</Badge>
           )}

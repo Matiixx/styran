@@ -67,6 +67,11 @@ const tasksRouter = createTRPCRouter({
           OR: [{ Sprint: { isActive: true } }, { sprintId: null }],
         },
         orderBy: { createdAt: "asc" },
+        include: {
+          asignee: {
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+        },
       });
     }),
 
