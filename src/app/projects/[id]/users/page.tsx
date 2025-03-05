@@ -15,7 +15,7 @@ async function UsersProjectPage({ params }: UsersProjectPageProps) {
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/api/auth/signin");
   }
 
   void api.projects.getProject.prefetch({ id });

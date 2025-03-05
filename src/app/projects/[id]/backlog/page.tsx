@@ -22,7 +22,7 @@ export async function BacklogPage({
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/api/auth/signin");
   }
 
   const id = (await params).id;
