@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+
 import { api } from "~/trpc/react";
 
 import { Button } from "~/components/ui/button";
@@ -23,11 +25,16 @@ export const EndSprintModal = ({
 }) => {
   const utils = api.useUtils();
   const { mutateAsync: endSprint } = api.sprint.endSprint.useMutation({
-    onSuccess: () =>
-      Promise.all([
+    onSuccess: () => {
+      toast("Sprint ended");
+      return Promise.all([
         utils.tasks.getTasks.invalidate({ projectId }),
         utils.projects.getProject.invalidate({ id: projectId }),
-      ]),
+      ]);
+    },
+    onError: () => {
+      toast.error("Error ending sprint");
+    },
   });
 
   const onSubmit = () => {

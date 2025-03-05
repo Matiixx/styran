@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -30,7 +31,11 @@ const EditProjectDialog = ({
   const { mutateAsync: editProject } = api.projects.editProject.useMutation({
     onSuccess: () => {
       closeDialog();
+      toast("Project updated");
       return utils.projects.getProject.invalidate({ id: project.id });
+    },
+    onError: () => {
+      toast.error("Error updating project");
     },
   });
 
@@ -61,7 +66,7 @@ const EditProjectDialog = ({
     <Dialog open={isOpen} onOpenChange={closeDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit: {project.name}</DialogTitle>
+          <DialogTitle>Edit project</DialogTitle>
         </DialogHeader>
 
         <form className="flex flex-col gap-4">

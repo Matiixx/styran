@@ -3,8 +3,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { type TRPCError } from "@trpc/server";
 import Link from "next/link";
+import { toast } from "sonner";
 
 import isEmpty from "lodash/isEmpty";
 
@@ -34,25 +34,28 @@ const RegisterSchema = z
   });
 
 export const RegisterForm = () => {
-  const { mutateAsync: registerUser } = api.user.register.useMutation();
+  const { mutateAsync: registerUser } = api.user.register.useMutation({
+    onSuccess: () => {
+      toast("User registered");
+    },
+    onError: (error) => {
+      if (error.message === EMAIL_DUPLICATION) {
+        return toast.error("Email already in use");
+      }
+      toast.error("Error registering user");
+    },
+  });
 
   const {
     formState: { errors },
     register,
-    setError,
     handleSubmit,
   } = useForm<z.infer<typeof RegisterSchema>>({
     mode: "onTouched",
     resolver: zodResolver(RegisterSchema),
   });
 
-  const onSubmit = handleSubmit((data) =>
-    registerUser(data).catch((e: TRPCError) => {
-      if (e.message === EMAIL_DUPLICATION) {
-        setError("email", { message: EMAIL_DUPLICATION });
-      }
-    }),
-  );
+  const onSubmit = handleSubmit((data) => registerUser(data));
 
   return (
     <Card className="w-full max-w-lg" disableHover>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import filter from "lodash/filter";
 import includes from "lodash/includes";
@@ -45,7 +46,14 @@ const UsersList = ({ users, project }: UsersListProps) => {
   const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
 
   const { mutateAsync: resendInvitation } =
-    api.projects.resendInvitation.useMutation();
+    api.projects.resendInvitation.useMutation({
+      onSuccess: () => {
+        toast("Invitation resent");
+      },
+      onError: () => {
+        toast.error("Error while resending invitation");
+      },
+    });
 
   const filteredUsers = useMemo(
     () =>

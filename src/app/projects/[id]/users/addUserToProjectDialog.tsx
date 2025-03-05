@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import { type TRPCError } from "@trpc/server";
+import { toast } from "sonner";
 
 import { api } from "~/trpc/react";
 import {
@@ -42,7 +41,6 @@ const AddUserToProjectDialog = ({
     formState: { errors },
     reset,
     register,
-    setError,
     handleSubmit,
   } = useForm<z.infer<typeof AddUserSchema>>({
     resolver: zodResolver(AddUserSchema),
@@ -53,19 +51,20 @@ const AddUserToProjectDialog = ({
 
   const { mutateAsync: addUserToProject } =
     api.projects.addUserToProject.useMutation({
-      onSuccess: () => utils.projects.getProject.invalidate({ id: projectId }),
-    });
-
-  const onSubmit = handleSubmit((data) => {
-    return addUserToProject({ projectId, ...data })
-      .then(() => {
+      onSuccess: () => {
+        toast("User added to project");
         closeDialog();
         reset(defaultValues);
-      })
-      .catch((res: TRPCError) => {
-        setError("root", { message: res.message });
-      });
-  });
+        return utils.projects.getProject.invalidate({ id: projectId });
+      },
+      onError: (error) => {
+        toast.error(error.message || "Error while adding user to project");
+      },
+    });
+
+  const onSubmit = handleSubmit((data) =>
+    addUserToProject({ projectId, ...data }),
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={closeDialog}>

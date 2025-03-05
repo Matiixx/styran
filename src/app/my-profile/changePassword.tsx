@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FC } from "react";
+import { toast } from "sonner";
 
 import { Button } from "~/components/ui/button";
 import { InputWithLabel } from "~/components/ui/input";
@@ -10,9 +11,6 @@ const ChangePassword: FC = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [result, setResult] = useState<{ success?: string; error?: string }>(
-    {},
-  );
 
   const { mutateAsync: changePassword } = api.user.changePassword.useMutation();
 
@@ -24,12 +22,8 @@ const ChangePassword: FC = () => {
       return;
     }
     return changePassword({ oldPassword, newPassword })
-      .then(() => {
-        setResult({ success: "Password changed" });
-      })
-      .catch(() => {
-        setResult({ error: "There was an error changing your password" });
-      });
+      .then(() => toast("Password changed"))
+      .catch(() => toast.error("There was an error changing your password"));
   };
 
   return (
@@ -57,8 +51,6 @@ const ChangePassword: FC = () => {
         onChange={(e) => setConfirmNewPassword(e.target.value)}
       />
       <Button onClick={handleChangePassword}>Change password</Button>
-      {result.success && <p className="text-sm">{result.success}</p>}
-      {result.error && <p className="text-sm text-red-500">{result.error}</p>}
     </div>
   );
 };

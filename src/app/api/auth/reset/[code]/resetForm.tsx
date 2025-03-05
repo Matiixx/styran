@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -28,7 +29,15 @@ const ResetSchema = z
   });
 
 export const ResetForm = ({ code }: { code: string }) => {
-  const { mutateAsync: resetPassword } = api.user.resetPassword.useMutation();
+  const { mutateAsync: resetPassword } = api.user.resetPassword.useMutation({
+    onSuccess: () => {
+      toast("Password reset");
+      router.push("/api/auth/signin");
+    },
+    onError: () => {
+      toast.error("Error resetting password");
+    },
+  });
   const router = useRouter();
 
   const {
@@ -40,11 +49,9 @@ export const ResetForm = ({ code }: { code: string }) => {
     resolver: zodResolver(ResetSchema),
   });
 
-  const onSubmit = handleSubmit((data) => {
-    return resetPassword({ password: data.password, code }).then(() => {
-      router.push("/api/auth/signin");
-    });
-  });
+  const onSubmit = handleSubmit((data) =>
+    resetPassword({ password: data.password, code }),
+  );
 
   return (
     <Card className="w-full max-w-lg" disableHover>

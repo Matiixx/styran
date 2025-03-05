@@ -2,6 +2,7 @@ import { type z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addDays, addMonths, isBefore, subDays } from "date-fns";
+import { toast } from "sonner";
 
 import { api } from "~/trpc/react";
 import { StartSprintSchema } from "~/lib/schemas/sprintSchemas";
@@ -30,11 +31,16 @@ export const StartSprintModal = ({
 }) => {
   const utils = api.useUtils();
   const { mutateAsync: startSprint } = api.sprint.startSprint.useMutation({
-    onSuccess: () =>
-      Promise.all([
+    onSuccess: () => {
+      toast("Sprint started");
+      return Promise.all([
         utils.tasks.getTasks.invalidate({ projectId }),
         utils.projects.getProject.invalidate({ id: projectId }),
-      ]),
+      ]);
+    },
+    onError: () => {
+      toast.error("Error starting sprint");
+    },
   });
 
   const {

@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { type z } from "zod";
 import { redirect } from "next/navigation";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { toast } from "sonner";
 
 import filter from "lodash/filter";
 import map from "lodash/map";
@@ -179,7 +180,11 @@ const AddNewTaskCard = ({ projectId }: { projectId: string }) => {
   const utils = api.useUtils();
   const { mutateAsync: createTask } = api.tasks.createTask.useMutation({
     onSuccess: () => {
+      toast("Task created");
       return utils.tasks.getTasks.invalidate({ projectId });
+    },
+    onError: () => {
+      toast.error("Error creating task");
     },
   });
 

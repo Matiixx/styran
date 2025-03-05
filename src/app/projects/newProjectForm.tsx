@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { type z } from "zod";
 
 import { Button } from "~/components/ui/button";
@@ -19,7 +20,11 @@ const NewProjectForm = ({ setOpen }: NewProjectFormProps) => {
   const { mutateAsync: addProject } = api.projects.addProject.useMutation({
     onSuccess: () => {
       setOpen(false);
+      toast("Project created");
       return utils.projects.getProjects.invalidate();
+    },
+    onError: () => {
+      toast.error("Error creating project");
     },
   });
 

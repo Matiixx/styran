@@ -1,6 +1,8 @@
 "use client";
 
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -39,12 +41,17 @@ const DeleteProjectDialog = ({
   isOpen: boolean;
   closeDialog: () => void;
 }) => {
+  const router = useRouter();
   const utils = api.useUtils();
   const { mutateAsync: deleteProject } = api.projects.deleteProject.useMutation(
     {
       onSuccess: () => {
+        toast("Project deleted");
         void utils.projects.getProjects.invalidate();
-        redirect("/projects");
+        router.replace("/projects");
+      },
+      onError: () => {
+        toast.error("Error while deleting project");
       },
     },
   );

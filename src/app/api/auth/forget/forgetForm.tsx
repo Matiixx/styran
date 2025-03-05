@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { toast } from "sonner";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -21,7 +22,14 @@ const ForgetSchema = z.object({
 });
 
 export const ForgetForm = () => {
-  const { mutateAsync: sendResetEmail } = api.user.sendResetEmail.useMutation();
+  const { mutateAsync: sendResetEmail } = api.user.sendResetEmail.useMutation({
+    onSuccess: () => {
+      toast("Reset link sent");
+    },
+    onError: () => {
+      toast.error("Error sending reset link");
+    },
+  });
 
   const {
     formState: { errors },
