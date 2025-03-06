@@ -8,11 +8,11 @@ import {
 
 const postRouter = createTRPCRouter({
   hello: publicProcedure
+    .meta({ openapi: { method: "POST", path: "/hello" } })
     .input(z.object({ text: z.string() }))
+    .output(z.object({ greeting: z.string() }))
     .query(({ input }) => {
-      return {
-        greeting: `Hello ${input.text}`,
-      };
+      return { greeting: `Hello ${input.text}` };
     }),
 
   create: protectedProcedure
