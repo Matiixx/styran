@@ -19,8 +19,9 @@ model User {
     ownedProjects Project[]
     projects      Project[] @relation("ProjectUsers")
 
-    createdTasks  Task[] @relation("TaskCreatedBy")
-    assignedTasks Task[] @relation("TaskAsignee")
+    createdTasks  Task[]        @relation("TaskCreatedBy")
+    assignedTasks Task[]        @relation("TaskAsignee")
+    TaskComment   TaskComment[]
 }
 
 model Project {
@@ -76,6 +77,8 @@ model Task {
     projectId String
     Sprint    Sprint? @relation(fields: [sprintId], references: [id])
     sprintId  String?
+
+    TaskComment TaskComment[]
 }
 
 model Sprint {
@@ -93,4 +96,18 @@ model Sprint {
     projectId String
 
     tasks Task[]
+}
+
+model TaskComment {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    task   Task   @relation(fields: [taskId], references: [id])
+    taskId String
+
+    user   User   @relation(fields: [userId], references: [id])
+    userId String
+
+    content String
 }

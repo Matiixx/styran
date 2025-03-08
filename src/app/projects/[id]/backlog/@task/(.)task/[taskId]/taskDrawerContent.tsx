@@ -20,14 +20,17 @@ import { TaskStatusSelect } from "~/app/projects/[id]/backlog/tasksList";
 import AsigneeSelect from "./asigneeSelect";
 import TaskDescription from "./taskDescription";
 import TaskStoryPoints from "./taskStorypoints";
+import TaskComments, { type Comment } from "./taskComments";
 
 type TaskDrawerContentProps = {
   task: NonNullable<TasksRouterOutput["getTask"]>;
+  comments: Comment[];
   closeDrawer: () => void;
 };
 
 export default function TaskDrawerContent({
   task,
+  comments,
   closeDrawer,
 }: TaskDrawerContentProps) {
   const utils = api.useUtils();
@@ -42,6 +45,19 @@ export default function TaskDrawerContent({
           }),
         ]),
     });
+  const { mutateAsync: addComment } = api.taskComments.addComment.useMutation({
+    onSuccess: () =>
+      Promise.all([
+        utils.taskComments.getComments.invalidate({
+          taskId: task.id,
+          projectId: task.projectId,
+        }),
+        utils.tasks.getTask.invalidate({
+          taskId: task.id,
+          projectId: task.projectId,
+        }),
+      ]),
+  });
 
   const saveTitle = (value: string) => {
     return updateTask({
@@ -56,6 +72,14 @@ export default function TaskDrawerContent({
       taskId: task.id,
       projectId: task.projectId,
       storyPoints: value,
+    }).then(noop);
+  };
+
+  const handleAddComment = (content: string) => {
+    return addComment({
+      content,
+      taskId: task.id,
+      projectId: task.projectId,
     }).then(noop);
   };
 
@@ -79,9 +103,11 @@ export default function TaskDrawerContent({
             </div>
           </div>
         </DrawerTitle>
+      </DrawerHeader>
 
-        <DrawerDivider />
+      <DrawerDivider />
 
+      <div className="flex flex-col gap-4 overflow-y-auto p-4">
         <div className="w-fit">
           <TaskStatusSelect task={task} size="default" />
         </div>
@@ -115,7 +141,9 @@ export default function TaskDrawerContent({
           }
           updateStoryPoints={saveStoryPoints}
         />
-      </DrawerHeader>
+
+        <TaskComments comments={comments} addComment={handleAddComment} />
+      </div>
     </DrawerContent>
   );
 }

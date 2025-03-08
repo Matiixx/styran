@@ -76,12 +76,7 @@ const tasksRouter = createTRPCRouter({
     }),
 
   getTask: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-        taskId: z.string(),
-      }),
-    )
+    .input(z.object({ projectId: z.string(), taskId: z.string() }))
     .query(({ ctx, input }) => {
       return ctx.db.task.findUnique({
         where: {

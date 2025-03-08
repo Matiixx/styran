@@ -16,6 +16,10 @@ const TaskDrawer = ({ taskId, projectId }: TaskDrawerProps) => {
   const router = useRouter();
   const [open, setOpen] = useState(true);
   const [task] = api.tasks.getTask.useSuspenseQuery({ taskId, projectId });
+  const [comments] = api.taskComments.getComments.useSuspenseQuery({
+    taskId,
+    projectId,
+  });
 
   if (!task) {
     return null;
@@ -43,7 +47,11 @@ const TaskDrawer = ({ taskId, projectId }: TaskDrawerProps) => {
       onOpenChange={handleOpenChange}
       onAnimationEnd={onAnimationEnd}
     >
-      <TaskDrawerContent task={task} closeDrawer={closeDrawer} />
+      <TaskDrawerContent
+        task={task}
+        comments={comments}
+        closeDrawer={closeDrawer}
+      />
     </Drawer>
   );
 };
