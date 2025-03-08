@@ -1,3 +1,7 @@
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
+
 import noop from "lodash/noop";
 
 import { api } from "~/trpc/react";
@@ -59,14 +63,20 @@ export default function TaskDrawerContent({
     <DrawerContent>
       <DrawerHeader className="gap-4">
         <DrawerTitle className="" onClose={closeDrawer}>
-          <div className="flex flex-1 items-center gap-2">
-            <Badge className="text-nowrap">{task.ticker}</Badge>
-            <EditableInput
-              value={task.title}
-              className="flex-1 text-lg md:text-lg"
-              onBlur={saveTitle}
-              onSubmit={saveTitle}
-            />
+          <div className="flex w-full flex-col">
+            <div className="flex flex-1 items-center gap-2">
+              <Badge className="text-nowrap">{task.ticker}</Badge>
+              <EditableInput
+                value={task.title}
+                className="flex-1 text-lg md:text-lg"
+                onBlur={saveTitle}
+                onSubmit={saveTitle}
+              />
+            </div>
+            <div className="flex flex-1 flex-col text-xs text-muted-foreground">
+              <span>Updated {dayjs(task.updatedAt).fromNow()}</span>
+              <span>Created {dayjs(task.createdAt).fromNow()}</span>
+            </div>
           </div>
         </DrawerTitle>
 
