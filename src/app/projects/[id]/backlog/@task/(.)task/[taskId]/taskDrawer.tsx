@@ -39,6 +39,7 @@ const TaskDrawer = ({ taskId, projectId }: TaskDrawerProps) => {
     <Drawer
       open={open}
       direction="right"
+      handleOnly
       onOpenChange={handleOpenChange}
       onAnimationEnd={onAnimationEnd}
     >
