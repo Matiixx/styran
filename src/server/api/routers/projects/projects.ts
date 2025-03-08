@@ -63,6 +63,7 @@ const projectsRouter = createTRPCRouter({
           name: input.name,
           ticker: input.ticker ? input.ticker : generateTicker(input.name),
           ownerId: ctx.session.user.id,
+          timezone: input.timezone ?? 0,
         },
       });
     }),

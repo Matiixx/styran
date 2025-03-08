@@ -4,6 +4,7 @@ import map from "lodash/map";
 import padStart from "lodash/padStart";
 
 import { db } from "./db";
+import { Printer } from "lucide-react";
 
 test("update task tickers", async () => {
   return;
@@ -19,6 +20,23 @@ test("update task tickers", async () => {
   //       data: { ticker: generateTaskTicker(task.project.ticker, index) },
   //     }),
   //   ),
+  // );
+});
+
+test("update project timezone", async () => {
+  // const projects = await db.project.findMany({
+  //   select: {
+  //     id: true,
+  //     timezone: true,
+  //   },
+  // });
+  // await Promise.all(
+  //   map(projects, (project) => {
+  //     return db.project.update({
+  //       where: { id: project.id },
+  //       data: { timezone: 1 },
+  //     });
+  //   }),
   // );
 });
 

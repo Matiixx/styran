@@ -10,6 +10,7 @@ export const newProjectSchema = z.object({
     .max(4, { message: "Ticker should have at most 4 characters" })
     .optional()
     .or(z.literal("")),
+  timezone: z.number().min(-12).max(12).optional(),
 });
 
 export const editProjectSchema = z.object({

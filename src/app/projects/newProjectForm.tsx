@@ -10,6 +10,7 @@ import { DialogFooter } from "~/components/ui/dialog";
 import { InputWithLabel } from "~/components/ui/input";
 import { newProjectSchema } from "~/lib/schemas";
 import { api } from "~/trpc/react";
+import { getTimezoneOffset } from "~/utils/timeUtils";
 
 type NewProjectFormProps = {
   setOpen: (open: boolean) => void;
@@ -37,7 +38,11 @@ const NewProjectForm = ({ setOpen }: NewProjectFormProps) => {
     mode: "onTouched",
   });
 
-  const onSubmit = handleSubmit((data) => addProject(data));
+  const onSubmit = handleSubmit((data) => {
+    const timezone = getTimezoneOffset();
+    console.log(timezone);
+    return addProject({ ...data, timezone });
+  });
 
   return (
     <form className="my-2 flex w-full flex-col gap-4">
