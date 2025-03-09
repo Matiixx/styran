@@ -100,7 +100,16 @@ const DropdownMenuItem = React.forwardRef<
   } & VariantProps<typeof dropdownMenuItemVariants>
 >(
   (
-    { className, inset, variant, icon, children, isLoading, onClick, ...props },
+    {
+      className,
+      inset,
+      variant,
+      icon,
+      children,
+      isLoading: _isLoading,
+      onClick,
+      ...props
+    },
     ref,
   ) => {
     const [localIsLoading, setLocalIsLoading] = React.useState(false);
@@ -113,6 +122,8 @@ const DropdownMenuItem = React.forwardRef<
       }
     };
 
+    const isLoading = _isLoading ?? localIsLoading;
+
     return (
       <DropdownMenuPrimitive.Item
         ref={ref}
@@ -120,13 +131,17 @@ const DropdownMenuItem = React.forwardRef<
           dropdownMenuItemVariants({ variant, className }),
           inset && "pl-8",
           className,
+          isLoading && "[&_svg:not(#loading-spinner-svg)]:hidden",
         )}
         onClick={handleClick}
         disabled={isLoading ?? localIsLoading}
         {...props}
       >
-        {(isLoading ?? localIsLoading) ? (
-          <Icons.spinner className="animate-spin text-gray-400" />
+        {isLoading ? (
+          <Icons.spinner
+            id="loading-spinner-svg"
+            className="animate-spin text-gray-400"
+          />
         ) : (
           icon
         )}

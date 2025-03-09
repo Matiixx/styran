@@ -24,12 +24,14 @@ import TaskComments, { type Comment } from "./taskComments";
 
 type TaskDrawerContentProps = {
   task: NonNullable<TasksRouterOutput["getTask"]>;
+  userId: string;
   comments: Comment[];
   closeDrawer: () => void;
 };
 
 export default function TaskDrawerContent({
   task,
+  userId,
   comments,
   closeDrawer,
 }: TaskDrawerContentProps) {
@@ -45,19 +47,6 @@ export default function TaskDrawerContent({
           }),
         ]),
     });
-  const { mutateAsync: addComment } = api.taskComments.addComment.useMutation({
-    onSuccess: () =>
-      Promise.all([
-        utils.taskComments.getComments.invalidate({
-          taskId: task.id,
-          projectId: task.projectId,
-        }),
-        utils.tasks.getTask.invalidate({
-          taskId: task.id,
-          projectId: task.projectId,
-        }),
-      ]),
-  });
 
   const saveTitle = (value: string) => {
     return updateTask({
@@ -72,14 +61,6 @@ export default function TaskDrawerContent({
       taskId: task.id,
       projectId: task.projectId,
       storyPoints: value,
-    }).then(noop);
-  };
-
-  const handleAddComment = (content: string) => {
-    return addComment({
-      content,
-      taskId: task.id,
-      projectId: task.projectId,
     }).then(noop);
   };
 
@@ -142,7 +123,12 @@ export default function TaskDrawerContent({
           updateStoryPoints={saveStoryPoints}
         />
 
-        <TaskComments comments={comments} addComment={handleAddComment} />
+        <TaskComments
+          userId={userId}
+          taskId={task.id}
+          comments={comments}
+          projectId={task.projectId}
+        />
       </div>
     </DrawerContent>
   );

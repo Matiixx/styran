@@ -73,8 +73,49 @@ const taskCommentsRouter = createTRPCRouter({
         },
         orderBy: { createdAt: "asc" },
         include: {
-          user: { select: { firstName: true, lastName: true, email: true } },
+          user: {
+            select: { id: true, firstName: true, lastName: true, email: true },
+          },
         },
+      });
+    }),
+
+  deleteComment: protectedProcedure
+    .input(z.object({ commentId: z.string() }))
+    .mutation(({ ctx, input }) => {
+      const { commentId } = input;
+      const {
+        user: { id: userId },
+      } = ctx.session;
+
+      return ctx.db.$transaction(async (tx) => {
+        await tx.taskComment.delete({ where: { id: commentId, userId } });
+
+        return tx.task.updateMany({
+          where: { TaskComment: { some: { id: commentId } } },
+          data: { updatedAt: new Date() },
+        });
+      });
+    }),
+
+  editComment: protectedProcedure
+    .input(z.object({ commentId: z.string(), content: z.string() }))
+    .mutation(({ ctx, input }) => {
+      const { commentId, content } = input;
+      const {
+        user: { id: userId },
+      } = ctx.session;
+
+      return ctx.db.$transaction(async (tx) => {
+        await tx.taskComment.update({
+          where: { id: commentId, userId },
+          data: { content },
+        });
+
+        return tx.task.updateMany({
+          where: { TaskComment: { some: { id: commentId } } },
+          data: { updatedAt: new Date() },
+        });
       });
     }),
 });
