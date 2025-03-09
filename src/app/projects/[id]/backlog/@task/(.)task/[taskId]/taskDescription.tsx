@@ -17,6 +17,13 @@ export default function TaskDescription({
 }: TaskDescriptionProps) {
   const [localDescription, setLocalDescription] = useState(description ?? "");
 
+  const handleUpdate = () => {
+    if (localDescription.trim() === description) {
+      return;
+    }
+    return updateDescription(localDescription);
+  };
+
   return (
     <div className="relative">
       <Label>Description</Label>
@@ -30,7 +37,8 @@ export default function TaskDescription({
         variant="outline"
         size="iconSm"
         className="absolute bottom-2 right-2 h-auto p-1"
-        onClick={() => updateDescription(localDescription)}
+        disabled={localDescription.trim() === description}
+        onClick={handleUpdate}
       >
         <Check size={8} />
       </Button>
