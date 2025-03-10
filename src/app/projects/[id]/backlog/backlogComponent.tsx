@@ -62,7 +62,7 @@ const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
   };
 
   const filteredTasks = useMemo(
-    () => filterTasks(tasks, search, statusFilter, userFilter),
+    () => filterTasks(tasks, search, userFilter, statusFilter),
     [tasks, statusFilter, userFilter, search],
   );
 
