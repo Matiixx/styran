@@ -22,6 +22,7 @@ model User {
     createdTasks  Task[]        @relation("TaskCreatedBy")
     assignedTasks Task[]        @relation("TaskAsignee")
     TaskComment   TaskComment[]
+    TimeTrack     TimeTrack[]
 }
 
 model Project {
@@ -80,6 +81,7 @@ model Task {
     sprintId  String?
 
     TaskComment TaskComment[]
+    TimeTrack   TimeTrack[]
 }
 
 model Sprint {
@@ -111,4 +113,19 @@ model TaskComment {
     userId String
 
     content String
+}
+
+model TimeTrack {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    startTime DateTime
+    endTime   DateTime?
+
+    task   Task   @relation(fields: [taskId], references: [id])
+    taskId String
+
+    user   User   @relation(fields: [userId], references: [id])
+    userId String
 }

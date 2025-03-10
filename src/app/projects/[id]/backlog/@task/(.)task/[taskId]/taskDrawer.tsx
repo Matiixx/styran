@@ -16,14 +16,12 @@ type TaskDrawerProps = {
 const TaskDrawer = ({ userId, taskId, projectId }: TaskDrawerProps) => {
   const router = useRouter();
   const [open, setOpen] = useState(true);
-  const [task] = api.tasks.getTask.useSuspenseQuery(
-    { taskId, projectId },
-    { refetchOnWindowFocus: true },
-  );
-  const [comments] = api.taskComments.getComments.useSuspenseQuery(
-    { taskId, projectId },
-    { refetchOnWindowFocus: true },
-  );
+  const [task] = api.tasks.getTask.useSuspenseQuery({ taskId, projectId });
+  const [comments] = api.taskComments.getComments.useSuspenseQuery({
+    taskId,
+    projectId,
+  });
+  const [trackTimes] = api.timeTracker.getTimes.useSuspenseQuery({ taskId });
 
   if (!task) {
     return null;
@@ -55,6 +53,7 @@ const TaskDrawer = ({ userId, taskId, projectId }: TaskDrawerProps) => {
         task={task}
         userId={userId}
         comments={comments}
+        trackTimes={trackTimes}
         closeDrawer={closeDrawer}
       />
     </Drawer>

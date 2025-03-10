@@ -21,11 +21,13 @@ import AsigneeSelect from "./asigneeSelect";
 import TaskDescription from "./taskDescription";
 import TaskStoryPoints from "./taskStorypoints";
 import TaskComments, { type Comment } from "./taskComments";
+import TaskTimeTracker, { type TimeTrack } from "./taskTimeTracker";
 
 type TaskDrawerContentProps = {
   task: NonNullable<TasksRouterOutput["getTask"]>;
   userId: string;
   comments: Comment[];
+  trackTimes: TimeTrack[];
   closeDrawer: () => void;
 };
 
@@ -33,6 +35,7 @@ export default function TaskDrawerContent({
   task,
   userId,
   comments,
+  trackTimes,
   closeDrawer,
 }: TaskDrawerContentProps) {
   const utils = api.useUtils();
@@ -88,7 +91,7 @@ export default function TaskDrawerContent({
 
       <DrawerDivider />
 
-      <div className="flex flex-col gap-4 overflow-y-auto p-4">
+      <div className="flex flex-col gap-6 overflow-y-auto p-4">
         <div className="w-fit">
           <TaskStatusSelect task={task} size="default" />
         </div>
@@ -122,6 +125,8 @@ export default function TaskDrawerContent({
           }
           updateStoryPoints={saveStoryPoints}
         />
+
+        <TaskTimeTracker taskId={task.id} trackTimes={trackTimes} />
 
         <TaskComments
           userId={userId}

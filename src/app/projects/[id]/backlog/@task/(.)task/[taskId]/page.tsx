@@ -13,6 +13,7 @@ export default async function TaskPage({
 
   void api.tasks.getTask.prefetch({ projectId: id, taskId });
   void api.taskComments.getComments.prefetch({ projectId: id, taskId });
+  void api.timeTracker.getTimes.prefetch({ taskId });
 
   return (
     <HydrateClient>
