@@ -126,7 +126,11 @@ export default function TaskDrawerContent({
           updateStoryPoints={saveStoryPoints}
         />
 
-        <TaskTimeTracker taskId={task.id} trackTimes={trackTimes} />
+        <TaskTimeTracker
+          userId={userId}
+          taskId={task.id}
+          trackTimes={trackTimes}
+        />
 
         <TaskComments
           userId={userId}

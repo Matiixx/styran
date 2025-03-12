@@ -38,6 +38,10 @@ const timeTrackerRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
+      if (startTime.getTime() > endTime.getTime()) {
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+
       return ctx.db.$transaction(async (tx) => {
         await tx.timeTrack.create({
           data: { taskId, startTime, endTime, userId },
@@ -51,11 +55,7 @@ const timeTrackerRouter = createTRPCRouter({
     }),
 
   getTimes: protectedProcedure
-    .input(
-      z.object({
-        taskId: z.string(),
-      }),
-    )
+    .input(z.object({ taskId: z.string() }))
     .query(async ({ ctx, input }) => {
       const { taskId } = input;
       const {
@@ -73,6 +73,64 @@ const timeTrackerRouter = createTRPCRouter({
             },
           },
         },
+        include: {
+          user: true,
+        },
+      });
+    }),
+
+  deleteTime: protectedProcedure
+    .input(z.object({ timeId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { timeId } = input;
+      const {
+        session: {
+          user: { id: userId },
+        },
+      } = ctx;
+
+      const hasAccess = await ctx.db.timeTrack.findUnique({
+        where: { id: timeId, userId },
+      });
+
+      if (!hasAccess) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      return ctx.db.timeTrack.delete({ where: { id: timeId } });
+    }),
+
+  updateTime: protectedProcedure
+    .input(
+      z.object({
+        timeId: z.string(),
+        startTime: z.date(),
+        endTime: z.date(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { timeId, startTime, endTime } = input;
+      const {
+        session: {
+          user: { id: userId },
+        },
+      } = ctx;
+
+      const hasAccess = await ctx.db.timeTrack.findUnique({
+        where: { id: timeId, userId },
+      });
+
+      if (!hasAccess) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      if (startTime.getTime() > endTime.getTime()) {
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+
+      return ctx.db.timeTrack.update({
+        where: { id: timeId },
+        data: { startTime, endTime },
       });
     }),
 });

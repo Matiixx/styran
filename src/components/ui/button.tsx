@@ -65,7 +65,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(
           buttonVariants({ variant, size, className }),
-          (isLoading ?? localIsLoading) && "text-transparent",
+          (isLoading ?? localIsLoading) &&
+            "relative overflow-hidden text-transparent",
         )}
         ref={ref}
         onClick={handleClick}

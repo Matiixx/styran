@@ -69,7 +69,7 @@ export default function TaskComments({
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <span className="text-sm">Comments</span>
+      <span className="text-sm font-medium">Comments</span>
       {map(comments, (comment, index) => {
         const isAuthor = userId === comment.userId;
 
