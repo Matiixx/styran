@@ -65,15 +65,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(
           buttonVariants({ variant, size, className }),
-          (isLoading ?? localIsLoading) &&
+          (isLoading || localIsLoading) &&
             "relative overflow-hidden text-transparent",
         )}
         ref={ref}
         onClick={handleClick}
         {...props}
-        disabled={props.disabled ?? isLoading ?? localIsLoading}
+        disabled={props.disabled || isLoading || localIsLoading}
       >
-        {(isLoading ?? localIsLoading) && (
+        {(isLoading || localIsLoading) && (
           <Icons.spinner className="absolute flex animate-spin text-gray-400" />
         )}
         {props.children}

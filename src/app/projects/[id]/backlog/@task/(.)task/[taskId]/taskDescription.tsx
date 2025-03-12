@@ -36,7 +36,7 @@ export default function TaskDescription({
       <Button
         variant="outline"
         size="iconSm"
-        className="absolute bottom-2 right-2 h-auto p-1"
+        className="!absolute bottom-2 right-2 h-auto p-1"
         disabled={localDescription.trim() === description}
         onClick={handleUpdate}
       >
