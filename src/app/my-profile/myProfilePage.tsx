@@ -2,7 +2,9 @@ import { type FC } from "react";
 import { type Session } from "next-auth";
 
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { ChangePassword } from "./changePassword";
+
+import { ProfileSummaryCard } from "./profileSummaryCard";
+import { ProfileTabs } from "./profileTabs";
 
 type Props = {
   session: Session;
@@ -10,13 +12,16 @@ type Props = {
 
 const MyProfilePage: FC<Props> = ({ session }) => {
   return (
-    <Card disableHover className="mt-4 w-full max-w-2xl">
+    <Card disableHover className="mt-4 w-full max-w-screen-lg">
       <CardHeader>
         <CardTitle>My Profile </CardTitle>
       </CardHeader>
       <CardContent>
-        <div>Email: {session.user.email}</div>
-        <ChangePassword />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <ProfileSummaryCard session={session} />
+
+          <ProfileTabs session={session} />
+        </div>
       </CardContent>
     </Card>
   );

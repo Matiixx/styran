@@ -140,6 +140,20 @@ const userRouter = createTRPCRouter({
         data: { password: await bcrypt.hash(input.newPassword, SALT_ROUNDS) },
       });
     }),
+
+  getUserInfo: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const user = await ctx.db.user.findUnique({
+        where: { id: input.userId },
+      });
+
+      if (!user) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    }),
 });
 
 export default userRouter;

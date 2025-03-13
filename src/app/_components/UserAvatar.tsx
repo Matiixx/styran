@@ -26,7 +26,7 @@ export type UserAvatarProps = {
 
 export function UserAvatar({
   user,
-  size = "sm",
+  size,
   className,
   showUnassigned = true,
 }: UserAvatarProps) {

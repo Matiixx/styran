@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "~/server/auth";
-import { HydrateClient } from "~/trpc/server";
+import { api, HydrateClient } from "~/trpc/server";
 
 import { Header } from "../_components/header";
 import MyProfilePage from "./myProfilePage";
@@ -12,6 +12,8 @@ export default async function Home() {
   if (!session?.user) {
     redirect("/");
   }
+
+  void api.user.getUserInfo.prefetch({ userId: session.user.id });
 
   return (
     <HydrateClient>
