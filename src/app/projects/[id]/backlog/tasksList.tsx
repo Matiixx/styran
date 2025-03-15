@@ -109,7 +109,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
         </div>
 
         <div className="flex flex-row items-center gap-2">
-          {task.asigneeId && <UserAvatar user={task.asignee!} />}
+          {task.asigneeId && <UserAvatar user={task.asignee!} size="sm" />}
           {task.storyPoints !== null && (
             <Badge variant="outline">{task.storyPoints}</Badge>
           )}

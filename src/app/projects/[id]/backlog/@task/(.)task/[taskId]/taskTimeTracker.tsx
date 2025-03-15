@@ -257,7 +257,7 @@ const RecentTimeEntries = ({
                     <div className="w-full">
                       <div className="mb-1 flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <UserAvatar user={entry.user} />
+                          <UserAvatar user={entry.user} size="sm" />
                           <span className="font-medium">{`${entry.user.firstName} ${entry.user.lastName}`}</span>
                         </div>
                         {entry.userId === userId && (

@@ -192,7 +192,7 @@ const TaskCard = ({ task, disabled }: TaskCardProps) => {
             {task.ticker}
           </div>
 
-          {task.asigneeId && <UserAvatar user={task.asignee!} />}
+          {task.asigneeId && <UserAvatar user={task.asignee!} size="sm" />}
         </div>
       </CardContent>
     </Card>

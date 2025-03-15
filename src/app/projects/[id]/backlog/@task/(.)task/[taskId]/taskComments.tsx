@@ -122,7 +122,7 @@ const CommentCard = ({
   return (
     <Card className="flex flex-col p-1">
       <div className="gap flex flex-row gap-2">
-        <UserAvatar user={comment.user} />
+        <UserAvatar user={comment.user} size="sm" />
 
         <div className="flex-1">
           <div className="flex flex-row items-center justify-between gap-2">
