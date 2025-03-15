@@ -87,7 +87,6 @@ const AvatarFallback = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
 >(({ className, ...props }, ref) => {
   const { size } = useAvatarContext();
-  console.log(size);
 
   return (
     <AvatarPrimitive.Fallback
