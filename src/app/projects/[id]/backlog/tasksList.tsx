@@ -161,7 +161,10 @@ export const TaskStatusSelect = ({
       disabled={isPending}
       onValueChange={onStatusChange}
     >
-      <SelectTrigger size={size} className={statusColor[task.status]}>
+      <SelectTrigger
+        size={size}
+        className={cn(statusColor[task.status], "w-fit")}
+      >
         <span className="capitalize">{task.status}</span>
       </SelectTrigger>
 

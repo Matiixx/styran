@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
@@ -22,6 +24,7 @@ import TaskDescription from "./taskDescription";
 import TaskStoryPoints from "./taskStorypoints";
 import TaskComments, { type Comment } from "./taskComments";
 import TaskTimeTracker, { type TimeTrack } from "./taskTimeTracker";
+import TaskSettings from "./taskSettings";
 
 type TaskDrawerContentProps = {
   task: NonNullable<TasksRouterOutput["getTask"]>;
@@ -51,21 +54,27 @@ export default function TaskDrawerContent({
         ]),
     });
 
-  const saveTitle = (value: string) => {
-    return updateTask({
-      taskId: task.id,
-      projectId: task.projectId,
-      title: value,
-    }).then(noop);
-  };
+  const saveTitle = useCallback(
+    (value: string) => {
+      return updateTask({
+        taskId: task.id,
+        projectId: task.projectId,
+        title: value,
+      }).then(noop);
+    },
+    [task.id, task.projectId, updateTask],
+  );
 
-  const saveStoryPoints = (value: number | null) => {
-    return updateTask({
-      taskId: task.id,
-      projectId: task.projectId,
-      storyPoints: value,
-    }).then(noop);
-  };
+  const saveStoryPoints = useCallback(
+    (value: number | null) => {
+      return updateTask({
+        taskId: task.id,
+        projectId: task.projectId,
+        storyPoints: value,
+      }).then(noop);
+    },
+    [task.id, task.projectId, updateTask],
+  );
 
   return (
     <DrawerContent>
@@ -92,8 +101,13 @@ export default function TaskDrawerContent({
       <DrawerDivider />
 
       <div className="flex flex-col gap-6 overflow-y-auto p-4">
-        <div className="w-fit">
+        <div className="flex flex-row items-center justify-between">
           <TaskStatusSelect task={task} size="default" />
+          <TaskSettings
+            taskId={task.id}
+            projectId={task.projectId}
+            closeDrawer={closeDrawer}
+          />
         </div>
 
         <TaskDescription

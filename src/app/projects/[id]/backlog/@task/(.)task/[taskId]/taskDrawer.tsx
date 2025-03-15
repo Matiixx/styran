@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import { api } from "~/trpc/react";
@@ -23,23 +23,23 @@ const TaskDrawer = ({ userId, taskId, projectId }: TaskDrawerProps) => {
   });
   const [trackTimes] = api.timeTracker.getTimes.useSuspenseQuery({ taskId });
 
-  if (!task) {
-    return null;
-  }
-
-  const closeDrawer = () => {
+  const closeDrawer = useCallback(() => {
     setOpen(false);
-  };
+  }, []);
 
-  const handleOpenChange = (open: boolean) => {
+  const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
       setOpen(false);
     }
-  };
+  }, []);
 
-  const onAnimationEnd = () => {
+  const onAnimationEnd = useCallback(() => {
     router.push(`/projects/${projectId}/backlog`);
-  };
+  }, [router, projectId]);
+
+  if (!task) {
+    return null;
+  }
 
   return (
     <Drawer

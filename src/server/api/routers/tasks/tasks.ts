@@ -212,6 +212,26 @@ const tasksRouter = createTRPCRouter({
         data: { Sprint: { disconnect: true } },
       });
     }),
+
+  deleteTask: protectedProcedure
+    .input(z.object({ taskId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { taskId } = input;
+      const {
+        session: {
+          user: { id: userId },
+        },
+      } = ctx;
+
+      return ctx.db.task.delete({
+        where: {
+          id: taskId,
+          project: {
+            OR: [{ ownerId: userId }, { users: { some: { id: userId } } }],
+          },
+        },
+      });
+    }),
 });
 
 export const generateTaskTicker = (
