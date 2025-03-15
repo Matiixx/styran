@@ -1,3 +1,4 @@
+import { ReactScan } from "./ReactScan";
 import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
@@ -18,6 +19,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
+      <ReactScan />
       <body>
         <TRPCReactProvider>
           {children}
