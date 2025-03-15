@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,13 +9,12 @@ type ProjectNavigationButtonsProps = {
   id: string;
 };
 
-export default function ProjectNavigationButtons({
-  id,
-}: ProjectNavigationButtonsProps) {
+function ProjectNavigationButtons({ id }: ProjectNavigationButtonsProps) {
   const pathname = usePathname();
 
   const isActive = useMemo(() => {
-    return (path: string) => pathname === path;
+    return (path: string, exact = true) =>
+      exact ? pathname === path : pathname.startsWith(path);
   }, [pathname]);
 
   return (
@@ -28,7 +27,9 @@ export default function ProjectNavigationButtons({
 
       <Link href={`/projects/${id}/backlog`}>
         <Button
-          variant={isActive(`/projects/${id}/backlog`) ? "default" : "ghost"}
+          variant={
+            isActive(`/projects/${id}/backlog`, false) ? "default" : "ghost"
+          }
         >
           Backlog
         </Button>
@@ -60,3 +61,5 @@ export default function ProjectNavigationButtons({
     </div>
   );
 }
+
+export default memo(ProjectNavigationButtons);
