@@ -5,7 +5,11 @@ import dayjs from "dayjs";
 
 import noop from "lodash/noop";
 
-import { TRPCError } from "@trpc/server";
+import {
+  type inferRouterInputs,
+  type inferRouterOutputs,
+  TRPCError,
+} from "@trpc/server";
 
 import { env } from "~/env";
 import {
@@ -154,6 +158,25 @@ const userRouter = createTRPCRouter({
       const { password, ...userWithoutPassword } = user;
       return userWithoutPassword;
     }),
+
+  updateUserInfo: protectedProcedure
+    .input(
+      z.object({
+        location: z.string().optional(),
+        jobTitle: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.user.update({
+        where: { id: ctx.session.user.id },
+        data: { location: input.location, jobTitle: input.jobTitle },
+      });
+    }),
 });
+
+type UserRouterInputs = inferRouterInputs<typeof userRouter>;
+type UserRouterOutputs = inferRouterOutputs<typeof userRouter>;
+
+export { type UserRouterInputs, type UserRouterOutputs };
 
 export default userRouter;

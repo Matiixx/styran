@@ -8,13 +8,17 @@ datasource db {
 }
 
 model User {
-    id        String @id @default(cuid())
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
     firstName String
     lastName  String
-    email     String @unique
+    email     String   @unique
     // emailVerified DateTime? // TODO: Add email verification
     // image     String? // TODO: Add profile pictures
     password  String
+
+    location String?
+    jobTitle String?
 
     ownedProjects Project[]
     projects      Project[] @relation("ProjectUsers")

@@ -19,7 +19,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
-      <ReactScan />
+      {/* <ReactScan /> */}
       <body>
         <TRPCReactProvider>
           {children}
