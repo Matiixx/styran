@@ -27,7 +27,7 @@ const MyProfilePage: FC<Props> = async ({ session }) => {
             <ProfileSummaryCard userInfo={userInfo} />
           </ProfileSummaryCardWrapper>
 
-          <ProfileTabs session={session} />
+          <ProfileTabs userInfo={userInfo} />
         </div>
       </CardContent>
     </Card>

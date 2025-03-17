@@ -1,5 +1,4 @@
-import { type Session } from "next-auth";
-
+import { type UserRouterOutputs } from "~/server/api/routers/user";
 import { Card } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
@@ -8,10 +7,10 @@ import { AccountSecurity } from "./acountSecurity";
 import { AccountPreferences } from "./accountPrefetences";
 
 type ProfileTabsProps = {
-  session: Session;
+  userInfo: UserRouterOutputs["getUserInfo"];
 };
 
-const ProfileTabs = ({ session }: ProfileTabsProps) => {
+const ProfileTabs = ({ userInfo }: ProfileTabsProps) => {
   return (
     <Tabs defaultValue="account" className="col-span-2 w-full">
       <TabsList className="grid w-full grid-cols-3">
@@ -21,7 +20,7 @@ const ProfileTabs = ({ session }: ProfileTabsProps) => {
       </TabsList>
       <TabsContent value="account">
         <Card disableHover>
-          <AccountInfo />
+          <AccountInfo userInfo={userInfo} />
         </Card>
       </TabsContent>
       <TabsContent value="security">

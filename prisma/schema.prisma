@@ -19,6 +19,7 @@ model User {
 
     location String?
     jobTitle String?
+    bio      String?
 
     ownedProjects Project[]
     projects      Project[] @relation("ProjectUsers")

@@ -18,7 +18,11 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { EMAIL_DUPLICATION } from "~/lib/errorCodes";
-import { sendEmail, forgetPasswordEmailTemplate } from "~/server/sendgrid";
+import {
+  sendEmail,
+  forgetPasswordEmailTemplate,
+  emailVerificationTemplate,
+} from "~/server/sendgrid";
 import { decryptText, encryptObject } from "~/server/encryption";
 import {
   SALT_ROUNDS,
@@ -27,6 +31,7 @@ import {
 } from "~/server/constant";
 
 import {
+  type EmailVerificationCode,
   registerSchema,
   type ResetPasswordCode,
   resetPasswordCodeSchema,
@@ -164,12 +169,74 @@ const userRouter = createTRPCRouter({
       z.object({
         location: z.string().optional(),
         jobTitle: z.string().optional(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        email: z.string().email().optional(),
+        bio: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const update: Prisma.UserUpdateInput = {};
+      if (input.location) update.location = input.location;
+      if (input.jobTitle) update.jobTitle = input.jobTitle;
+      if (input.firstName) update.firstName = input.firstName;
+      if (input.lastName) update.lastName = input.lastName;
+      if (input.bio) update.bio = input.bio;
+
+      if (input.email) {
+        if (SHOULD_SEND_EMAIL) {
+          const emailVerificationCode = encryptObject(
+            {
+              userId: ctx.session.user.id,
+              newEmail: input.email,
+              emailExpiration: dayjs()
+                .add(EMAIL_EXPIRATION_TIME, "hours")
+                .valueOf(),
+            } satisfies EmailVerificationCode,
+            env.RESET_PASSWORD_SECRET,
+          );
+          const urlWithCode = `http://localhost:3000/api/auth/verify-email/${emailVerificationCode}`;
+          const html = emailVerificationTemplate(urlWithCode);
+          await sendEmail("Verify Email", html, "wolija2434@dmener.com").then(
+            noop,
+          );
+        }
+      }
+
       return ctx.db.user.update({
         where: { id: ctx.session.user.id },
-        data: { location: input.location, jobTitle: input.jobTitle },
+        data: update,
+      });
+    }),
+
+  verifyEmail: publicProcedure
+    .input(z.object({ code: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const decryptedCode = decryptText<EmailVerificationCode>(
+        input.code,
+        env.RESET_PASSWORD_SECRET,
+      );
+
+      if (decryptedCode.emailExpiration < dayjs().valueOf()) {
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+
+      const user = await ctx.db.user.findUnique({
+        where: { id: decryptedCode.userId },
+        select: { email: true },
+      });
+
+      if (!user) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      if (user.email === decryptedCode.newEmail) {
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+
+      return ctx.db.user.update({
+        where: { id: decryptedCode.userId },
+        data: { email: decryptedCode.newEmail },
       });
     }),
 });

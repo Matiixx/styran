@@ -13,3 +13,9 @@ export const resetPasswordCodeSchema = z.object({
 });
 
 export type ResetPasswordCode = z.infer<typeof resetPasswordCodeSchema>;
+
+export type EmailVerificationCode = {
+  userId: string;
+  newEmail: string;
+  emailExpiration: number;
+};
