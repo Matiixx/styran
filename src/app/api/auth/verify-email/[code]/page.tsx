@@ -1,7 +1,3 @@
-import { redirect } from "next/navigation";
-
-import { auth } from "~/server/auth";
-import { api } from "~/trpc/server";
 import EmailVerification from "./emailVerification";
 
 export const metadata = {
@@ -13,11 +9,6 @@ export default async function VerifyEmailPage({
 }: {
   params: Promise<{ code: string }>;
 }) {
-  // const session = await auth();
-
-  // if (session) {
-  //   redirect("/");
-  // }
   const code = (await params).code;
 
   return (
