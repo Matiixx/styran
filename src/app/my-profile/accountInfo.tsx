@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -35,9 +37,13 @@ const getDefaultValues = (userInfo: UserRouterOutputs["getUserInfo"]) => {
   };
 };
 const AccountInfo = ({ userInfo }: AccountInfoProps) => {
+  const router = useRouter();
   const utils = api.useUtils();
   const { mutateAsync: updateUserInfo } = api.user.updateUserInfo.useMutation({
-    onSuccess: () => utils.user.getUserInfo.invalidate({ userId: userInfo.id }),
+    onSuccess: () => {
+      router.refresh();
+      return utils.user.getUserInfo.invalidate({ userId: userInfo.id });
+    },
   });
 
   const { register, handleSubmit } = useForm({
