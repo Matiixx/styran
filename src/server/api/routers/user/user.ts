@@ -167,21 +167,30 @@ const userRouter = createTRPCRouter({
   updateUserInfo: protectedProcedure
     .input(
       z.object({
-        location: z.string().optional(),
-        jobTitle: z.string().optional(),
-        firstName: z.string().optional(),
-        lastName: z.string().optional(),
+        location: z.string().nullable().optional(),
+        jobTitle: z.string().nullable().optional(),
+        firstName: z.string().nullable().optional(),
+        lastName: z.string().nullable().optional(),
         email: z.string().email().optional(),
-        bio: z.string().optional(),
+        bio: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const update: Prisma.UserUpdateInput = {};
-      if (input.location) update.location = input.location;
-      if (input.jobTitle) update.jobTitle = input.jobTitle;
-      if (input.firstName) update.firstName = input.firstName;
-      if (input.lastName) update.lastName = input.lastName;
-      if (input.bio) update.bio = input.bio;
+      const update: Prisma.UserUpdateInput = {
+        ...(input.location !== undefined && {
+          location: input.location ?? undefined,
+        }),
+        ...(input.jobTitle !== undefined && {
+          jobTitle: input.jobTitle ?? undefined,
+        }),
+        ...(input.firstName !== undefined && {
+          firstName: input.firstName ?? undefined,
+        }),
+        ...(input.lastName !== undefined && {
+          lastName: input.lastName ?? undefined,
+        }),
+        ...(input.bio !== undefined && { bio: input.bio ?? undefined }),
+      };
 
       if (input.email) {
         if (SHOULD_SEND_EMAIL) {

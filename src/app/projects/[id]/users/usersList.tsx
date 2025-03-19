@@ -32,6 +32,7 @@ import { Badge } from "~/components/ui/badge";
 
 import { AddUserToProjectDialog } from "./addUserToProjectDialog";
 import { UserAvatar } from "~/app/_components/UserAvatar";
+import { useRouter } from "next/navigation";
 
 type User = NonNullable<ProjectRouterOutput["getProject"]>["users"][number];
 
@@ -125,10 +126,15 @@ const UserItem = ({
   setUser: (user: User) => void;
   resendInvitation: (user: User) => Promise<void>;
 }) => {
+  const router = useRouter();
+
   return (
     <Card className="flex w-full p-4">
       <CardContent className="flex w-full flex-row items-center justify-between">
-        <div className="flex flex-row items-center gap-4">
+        <div
+          className="flex cursor-pointer flex-row items-center gap-4"
+          onClick={() => router.push(`/user/${user.id}`)}
+        >
           <UserAvatar user={user} size="md" />
           <div className="flex flex-col">
             <div className="flex flex-row items-center gap-2">
