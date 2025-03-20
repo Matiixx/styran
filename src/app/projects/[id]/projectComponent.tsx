@@ -6,6 +6,7 @@ import { api } from "~/trpc/react";
 import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
 
 import ProjectPageShell from "./projectPageShell";
+import ProjectDashboard from "./projectDashboard";
 
 const ProjectComponent = ({ id, userId }: { id: string; userId: string }) => {
   const [project] = api.projects.getProject.useSuspenseQuery({ id });
@@ -18,7 +19,7 @@ const ProjectComponent = ({ id, userId }: { id: string; userId: string }) => {
     <ProjectPageShell userId={userId} project={project}>
       <ProjectNavigationButtons id={id} />
 
-      {JSON.stringify(project)}
+      <ProjectDashboard project={project} />
     </ProjectPageShell>
   );
 };
