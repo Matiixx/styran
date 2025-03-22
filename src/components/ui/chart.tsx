@@ -188,7 +188,8 @@ const ChartTooltipContent = React.forwardRef<
           {payload.map((item, index) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`;
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
-            const indicatorColor = color || item.payload.fill || item.color;
+            const indicatorColor =
+              color || item.payload.fill || item.payload.color || item.color;
 
             return (
               <div
@@ -355,6 +356,58 @@ function getPayloadConfigFromPayload(
     : config[key as keyof typeof config];
 }
 
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = (
+  formatter: ({
+    name,
+    value,
+    percent,
+  }: {
+    name: string;
+    value: number;
+    percent: number;
+  }) => string,
+) => {
+  const Label = ({
+    cx,
+    cy,
+    fill,
+    name,
+    value,
+    percent,
+    midAngle,
+    outerRadius,
+  }: {
+    cx: number;
+    cy: number;
+    fill: string;
+    name: string;
+    value: number;
+    percent: number;
+    midAngle: number;
+    outerRadius: number;
+  }) => {
+    const radius = outerRadius * 1.25;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill={fill}
+        className="text-sm"
+        textAnchor={x > cx ? "start" : "end"}
+        dominantBaseline="central"
+      >
+        {formatter({ name, value, percent })}
+      </text>
+    );
+  };
+
+  return Label;
+};
+
 export {
   ChartContainer,
   ChartTooltip,
@@ -362,4 +415,5 @@ export {
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
+  renderCustomizedLabel,
 };

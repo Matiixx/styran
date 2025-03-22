@@ -109,7 +109,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
         </div>
 
         <div className="flex flex-row items-center gap-2">
-          {task.asigneeId && <UserAvatar user={task.asignee!} size="sm" />}
+          {task.asigneeId && <UserAvatar user={task.asignee} size="sm" />}
           {task.storyPoints !== null && (
             <Badge variant="outline">{task.storyPoints}</Badge>
           )}
@@ -122,8 +122,8 @@ export const TaskCard = ({ task }: { task: Task }) => {
 
 export const statusColor: Record<TaskStatus, string> = {
   TODO: "bg-gray-400",
-  IN_PROGRESS: "bg-blue-400",
-  IN_REVIEW: "bg-blue-400",
+  IN_PROGRESS: "bg-blue-300",
+  IN_REVIEW: "bg-blue-500",
   DONE: "bg-green-400",
 };
 
