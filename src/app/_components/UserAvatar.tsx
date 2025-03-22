@@ -19,7 +19,7 @@ export const getUserInitials = (user: User) => {
 };
 
 export type UserAvatarProps = {
-  user?: User;
+  user?: User | null;
   className?: string;
   showUnassigned?: boolean;
 } & AvatarProps;

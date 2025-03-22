@@ -13,7 +13,7 @@ type UserPageComponentProps = {
   userId: string;
 };
 
-const UserProfile = async ({ userId }: UserPageComponentProps) => {
+const getUserInfo = async (userId: string) => {
   const userInfo = await api.user.getUserInfo({ userId }).catch((error) => {
     if (error instanceof TRPCError && error.code === "NOT_FOUND") {
       return null;
@@ -21,12 +21,18 @@ const UserProfile = async ({ userId }: UserPageComponentProps) => {
     throw error;
   });
 
-  if (!userInfo) {
+  return {
+    userInfo,
+    isError: userInfo ? false : true,
+  };
+};
+
+const UserProfile = async ({ userId }: UserPageComponentProps) => {
+  const { userInfo, isError } = await getUserInfo(userId);
+
+  if (isError) {
     return (
-      <Card disableHover className="mt-4 w-full max-w-screen-lg">
-        <CardHeader>
-          <CardTitle>User Profile</CardTitle>
-        </CardHeader>
+      <Card disableHover className="col-span-3 mt-4 w-full max-w-screen-lg">
         <CardContent className="flex flex-col items-center gap-4">
           <div className="font-bold">User not found</div>
           <GoToHomeButton />
@@ -36,37 +42,35 @@ const UserProfile = async ({ userId }: UserPageComponentProps) => {
   }
 
   return (
-    <Card disableHover className="mt-4 w-full max-w-screen-lg">
-      <CardHeader>
-        <CardTitle>User Profile</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {userInfo && (
-            <>
-              <UserSummaryCardServer userInfo={userInfo} />
-              <UserBio firstName={userInfo.firstName} bio={userInfo.bio} />
-            </>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <>
+      <UserSummaryCardServer userInfo={userInfo} />
+      <UserBio firstName={userInfo!.firstName} bio={userInfo!.bio} />
+    </>
   );
 };
 
 const UserPageComponent = ({ userId }: UserPageComponentProps) => {
   return (
-    <Suspense
-      fallback={
-        <Card disableHover className="mt-4 w-full max-w-screen-lg">
-          <CardContent>
-            <div className="text-center">Loading...</div>
-          </CardContent>
-        </Card>
-      }
-    >
-      <UserProfile userId={userId} />
-    </Suspense>
+    <Card disableHover className="mt-4 w-full max-w-screen-lg">
+      <CardHeader>
+        <CardTitle>User Profile</CardTitle>
+      </CardHeader>
+
+      <CardContent>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <Suspense
+            fallback={
+              <>
+                <UserSummaryCardServer userInfo={null} />
+                <UserBio firstName={null} bio={null} />
+              </>
+            }
+          >
+            <UserProfile userId={userId} />
+          </Suspense>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
