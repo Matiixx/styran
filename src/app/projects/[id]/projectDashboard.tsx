@@ -5,6 +5,7 @@ import ProjectTaskStatusCard from "./projectTaskStatusCard";
 import ProjectTaskPriorityCard from "./projectTaskPriorityCard";
 import ProjectTaskUsersCard from "./projectTaskUsersCard";
 import ProjectResourceUtilization from "./projectResourceUtilization";
+import ProjectLastActivity from "./projectLastAcrivity";
 
 type ProjectDashboardProps = {
   project: ProjectRouterOutput["getProject"];
@@ -22,6 +23,7 @@ const ProjectDashboard = ({ project }: ProjectDashboardProps) => {
         <ProjectTaskUsersCard projectId={project?.id ?? ""} />
       </div>
       <ProjectResourceUtilization projectId={project?.id ?? ""} />
+      <ProjectLastActivity projectId={project?.id ?? ""} />
     </div>
   );
 };
