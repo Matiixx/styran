@@ -1,5 +1,8 @@
-import { map } from "lodash";
 import { Clock } from "lucide-react";
+
+import map from "lodash/map";
+
+import { cn } from "~/lib/utils";
 import { UserAvatar } from "~/app/_components/UserAvatar";
 import {
   Card,
@@ -10,7 +13,6 @@ import {
 } from "~/components/ui/card";
 import { Progress } from "~/components/ui/progress";
 import { Separator } from "~/components/ui/separator";
-import { cn } from "~/lib/utils";
 
 type ProjectResourceUtilizationProps = {
   projectId: string;
