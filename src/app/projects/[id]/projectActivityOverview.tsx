@@ -8,19 +8,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { type ChartConfig } from "~/components/ui/chart";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
-
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "hsl(var(--chart-1))",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "hsl(var(--chart-2))",
-  },
-} satisfies ChartConfig;
 
 const weeklyActivityData = [
   { day: "Mon", tasksCreated: 5, tasksCompleted: 3 },
@@ -34,18 +23,18 @@ const weeklyActivityData = [
 
 const ProjectActivityOverview = () => {
   return (
-    <div className="flex flex-col gap-4 text-black">
-      <div className="flex flex-row items-center justify-between gap-2">
-        <div className="text-xl font-bold">Activity Overview</div>
+    <Card disableHover>
+      <CardHeader className="flex flex-row items-center justify-between gap-2">
+        <CardTitle>Activity Overview</CardTitle>
         <Tabs defaultValue="7-days">
           <TabsList>
             <TabsTrigger value="7-days">Last 7 days</TabsTrigger>
             <TabsTrigger value="30-days">Last 30 days</TabsTrigger>
           </TabsList>
         </Tabs>
-      </div>
+      </CardHeader>
 
-      <div className="h-96 w-full">
+      <CardContent className="h-80 w-full">
         <ResponsiveContainer width="100%" height={300}>
           <LineChart
             data={weeklyActivityData}
@@ -74,8 +63,8 @@ const ProjectActivityOverview = () => {
             />
           </LineChart>
         </ResponsiveContainer>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
