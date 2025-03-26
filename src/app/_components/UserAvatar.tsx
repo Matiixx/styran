@@ -11,7 +11,7 @@ import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 
 type User = NonNullable<ProjectRouterOutput["getProject"]>["users"][number];
 
-export const getUserInitials = (user: User) => {
+export const getUserInitials = (user: Pick<User, "firstName" | "lastName">) => {
   return (
     user.firstName.charAt(0)?.toUpperCase() +
     user.lastName.charAt(0)?.toUpperCase()
@@ -19,7 +19,7 @@ export const getUserInitials = (user: User) => {
 };
 
 export type UserAvatarProps = {
-  user?: User | null;
+  user?: Pick<User, "email" | "firstName" | "lastName"> | null;
   className?: string;
   showUnassigned?: boolean;
 } & AvatarProps;
