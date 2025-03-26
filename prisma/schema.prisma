@@ -28,6 +28,7 @@ model User {
     assignedTasks Task[]        @relation("TaskAsignee")
     TaskComment   TaskComment[]
     TimeTrack     TimeTrack[]
+    ActivityLog   ActivityLog[]
 }
 
 model Project {
@@ -43,8 +44,9 @@ model Project {
 
     users User[] @relation("ProjectUsers")
 
-    tasks  Task[]
-    sprint Sprint[]
+    tasks       Task[]
+    sprint      Sprint[]
+    ActivityLog ActivityLog[]
 }
 
 enum TaskType {
@@ -87,6 +89,7 @@ model Task {
 
     TaskComment TaskComment[]
     TimeTrack   TimeTrack[]
+    ActivityLog ActivityLog[]
 }
 
 model Sprint {
@@ -103,7 +106,8 @@ model Sprint {
     project   Project @relation(fields: [projectId], references: [id])
     projectId String
 
-    tasks Task[]
+    tasks       Task[]
+    ActivityLog ActivityLog[]
 }
 
 model TaskComment {
@@ -133,4 +137,27 @@ model TimeTrack {
 
     user   User   @relation(fields: [userId], references: [id])
     userId String
+}
+
+model ActivityLog {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+
+    activityType String
+    description  String
+
+    user   User   @relation(fields: [userId], references: [id])
+    userId String
+
+    project   Project @relation(fields: [projectId], references: [id])
+    projectId String
+
+    taskId    String?
+    task      Task?   @relation(fields: [taskId], references: [id])
+    sprintId  String?
+    sprint    Sprint? @relation(fields: [sprintId], references: [id])
+    commentId String?
+
+    oldValue String?
+    newValue String?
 }
