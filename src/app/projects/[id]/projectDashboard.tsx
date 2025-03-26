@@ -8,7 +8,7 @@ import ProjectResourceUtilization from "./projectResourceUtilization";
 import ProjectLastActivity from "./projectLastAcrivity";
 
 type ProjectDashboardProps = {
-  project: ProjectRouterOutput["getProject"];
+  project: NonNullable<ProjectRouterOutput["getProject"]>;
 };
 
 const ProjectDashboard = ({ project }: ProjectDashboardProps) => {

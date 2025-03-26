@@ -1,4 +1,6 @@
-import { Cell, Legend, Pie, PieChart, Tooltip } from "recharts";
+"use client";
+
+import { Cell, Legend, Pie, PieChart } from "recharts";
 import {
   Card,
   CardContent,

@@ -2,7 +2,7 @@ import { type Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { auth } from "~/server/auth";
-import { api, HydrateClient } from "~/trpc/server";
+import { api } from "~/trpc/server";
 
 import ProjectComponent from "./projectComponent";
 
@@ -18,13 +18,9 @@ export default async function ProjectPage({
   }
 
   const id = (await params).id;
-  void api.projects.getProject.prefetch({ id });
+  // void api.projects.getProject.prefetch({ id });
 
-  return (
-    <HydrateClient>
-      <ProjectComponent id={id} userId={session.user.id} />
-    </HydrateClient>
-  );
+  return <ProjectComponent id={id} userId={session.user.id} />;
 }
 
 export async function generateMetadata({

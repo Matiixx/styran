@@ -6,6 +6,7 @@ import {
 } from "@trpc/server";
 import { z } from "zod";
 
+import groupBy from "lodash/groupBy";
 import padStart from "lodash/padStart";
 
 import {
@@ -15,6 +16,7 @@ import {
 } from "~/lib/schemas/taskSchemas";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import dayjs from "dayjs";
 
 const tasksRouter = createTRPCRouter({
   createTask: protectedProcedure
@@ -231,6 +233,41 @@ const tasksRouter = createTRPCRouter({
           },
         },
       });
+    }),
+
+  getTaskCount: protectedProcedure
+    .input(z.object({ projectId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { projectId } = input;
+
+      const now = dayjs();
+      const currentMonthStart = now.startOf("month");
+      const nextMonthStart = now.add(1, "month").startOf("month");
+      const previousMonthStart = now.subtract(1, "month").startOf("month");
+
+      const [currentMonthTasksCount, previousMonthTasksCount] =
+        await ctx.db.$transaction([
+          ctx.db.task.count({
+            where: {
+              projectId,
+              createdAt: {
+                gte: currentMonthStart.toDate(),
+                lt: nextMonthStart.toDate(),
+              },
+            },
+          }),
+          ctx.db.task.count({
+            where: {
+              projectId,
+              createdAt: {
+                gte: previousMonthStart.toDate(),
+                lt: currentMonthStart.toDate(),
+              },
+            },
+          }),
+        ]);
+
+      return { previousMonthTasksCount, currentMonthTasksCount };
     }),
 });
 

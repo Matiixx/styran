@@ -1,15 +1,19 @@
-"use client";
-
 import { redirect } from "next/navigation";
 
-import { api } from "~/trpc/react";
+import { api } from "~/trpc/server";
 import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
 
 import ProjectPageShell from "./projectPageShell";
 import ProjectDashboard from "./projectDashboard";
 
-const ProjectComponent = ({ id, userId }: { id: string; userId: string }) => {
-  const [project] = api.projects.getProject.useSuspenseQuery({ id });
+const ProjectComponent = async ({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string;
+}) => {
+  const project = await api.projects.getProject({ id });
 
   if (!project) {
     redirect("/projects");
