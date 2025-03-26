@@ -13,6 +13,7 @@ import {
 } from "~/components/ui/card";
 import { Progress } from "~/components/ui/progress";
 import { Separator } from "~/components/ui/separator";
+import { Button } from "~/components/ui/button";
 
 type ProjectResourceUtilizationProps = {
   projectId: string;
@@ -44,6 +45,10 @@ export default function ProjectResourceUtilization({
             <UserUtilization key={name} name={name} utilization={utilization} />
           ))}
         </div>
+
+        <Button variant="outline" className="mt-4 w-full">
+          View more
+        </Button>
       </CardContent>
     </Card>
   );

@@ -5,6 +5,7 @@ dayjs.extend(relativeTime);
 import map from "lodash/map";
 
 import { UserAvatar } from "~/app/_components/UserAvatar";
+import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 
@@ -68,6 +69,10 @@ export default function ProjectLastActivity({
             <AcivityCard key={activity.user.email} activity={activity} />
           ))}
         </div>
+
+        <Button variant="outline" className="mt-4 w-full">
+          View more
+        </Button>
       </CardContent>
     </Card>
   );
