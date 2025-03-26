@@ -13,15 +13,15 @@ const AccountPreferences = () => {
       <CardContent className="mt-6">
         <div className="flex justify-between gap-1 border-b py-4">
           <div className="font-medium">Email notifications</div>
-          <Switch />
+          <Switch disabled />
         </div>
         <div className="flex justify-between gap-1 border-b py-4">
           <div className="font-medium">Push notifications</div>
-          <Switch />
+          <Switch disabled />
         </div>
         <div className="flex justify-between gap-1 border-b py-4">
           <div className="font-medium">Marketing emails</div>
-          <Switch />
+          <Switch disabled />
         </div>
       </CardContent>
     </>
