@@ -77,7 +77,6 @@ export default function AsigneeSelect({
                   opt.value === UNASSIGNED_VALUE
                     ? undefined
                     : {
-                        id: opt.value,
                         firstName: opt.firstName,
                         lastName: opt.lastName,
                         email: opt.email,
