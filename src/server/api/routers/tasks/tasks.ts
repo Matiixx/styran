@@ -235,7 +235,7 @@ const tasksRouter = createTRPCRouter({
       });
     }),
 
-  getTaskCount: protectedProcedure
+  getCompletedTaskCount: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
       const { projectId } = input;
@@ -245,29 +245,52 @@ const tasksRouter = createTRPCRouter({
       const nextMonthStart = now.add(1, "month").startOf("month");
       const previousMonthStart = now.subtract(1, "month").startOf("month");
 
-      const [currentMonthTasksCount, previousMonthTasksCount] =
-        await ctx.db.$transaction([
-          ctx.db.task.count({
-            where: {
-              projectId,
-              createdAt: {
-                gte: currentMonthStart.toDate(),
-                lt: nextMonthStart.toDate(),
-              },
+      const [
+        currentMonthTasksCount,
+        previousMonthTasksCount,
+        groupedTasksCount,
+        lastMonthGroupedTasksCount,
+      ] = await ctx.db.$transaction([
+        ctx.db.task.count({
+          where: {
+            projectId,
+            status: TaskStatus.DONE,
+            createdAt: {
+              gte: currentMonthStart.toDate(),
+              lt: nextMonthStart.toDate(),
             },
-          }),
-          ctx.db.task.count({
-            where: {
-              projectId,
-              createdAt: {
-                gte: previousMonthStart.toDate(),
-                lt: currentMonthStart.toDate(),
-              },
+          },
+        }),
+        ctx.db.task.count({
+          where: {
+            projectId,
+            status: TaskStatus.DONE,
+            createdAt: {
+              gte: previousMonthStart.toDate(),
+              lt: currentMonthStart.toDate(),
             },
-          }),
-        ]);
+          },
+        }),
+        ctx.db.task.groupBy({
+          where: { projectId },
+          by: ["status"],
+          _count: { status: true },
+          orderBy: { status: "asc" },
+        }),
+        ctx.db.task.groupBy({
+          where: { projectId, createdAt: { lt: currentMonthStart.toDate() } },
+          by: ["status"],
+          _count: { status: true },
+          orderBy: { status: "asc" },
+        }),
+      ]);
 
-      return { previousMonthTasksCount, currentMonthTasksCount };
+      return {
+        groupedTasksCount,
+        currentMonthTasksCount,
+        previousMonthTasksCount,
+        lastMonthGroupedTasksCount,
+      };
     }),
 });
 
