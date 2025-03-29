@@ -68,6 +68,7 @@ const projectsRouter = createTRPCRouter({
           ticker: input.ticker ? input.ticker : generateTicker(input.name),
           ownerId: ctx.session.user.id,
           timezone: input.timezone ?? 0,
+          users: { connect: { id: ctx.session.user.id } },
         },
       });
     }),
