@@ -1,38 +1,7 @@
-import { Suspense } from "react";
-
 import { ArrowUp, List } from "lucide-react";
-
-import { api } from "~/trpc/server";
 
 import { Card, CardContent } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
-
-const TotalTasksCardSuspensed = ({ projectId }: { projectId: string }) => {
-  return (
-    <Suspense
-      fallback={
-        <TotalTasksCard
-          currentMonthTasksCount={null}
-          previousMonthTasksCount={null}
-        />
-      }
-    >
-      <TotalTasksCardAsync projectId={projectId} />
-    </Suspense>
-  );
-};
-
-const TotalTasksCardAsync = async ({ projectId }: { projectId: string }) => {
-  const { currentMonthTasksCount, previousMonthTasksCount } =
-    await api.tasks.getCompletedTaskCount({ projectId });
-
-  return (
-    <TotalTasksCard
-      currentMonthTasksCount={currentMonthTasksCount}
-      previousMonthTasksCount={previousMonthTasksCount}
-    />
-  );
-};
 
 const TotalTasksCard = ({
   currentMonthTasksCount,

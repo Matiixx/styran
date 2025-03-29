@@ -14,6 +14,7 @@ import { type OpenApiMeta } from "trpc-to-openapi";
 
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
+import { z } from "zod";
 
 /**
  * 1. CONTEXT
@@ -138,4 +139,30 @@ export const protectedProcedure = t.procedure
         session: { ...ctx.session, user: ctx.session.user },
       },
     });
+  });
+
+export const projectMemberProcedure = protectedProcedure
+  .input(z.object({ projectId: z.string() }))
+  .use(async ({ ctx, input, next }) => {
+    const { projectId } = input;
+    const {
+      session: {
+        user: { id: userId },
+      },
+    } = ctx;
+
+    const project = await ctx.db.project.findUnique({
+      where: {
+        id: projectId,
+        OR: [{ ownerId: userId }, { users: { some: { id: userId } } }],
+      },
+    });
+
+    if (!project) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Project not found",
+      });
+    }
+    return next({ ctx: { projectId } });
   });

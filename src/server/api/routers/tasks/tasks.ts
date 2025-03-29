@@ -6,7 +6,6 @@ import {
 } from "@trpc/server";
 import { z } from "zod";
 
-import groupBy from "lodash/groupBy";
 import padStart from "lodash/padStart";
 
 import {
@@ -15,7 +14,11 @@ import {
   UpdateTaskSchema,
 } from "~/lib/schemas/taskSchemas";
 
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  projectMemberProcedure,
+} from "~/server/api/trpc";
 import dayjs from "dayjs";
 
 const tasksRouter = createTRPCRouter({
@@ -292,6 +295,14 @@ const tasksRouter = createTRPCRouter({
         lastMonthGroupedTasksCount,
       };
     }),
+
+  getHighPriorityTasks: projectMemberProcedure.query(({ ctx }) => {
+    const { projectId } = ctx;
+
+    return ctx.db.task.findMany({
+      where: { projectId, status: { not: "DONE" }, priority: "HIGH" },
+    });
+  }),
 });
 
 export const generateTaskTicker = (
