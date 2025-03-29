@@ -209,6 +209,8 @@ const userRouter = createTRPCRouter({
           await sendEmail("Verify Email", html, "wolija2434@dmener.com").then(
             noop,
           );
+        } else {
+          update.email = input.email;
         }
       }
 

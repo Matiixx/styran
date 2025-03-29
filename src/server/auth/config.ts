@@ -99,7 +99,18 @@ export const authConfig = {
       };
     },
 
-    jwt: ({ token, user }) => {
+    jwt: ({ token, user, trigger, session: _session }) => {
+      if (trigger === "update") {
+        const session = _session as {
+          email?: string;
+          firstName?: string;
+          lastName?: string;
+        };
+        token.email = session?.email ?? token.email;
+        token.firstName = session?.firstName ?? token.firstName;
+        token.lastName = session?.lastName ?? token.lastName;
+        return token;
+      }
       if (user) {
         token.firstName = user.firstName;
         token.lastName = user.lastName;

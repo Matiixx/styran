@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -36,12 +37,13 @@ const getDefaultValues = (userInfo: UserRouterOutputs["getUserInfo"]) => {
     bio: userInfo.bio ?? "",
   };
 };
+
 const AccountInfo = ({ userInfo }: AccountInfoProps) => {
   const router = useRouter();
   const utils = api.useUtils();
+  const { update } = useSession();
   const { mutateAsync: updateUserInfo } = api.user.updateUserInfo.useMutation({
     onSuccess: () => {
-      router.refresh();
       return utils.user.getUserInfo.invalidate({ userId: userInfo.id });
     },
   });
@@ -70,7 +72,14 @@ const AccountInfo = ({ userInfo }: AccountInfoProps) => {
 
     const validatedChanges = AccountInfoOptionalSchema.parse(changes);
     return updateUserInfo(validatedChanges)
-      .then(() => toast("Account information updated successfully"))
+      .then(() => {
+        toast("Account information updated successfully");
+        return update({
+          email: changes.email,
+          lastName: changes.lastName,
+          firstName: changes.firstName,
+        }).then(() => router.refresh());
+      })
       .catch(() => toast.error("Failed to update account information"));
   });
 
