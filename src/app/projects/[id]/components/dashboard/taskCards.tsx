@@ -46,14 +46,14 @@ const TaskCardsAsync = async ({ projectId }: TaskCardsSuspendedProps) => {
     groupedTasksCount.find((task) => task.status === "DONE")?._count as {
       status: number | undefined;
     }
-  ).status;
+  )?.status;
 
   const lastMonthDoneTasks = (
     lastMonthGroupedTasksCount.find((task) => task.status === "DONE")
       ?._count as {
       status: number | undefined;
     }
-  ).status;
+  )?.status;
 
   const lastMonthTotalTasks = lastMonthGroupedTasksCount.reduce(
     (acc, curr) =>
@@ -61,9 +61,9 @@ const TaskCardsAsync = async ({ projectId }: TaskCardsSuspendedProps) => {
     0,
   );
 
-  const completionRate = ((doneTasks ?? 0) / (totalTasks ?? 1)) * 100;
+  const completionRate = ((doneTasks ?? 0) / (totalTasks || 1)) * 100;
   const lastMonthCompletionRate =
-    ((lastMonthDoneTasks ?? 0) / (lastMonthTotalTasks ?? 1)) * 100;
+    ((lastMonthDoneTasks ?? 0) / (lastMonthTotalTasks || 1)) * 100;
 
   return (
     <>
