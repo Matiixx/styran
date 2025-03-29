@@ -75,7 +75,6 @@ const AccountInfo = ({ userInfo }: AccountInfoProps) => {
       .then(() => {
         toast("Account information updated successfully");
         return update({
-          email: changes.email,
           lastName: changes.lastName,
           firstName: changes.firstName,
         }).then(() => router.refresh());

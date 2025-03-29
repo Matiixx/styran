@@ -1,3 +1,5 @@
+import { SessionProvider } from "next-auth/react";
+
 import EmailVerification from "./emailVerification";
 
 export const metadata = {
@@ -12,8 +14,10 @@ export default async function VerifyEmailPage({
   const code = (await params).code;
 
   return (
-    <main className="bg-gradient-background flex min-h-screen flex-col items-center justify-center">
-      <EmailVerification code={code} />
-    </main>
+    <SessionProvider>
+      <main className="bg-gradient-background flex min-h-screen flex-col items-center justify-center">
+        <EmailVerification code={code} />
+      </main>
+    </SessionProvider>
   );
 }

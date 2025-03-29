@@ -1,7 +1,8 @@
 "use client";
-import { useEffect } from "react";
+import { useState } from "react";
 
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import { api } from "~/trpc/react";
@@ -18,14 +19,31 @@ const EmailVerification = ({ code }: EmailVerificationProps) => {
     isPending,
     isSuccess,
   } = api.user.verifyEmail.useMutation();
+  const { update } = useSession();
+  const [verified, setVerified] = useState(false);
 
-  useEffect(() => {
+  const verify = () => {
     if (code) {
-      void verifyEmail({ code })
-        .then(() => toast("Email verified"))
+      return verifyEmail({ code })
+        .then(({ email }) => {
+          setVerified(true);
+          toast("Email verified");
+          return update({ email }).then(() => {
+            router.refresh();
+          });
+        })
         .catch(() => toast.error("Email verification failed"));
     }
-  }, [code, verifyEmail]);
+  };
+
+  if (!verified && !isPending) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4">
+        <div>Click the button below to verify your email</div>
+        <Button onClick={verify}>Verify email</Button>
+      </div>
+    );
+  }
 
   return (
     <div>
