@@ -36,7 +36,6 @@ export const HighPriorityTasksCardSuspended = ({
 const HighPriorityTasksCardAsync = async ({
   projectId,
 }: HighPriorityTasksCardSuspendedProps) => {
-  await new Promise((resolve) => setTimeout(resolve, 3000));
   const highPriorityTasks = await api.tasks.getHighPriorityTasks({ projectId });
 
   const immediateAttentionCount = filter(highPriorityTasks, (task) => {

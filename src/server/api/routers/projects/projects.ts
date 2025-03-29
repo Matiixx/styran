@@ -3,7 +3,11 @@ import bcrypt from "bcrypt";
 import { TRPCError, type inferRouterOutputs } from "@trpc/server";
 
 import { editProjectSchema, newProjectSchema } from "~/lib/schemas";
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  projectMemberProcedure,
+  protectedProcedure,
+} from "~/server/api/trpc";
 import { SALT_ROUNDS, SHOULD_SEND_EMAIL } from "~/server/constant";
 import { inviteUserEmailTemplate } from "~/server/sendgrid/inviteUserEmail";
 import { sendEmail } from "~/server/sendgrid";
@@ -193,6 +197,20 @@ const projectsRouter = createTRPCRouter({
           return tempPassword;
         });
     }),
+
+  getProjectMembers: projectMemberProcedure.query(({ ctx }) => {
+    const { projectId } = ctx;
+
+    return ctx.db.user.findMany({
+      where: { projects: { some: { id: projectId } } },
+      select: {
+        id: true,
+        email: true,
+        lastName: true,
+        firstName: true,
+      },
+    });
+  }),
 });
 
 export type ProjectRouterOutput = inferRouterOutputs<typeof projectsRouter>;
