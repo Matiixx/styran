@@ -63,6 +63,13 @@ enum TaskStatus {
     DONE
 }
 
+enum TaskPriority {
+    NONE
+    LOW
+    MEDIUM
+    HIGH
+}
+
 model Task {
     id          String   @id @default(cuid())
     ticker      String
@@ -74,7 +81,8 @@ model Task {
     createdBy   User     @relation(name: "TaskCreatedBy", fields: [createdById], references: [id])
     createdById String
 
-    status      TaskStatus @default(TODO)
+    priority    TaskPriority? @default(NONE)
+    status      TaskStatus    @default(TODO)
     startAt     DateTime?
     doneAt      DateTime?
     storyPoints Int?
