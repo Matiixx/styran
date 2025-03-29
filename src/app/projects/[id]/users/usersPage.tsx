@@ -28,17 +28,7 @@ const UsersProjectComponent = ({
     <ProjectPageShell userId={user.id} project={project}>
       <ProjectNavigationButtons id={projectId} />
 
-      <UsersList
-        users={[
-          {
-            ...user,
-            firstName: user.firstName ?? "",
-            lastName: user.lastName ?? "",
-          },
-          ...project.users,
-        ]}
-        project={project}
-      />
+      <UsersList users={project.users} project={project} />
     </ProjectPageShell>
   );
 };
