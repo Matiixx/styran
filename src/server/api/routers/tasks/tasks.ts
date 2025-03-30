@@ -303,6 +303,32 @@ const tasksRouter = createTRPCRouter({
       where: { projectId, status: { not: "DONE" }, priority: "HIGH" },
     });
   }),
+
+  getActivityOverview: projectMemberProcedure
+    .input(z.object({ days: z.enum(["7", "30"]).default("7") }))
+    .use(async ({ input, next }) => {
+      if (input.days === "30") {
+        return next({ ctx: { days: 30 } });
+      }
+      return next({ ctx: { days: 7 } });
+    })
+    .query(({ ctx }) => {
+      const { projectId, days } = ctx;
+
+      const now = dayjs();
+      const startDate = now.subtract(days, "days").startOf("day");
+
+      return ctx.db.task.findMany({
+        where: {
+          projectId,
+          OR: [
+            { createdAt: { gte: startDate.toDate() } },
+            { doneAt: { gte: startDate.toDate(), lte: now.toDate() } },
+          ],
+        },
+        select: { createdAt: true, doneAt: true, status: true },
+      });
+    }),
 });
 
 export const generateTaskTicker = (

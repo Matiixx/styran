@@ -16,7 +16,7 @@ const ProjectDashboard = ({ project }: ProjectDashboardProps) => {
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 overflow-y-auto bg-white p-4">
       <span className="text-2xl font-bold text-black">Project Dashboard</span>
       <ProjectDashboardCards project={project} />
-      <ProjectActivityOverview />
+      <ProjectActivityOverview projectId={project.id} />
       <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
         <ProjectTaskStatusCard projectId={project?.id ?? ""} />
         <ProjectTaskPriorityCard projectId={project?.id ?? ""} />
