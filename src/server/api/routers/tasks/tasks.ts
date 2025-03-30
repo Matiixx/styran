@@ -329,6 +329,19 @@ const tasksRouter = createTRPCRouter({
         select: { createdAt: true, doneAt: true, status: true },
       });
     }),
+
+  getTasksByStatus: projectMemberProcedure.query(({ ctx }) => {
+    const { projectId } = ctx;
+
+    return ctx.db.task.groupBy({
+      where: {
+        projectId,
+        OR: [{ Sprint: { isActive: true } }, { sprintId: null }],
+      },
+      by: ["status"],
+      _count: { status: true },
+    });
+  }),
 });
 
 export const generateTaskTicker = (

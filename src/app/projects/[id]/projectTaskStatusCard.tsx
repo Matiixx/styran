@@ -1,6 +1,7 @@
-"use client";
+import { Suspense } from "react";
 
-import { Cell, Legend, Pie, PieChart } from "recharts";
+import { api } from "~/trpc/server";
+
 import {
   Card,
   CardContent,
@@ -8,24 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  renderCustomizedLabel,
-} from "~/components/ui/chart";
-import { tailwindColors } from "~/styles/colors";
+
+import ProjectTaskStatusCardClient from "./components/dashboard/ProjectTaskStatusCardClient";
+import { taskStatusToString } from "~/utils/taskUtils";
 
 type ProjectTaskStatusCardProps = {
   projectId: string;
 };
-
-const taskStatusData = [
-  { name: "To Do", value: 18, color: tailwindColors.gray[400] },
-  { name: "In Progress", value: 12, color: tailwindColors.blue[300] },
-  { name: "Review", value: 8, color: tailwindColors.blue[500] },
-  { name: "Done", value: 24, color: tailwindColors.green[400] },
-];
 
 const ProjectTaskStatusCard = ({ projectId }: ProjectTaskStatusCardProps) => {
   return (
@@ -38,31 +28,28 @@ const ProjectTaskStatusCard = ({ projectId }: ProjectTaskStatusCardProps) => {
       </CardHeader>
 
       <CardContent>
-        <ChartContainer config={{}} className="mx-auto h-[350px] w-full">
-          <PieChart>
-            <Pie
-              data={taskStatusData}
-              dataKey="value"
-              cx="50%"
-              cy="50%"
-              innerRadius={70}
-              outerRadius={100}
-              paddingAngle={5}
-              label={renderCustomizedLabel(
-                ({ percent }) => `${(percent * 100).toFixed(0)}%`,
-              )}
-            >
-              {taskStatusData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-            <Legend />
-          </PieChart>
-        </ChartContainer>
+        <Suspense
+          fallback={
+            <div className="mt-8 flex w-full flex-1 items-center justify-center text-muted-foreground">
+              Loading...
+            </div>
+          }
+        >
+          <ProjectTaskStatusCardAsync projectId={projectId} />
+        </Suspense>
       </CardContent>
     </Card>
   );
+};
+
+const ProjectTaskStatusCardAsync = async ({
+  projectId,
+}: {
+  projectId: string;
+}) => {
+  const taskStatusData = await api.tasks.getTasksByStatus({ projectId });
+
+  return <ProjectTaskStatusCardClient taskStatusData={taskStatusData} />;
 };
 
 export default ProjectTaskStatusCard;

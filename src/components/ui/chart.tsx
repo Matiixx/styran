@@ -107,6 +107,7 @@ const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
     React.ComponentProps<"div"> & {
+      hideName?: boolean;
       hideLabel?: boolean;
       hideIndicator?: boolean;
       indicator?: "line" | "dot" | "dashed";
@@ -120,6 +121,7 @@ const ChartTooltipContent = React.forwardRef<
       payload,
       className,
       indicator = "dot",
+      hideName = false,
       hideLabel = false,
       hideIndicator = false,
       label,
@@ -241,9 +243,11 @@ const ChartTooltipContent = React.forwardRef<
                     >
                       <div className="grid gap-1.5">
                         {nestLabel ? tooltipLabel : null}
-                        <span className="text-muted-foreground">
-                          {itemConfig?.label || item.name}
-                        </span>
+                        {!hideName && (
+                          <span className="text-muted-foreground">
+                            {itemConfig?.label || item.name}
+                          </span>
+                        )}
                       </div>
                       {item.value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
