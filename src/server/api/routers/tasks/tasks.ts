@@ -346,6 +346,16 @@ const tasksRouter = createTRPCRouter({
       _count: { status: true },
     });
   }),
+
+  getTasksByPriority: projectMemberProcedure.query(({ ctx }) => {
+    const { projectId } = ctx;
+
+    return ctx.db.task.groupBy({
+      where: { projectId, status: { not: "DONE" } },
+      by: ["priority"],
+      _count: { priority: true },
+    });
+  }),
 });
 
 export const generateTaskTicker = (

@@ -1,14 +1,11 @@
-"use client";
+import { Suspense } from "react";
 
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  LabelList,
-  XAxis,
-  YAxis,
-} from "recharts";
+import map from "lodash/map";
+
+import { TaskPriority } from "@prisma/client";
+
+import { api } from "~/trpc/server";
+
 import {
   Card,
   CardContent,
@@ -16,23 +13,13 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "~/components/ui/chart";
+
+import { ProjectPriorityChart } from "./components/dashboard/projectPriorityChart";
 import { getColorByPriority } from "~/utils/taskUtils";
 
 type ProjectTaskPriorityCardProps = {
   projectId: string;
 };
-
-const taskPriorityData = [
-  { name: "None", tasks: 7, color: getColorByPriority("NONE").color },
-  { name: "Low", tasks: 18, color: getColorByPriority("LOW").color },
-  { name: "Medium", tasks: 22, color: getColorByPriority("MEDIUM").color },
-  { name: "High", tasks: 15, color: getColorByPriority("HIGH").color },
-];
 
 const ProjectTaskPriorityCard = ({
   projectId,
@@ -47,28 +34,38 @@ const ProjectTaskPriorityCard = ({
       </CardHeader>
 
       <CardContent>
-        <ChartContainer config={{}} className="mx-auto h-[350px] w-full">
-          <BarChart accessibilityLayer data={taskPriorityData}>
-            <CartesianGrid vertical={false} />
-            <XAxis dataKey="name" tickLine={false} axisLine={false} />
-            <YAxis tickLine={false} axisLine={false} />
-            <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-            <Bar dataKey="tasks" radius={4}>
-              {taskPriorityData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-              <LabelList
-                position="top"
-                offset={6}
-                className="fill-black"
-                fontSize={14}
-              />
-            </Bar>
-          </BarChart>
-        </ChartContainer>
+        <Suspense
+          fallback={
+            <div className="mt-8 flex w-full flex-1 items-center justify-center text-muted-foreground">
+              Loading...
+            </div>
+          }
+        >
+          <ProjectPriorityChartAsync projectId={projectId} />
+        </Suspense>
       </CardContent>
     </Card>
   );
+};
+
+const ProjectPriorityChartAsync = async ({
+  projectId,
+}: {
+  projectId: string;
+}) => {
+  const data = await api.tasks.getTasksByPriority({ projectId });
+
+  const parsedData = map(TaskPriority, (priority) => {
+    const count = data.find((item) => item.priority === priority)?._count
+      .priority;
+    return {
+      priority,
+      count: count ?? 0,
+      color: getColorByPriority(priority).color,
+    };
+  });
+
+  return <ProjectPriorityChart taskPriorityData={parsedData} />;
 };
 
 export default ProjectTaskPriorityCard;
