@@ -142,6 +142,10 @@ const tasksRouter = createTRPCRouter({
         updates.doneAt = input.doneAt;
       }
 
+      if (input.priority) {
+        updates.priority = input.priority;
+      }
+
       if (input.assigneeId && input.assigneeId !== UNASSIGNED_USER_ID) {
         updates.asignee = { connect: { id: input.assigneeId } };
       } else if (input.assigneeId === UNASSIGNED_USER_ID) {
@@ -284,7 +288,7 @@ const tasksRouter = createTRPCRouter({
           where: { projectId, createdAt: { lt: currentMonthStart.toDate() } },
           by: ["status"],
           _count: { status: true },
-          orderBy: { status: "asc" },
+          orderBy: { _count: { status: "asc" } },
         }),
       ]);
 

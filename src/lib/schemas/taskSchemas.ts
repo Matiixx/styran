@@ -1,5 +1,5 @@
-import { TaskStatus, TaskType } from "@prisma/client";
 import { z } from "zod";
+import { TaskPriority, TaskStatus, TaskType } from "@prisma/client";
 
 export const NewTaskSchema = z.object({
   title: z.string().min(1),
@@ -19,4 +19,5 @@ export const UpdateTaskSchema = z.object({
   startAt: z.date().optional(),
   doneAt: z.date().optional(),
   storyPoints: z.number().nullable().optional(),
+  priority: z.nativeEnum(TaskPriority).optional(),
 });

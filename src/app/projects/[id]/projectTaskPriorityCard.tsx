@@ -21,17 +21,17 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "~/components/ui/chart";
-import { tailwindColors } from "~/styles/colors";
+import { getColorByPriority } from "~/utils/taskUtils";
 
 type ProjectTaskPriorityCardProps = {
   projectId: string;
 };
 
 const taskPriorityData = [
-  { name: "None", tasks: 7, color: tailwindColors.gray[500] },
-  { name: "Low", tasks: 18, color: tailwindColors.green[500] },
-  { name: "Medium", tasks: 22, color: tailwindColors.yellow[500] },
-  { name: "High", tasks: 15, color: tailwindColors.red[500] },
+  { name: "None", tasks: 7, color: getColorByPriority("NONE").color },
+  { name: "Low", tasks: 18, color: getColorByPriority("LOW").color },
+  { name: "Medium", tasks: 22, color: getColorByPriority("MEDIUM").color },
+  { name: "High", tasks: 15, color: getColorByPriority("HIGH").color },
 ];
 
 const ProjectTaskPriorityCard = ({

@@ -25,6 +25,7 @@ import TaskStoryPoints from "./taskStorypoints";
 import TaskComments, { type Comment } from "./taskComments";
 import TaskTimeTracker, { type TimeTrack } from "./taskTimeTracker";
 import TaskSettings from "./taskSettings";
+import { TaskPrioritySelect } from "./taskPrioritySelect";
 
 type TaskDrawerContentProps = {
   task: NonNullable<TasksRouterOutput["getTask"]>;
@@ -102,7 +103,14 @@ export default function TaskDrawerContent({
 
       <div className="flex flex-col gap-6 overflow-y-auto p-4">
         <div className="flex flex-row items-center justify-between">
-          <TaskStatusSelect task={task} size="default" />
+          <div className="flex flex-row gap-2">
+            <TaskStatusSelect task={task} size="default" />
+            <TaskPrioritySelect
+              taskId={task.id}
+              projectId={task.projectId}
+              taskPriority={task.priority ?? "NONE"}
+            />
+          </div>
           <TaskSettings
             taskId={task.id}
             projectId={task.projectId}
