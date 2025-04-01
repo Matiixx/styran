@@ -1,6 +1,7 @@
-import dayjs from "dayjs";
 import { type Event } from "react-big-calendar";
 import stc from "string-to-color";
+
+import dayjs from "~/utils/dayjs";
 
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";

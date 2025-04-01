@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { z } from "zod";
-import dayjs from "dayjs";
 
 import noop from "lodash/noop";
 
@@ -29,6 +28,8 @@ import {
   EMAIL_EXPIRATION_TIME,
   SHOULD_SEND_EMAIL,
 } from "~/server/constant";
+
+import dayjs from "~/utils/dayjs";
 
 import {
   type EmailVerificationCode,

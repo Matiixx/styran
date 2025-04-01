@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 
-import dayjs from "dayjs";
 import filter from "lodash/filter";
 import size from "lodash/size";
 
 import { AlertCircle, ArrowDown } from "lucide-react";
+
+import dayjs from "~/utils/dayjs";
 
 import { Card, CardContent } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 
-import dayjs from "dayjs";
 import {
   CartesianGrid,
   Legend,
@@ -17,6 +16,8 @@ import filter from "lodash/filter";
 
 import { api } from "~/trpc/react";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
+
+import dayjs from "~/utils/dayjs";
 
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { CardContent, CardHeader, CardTitle } from "~/components/ui/card";

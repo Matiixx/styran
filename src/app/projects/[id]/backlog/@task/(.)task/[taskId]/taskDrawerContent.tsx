@@ -1,13 +1,10 @@
 import { useCallback } from "react";
 
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-dayjs.extend(relativeTime);
-
 import noop from "lodash/noop";
 
 import { api } from "~/trpc/react";
 
+import dayjs from "~/utils/dayjs";
 import { Badge } from "~/components/ui/badge";
 import {
   DrawerContent,

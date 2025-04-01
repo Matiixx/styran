@@ -1,12 +1,9 @@
 "use client";
 
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-dayjs.extend(relativeTime);
-
 import map from "lodash/map";
 
 import { UserAvatar } from "~/app/_components/UserAvatar";
+import dayjs from "~/utils/dayjs";
 import { Button } from "~/components/ui/button";
 import {
   Card,

@@ -7,7 +7,6 @@ import { Calendar, dayjsLocalizer } from "react-big-calendar";
 import withDragAndDrop, {
   type EventInteractionArgs,
 } from "react-big-calendar/lib/addons/dragAndDrop";
-import dayjs from "dayjs";
 
 import compact from "lodash/compact";
 import map from "lodash/map";
@@ -15,6 +14,8 @@ import upperFirst from "lodash/upperFirst";
 
 import { api } from "~/trpc/react";
 import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
+
+import dayjs from "~/utils/dayjs";
 
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";

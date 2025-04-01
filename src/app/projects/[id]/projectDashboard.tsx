@@ -5,7 +5,7 @@ import ProjectTaskStatusCard from "./projectTaskStatusCard";
 import ProjectTaskPriorityCard from "./projectTaskPriorityCard";
 import ProjectTaskUsersCard from "./projectTaskUsersCard";
 import ProjectResourceUtilization from "./projectResourceUtilization";
-import ProjectLastActivity from "./projectLastAcrivity";
+import ProjectLastActivity from "./projectLastActivity";
 
 type ProjectDashboardProps = {
   project: NonNullable<ProjectRouterOutput["getProject"]>;

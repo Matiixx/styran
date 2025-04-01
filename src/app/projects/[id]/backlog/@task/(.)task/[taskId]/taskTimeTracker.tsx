@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { format, formatDuration, intervalToDuration } from "date-fns";
-import dayjs from "dayjs";
 
 import filter from "lodash/filter";
 import noop from "lodash/noop";
@@ -10,6 +9,8 @@ import { Check, Edit, Ellipsis, Play, Plus, Trash, X } from "lucide-react";
 
 import { api } from "~/trpc/react";
 import { type TimeTrackerRouterOutput } from "~/server/api/routers/timeTracker";
+
+import dayjs from "~/utils/dayjs";
 
 import { Input, InputWithLabel } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";

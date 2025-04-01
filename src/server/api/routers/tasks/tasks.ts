@@ -19,7 +19,7 @@ import {
   protectedProcedure,
   projectMemberProcedure,
 } from "~/server/api/trpc";
-import dayjs from "dayjs";
+import dayjs from "~/utils/dayjs";
 
 const tasksRouter = createTRPCRouter({
   createTask: protectedProcedure

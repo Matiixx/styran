@@ -1,7 +1,5 @@
 import { useCallback, useState } from "react";
 
-import dayjs from "dayjs";
-
 import { Edit, Ellipsis, Send, Trash } from "lucide-react";
 
 import map from "lodash/map";
@@ -10,6 +8,7 @@ import noop from "lodash/noop";
 import { api } from "~/trpc/react";
 import { type TaskCommentsRouterOutput } from "~/server/api/routers/taskComments";
 
+import dayjs from "~/utils/dayjs";
 import { Button } from "~/components/ui/button";
 import { Input, InputWithLabel } from "~/components/ui/input";
 import { Card } from "~/components/ui/card";
