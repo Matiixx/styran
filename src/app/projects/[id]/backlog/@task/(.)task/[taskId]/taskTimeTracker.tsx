@@ -57,9 +57,7 @@ export default function TaskTimeTracker({
   );
 
   const { mutateAsync: saveTimeTrack, isPending: isSaving } =
-    api.timeTracker.addTime.useMutation({
-      onSuccess,
-    });
+    api.timeTracker.addTime.useMutation({ onSuccess });
 
   const handleChange = (time: string, mode: "start" | "end") => {
     if (mode === "start") {
@@ -197,9 +195,7 @@ const RecentTimeEntries = ({
         timeId: editingId,
         startTime: startTime.toDate(),
         endTime: endTime.toDate(),
-      })
-        .then(() => setEditingId(""))
-        .then(noop);
+      }).then(() => setEditingId(""));
     },
     [editingId, updateTime],
   );
@@ -219,7 +215,7 @@ const RecentTimeEntries = ({
   }, [filteredEntries]);
 
   return (
-    <Accordion type="single" collapsible>
+    <Accordion type="single" collapsible className="mt-2">
       <AccordionItem value="recent-entries">
         <AccordionTrigger className="py-2 text-sm">
           <div>

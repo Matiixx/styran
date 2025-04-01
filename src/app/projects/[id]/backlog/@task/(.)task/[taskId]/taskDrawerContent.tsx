@@ -23,6 +23,7 @@ import TaskComments, { type Comment } from "./taskComments";
 import TaskTimeTracker, { type TimeTrack } from "./taskTimeTracker";
 import TaskSettings from "./taskSettings";
 import { TaskPrioritySelect } from "./taskPrioritySelect";
+import { TaskDeadline } from "./taskDeadline";
 
 type TaskDrawerContentProps = {
   task: NonNullable<TasksRouterOutput["getTask"]>;
@@ -136,6 +137,13 @@ export default function TaskDrawerContent({
               assigneeId,
             }).then(noop)
           }
+        />
+
+        <TaskDeadline
+          taskId={task.id}
+          endAt={task.doneAt}
+          startAt={task.startAt}
+          projectId={task.projectId}
         />
 
         <TaskStoryPoints

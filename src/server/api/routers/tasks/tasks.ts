@@ -164,6 +164,14 @@ const tasksRouter = createTRPCRouter({
         updates.storyPoints = input.storyPoints;
       }
 
+      if (input.startAt !== currentState?.startAt) {
+        updates.startAt = input.startAt;
+      }
+
+      if (input.doneAt !== currentState?.doneAt) {
+        updates.doneAt = input.doneAt;
+      }
+
       return ctx.db.task.update({
         where: {
           id: input.taskId,
