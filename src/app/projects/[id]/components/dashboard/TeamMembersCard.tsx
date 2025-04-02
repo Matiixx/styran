@@ -6,9 +6,10 @@ import size from "lodash/size";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/server";
 
-import { UserAvatar } from "~/app/_components/UserAvatar";
+import { AvatarGroup, UserAvatar } from "~/app/_components/UserAvatar";
 import { Card, CardContent } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
+import { map } from "lodash";
 
 type TeamMembersCardSuspendedProps = {
   projectId: string;
@@ -58,21 +59,9 @@ export const TeamMembersCard = ({ teamMembers }: TeamMembersCardProps) => {
           </div>
         </div>
 
-        <div className="mt-4 flex -space-x-2">
+        <div className="mt-4">
           {teamMembers !== null ? (
-            teamMembers
-              .slice(0, 6)
-              .map((member, index) => (
-                <UserAvatar
-                  key={member.id}
-                  size="default"
-                  user={member}
-                  className={cn(
-                    "border-2 border-white",
-                    index !== 0 && "animate-avatar-spacing",
-                  )}
-                />
-              ))
+            <AvatarGroup users={teamMembers.slice(0, 6)} />
           ) : (
             <Skeleton className="h-10 w-10 rounded-full" />
           )}

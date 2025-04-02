@@ -15,6 +15,7 @@ export default async function ProjectsPage() {
 
   if (session) {
     void api.projects.getProjects.prefetch();
+    void api.tasks.getProjectsTasksStats.prefetch();
   }
 
   if (!session) {

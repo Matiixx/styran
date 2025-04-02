@@ -6,7 +6,9 @@ import {
 } from "@trpc/server";
 import { z } from "zod";
 
+import map from "lodash/map";
 import padStart from "lodash/padStart";
+import reduce from "lodash/reduce";
 
 import {
   NewTaskSchema,
@@ -352,6 +354,7 @@ const tasksRouter = createTRPCRouter({
       },
       by: ["status"],
       _count: { status: true },
+      orderBy: { status: "asc" },
     });
   }),
 
@@ -363,6 +366,51 @@ const tasksRouter = createTRPCRouter({
       by: ["priority"],
       _count: { priority: true },
     });
+  }),
+
+  getProjectsTasksStats: protectedProcedure.query(async ({ ctx }) => {
+    const userProjects = await ctx.db.project.findMany({
+      where: {
+        OR: [
+          { ownerId: ctx.session.user.id },
+          { users: { some: { id: ctx.session.user.id } } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        users: {
+          select: { id: true, email: true, lastName: true, firstName: true },
+        },
+      },
+    });
+
+    const tasksArray = await ctx.db.$transaction(
+      map(userProjects, ({ id }) => {
+        return ctx.db.task.groupBy({
+          where: { projectId: id },
+          by: ["status"],
+          _count: { status: true },
+          orderBy: { status: "asc" },
+        });
+      }),
+    );
+
+    const tasksMap = reduce(
+      tasksArray,
+      (acc, curr, index) => {
+        acc[userProjects[index]!.id] = curr as {
+          _count: { status: number };
+          status: TaskStatus;
+        }[];
+        return acc;
+      },
+      {} as Record<
+        string,
+        { _count: { status: number }; status: TaskStatus }[]
+      >,
+    );
+
+    return tasksMap;
   }),
 });
 

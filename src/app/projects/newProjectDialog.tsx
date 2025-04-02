@@ -1,6 +1,12 @@
 import { Plus } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { Icon } from "~/components/ui/icon";
 
 import { NewProjectForm } from "./newProjectForm";
 
@@ -22,15 +27,21 @@ const AddNewProjectDialog = ({ open, setOpen }: AddNewProjectDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Card className="w-full max-w-sm cursor-pointer" variant="muted">
-          <CardHeader>
-            <CardTitle className="truncate">Add new project</CardTitle>
-          </CardHeader>
+        <Card
+          className="flex w-full max-w-sm cursor-pointer flex-col items-center justify-center border-dashed hover:border-primary"
+          disableHover
+        >
           <CardContent className="flex items-center justify-center">
-            <Icon size="lg">
-              <Plus />
-            </Icon>
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Plus className="h-6 w-6 text-primary" />
+            </div>
           </CardContent>
+          <CardHeader className="flex flex-col gap-2 text-center">
+            <CardTitle className="truncate">Add new project</CardTitle>
+            <CardDescription>
+              Start a new project and invite your team members
+            </CardDescription>
+          </CardHeader>
         </Card>
       </DialogTrigger>
 

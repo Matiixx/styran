@@ -24,6 +24,11 @@ const projectsRouter = createTRPCRouter({
         ],
       },
       orderBy: { createdAt: "desc" },
+      include: {
+        users: {
+          select: { id: true, email: true, lastName: true, firstName: true },
+        },
+      },
     });
 
     return projects;
