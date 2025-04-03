@@ -412,6 +412,23 @@ const tasksRouter = createTRPCRouter({
 
     return tasksMap;
   }),
+
+  getTasksByUser: projectMemberProcedure.query(async ({ ctx }) => {
+    const { projectId } = ctx;
+
+    return ctx.db.task.findMany({
+      where: {
+        projectId,
+        asigneeId: { not: null },
+        OR: [{ Sprint: { isActive: true } }, { sprintId: null }],
+      },
+      select: {
+        asignee: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+      },
+    });
+  }),
 });
 
 export const generateTaskTicker = (

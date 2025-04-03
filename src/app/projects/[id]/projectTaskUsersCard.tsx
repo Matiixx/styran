@@ -1,6 +1,7 @@
-"use client";
+import { Suspense } from "react";
 
-import { Cell, Legend, Pie, PieChart } from "recharts";
+import { api } from "~/trpc/server";
+
 import {
   Card,
   CardContent,
@@ -8,25 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  renderCustomizedLabel,
-} from "~/components/ui/chart";
-import { stringToRGB } from "./calendar/utils";
+import { ChartContainer } from "~/components/ui/chart";
+import { ProjectTaskUsersChart } from "./components/dashboard/ProjectTaskUsersChart";
 
 type ProjectTaskUsersCardProps = {
   projectId: string;
 };
-
-const tasksByUserData = [
-  { name: "Jane S.", value: 14, color: stringToRGB("Jane S.").background },
-  { name: "Mike J.", value: 8, color: stringToRGB("Mike J.").background },
-  { name: "Anna K.", value: 12, color: stringToRGB("Anna K.").background },
-  { name: "Tom B.", value: 10, color: stringToRGB("Tom B.").background },
-  { name: "Lisa W.", value: 6, color: stringToRGB("Lisa W.").background },
-];
 
 const ProjectTaskUsersCard = ({ projectId }: ProjectTaskUsersCardProps) => {
   return (
@@ -39,30 +27,57 @@ const ProjectTaskUsersCard = ({ projectId }: ProjectTaskUsersCardProps) => {
       </CardHeader>
 
       <CardContent>
-        <ChartContainer config={{}} className="mx-auto h-[350px] w-full">
-          <PieChart>
-            <Pie
-              data={tasksByUserData}
-              dataKey="value"
-              cx="50%"
-              cy="50%"
-              innerRadius={70}
-              outerRadius={100}
-              paddingAngle={5}
-              label={renderCustomizedLabel(
-                ({ name, value }) => `${name}: ${value}`,
-              )}
-            >
-              {tasksByUserData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-            <Legend />
-          </PieChart>
-        </ChartContainer>
+        <Suspense
+          fallback={
+            <div className="mt-8 flex w-full flex-1 items-center justify-center text-muted-foreground">
+              Loading...
+            </div>
+          }
+        >
+          <ProjectTaskUsersCardAsync projectId={projectId} />
+        </Suspense>
       </CardContent>
     </Card>
+  );
+};
+
+const ProjectTaskUsersCardAsync = async ({
+  projectId,
+}: {
+  projectId: string;
+}) => {
+  const tasks = await api.tasks.getTasksByUser({ projectId });
+
+  const tasksByUser = tasks.reduce(
+    (acc, task) => {
+      if (!task.asignee) return acc;
+      const asigneeId = task.asignee.id;
+
+      if (acc[asigneeId]) {
+        acc[asigneeId].count++;
+      } else {
+        acc[asigneeId] = {
+          asigneeId,
+          count: 1,
+          user: task.asignee,
+        };
+      }
+      return acc;
+    },
+    {} as Record<
+      string,
+      {
+        asigneeId: string;
+        count: number;
+        user: NonNullable<(typeof tasks)[number]["asignee"]>;
+      }
+    >,
+  );
+
+  return (
+    <ChartContainer config={{}} className="mx-auto h-[350px] w-full">
+      <ProjectTaskUsersChart data={tasksByUser} />
+    </ChartContainer>
   );
 };
 
