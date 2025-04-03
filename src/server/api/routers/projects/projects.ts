@@ -90,13 +90,12 @@ const projectsRouter = createTRPCRouter({
       });
     }),
 
-  deleteProject: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(({ ctx, input }) => {
-      return ctx.db.project.delete({
-        where: { id: input.id, ownerId: ctx.session.user.id },
-      });
-    }),
+  deleteProject: projectMemberProcedure.mutation(({ ctx, input }) => {
+    const { projectId } = input;
+    return ctx.db.project.delete({
+      where: { id: projectId, ownerId: ctx.session.user.id },
+    });
+  }),
 
   addUserToProject: protectedProcedure
     .input(

@@ -71,7 +71,10 @@ const DeleteProjectDialog = ({
           <Button variant="outline" onClick={closeDialog}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={() => deleteProject({ id })}>
+          <Button
+            variant="destructive"
+            onClick={() => deleteProject({ projectId: id })}
+          >
             Delete
           </Button>
         </DialogFooter>

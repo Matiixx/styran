@@ -111,7 +111,7 @@ model Sprint {
     startAt DateTime
     endAt   DateTime
 
-    project   Project @relation(fields: [projectId], references: [id])
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
     projectId String
 
     tasks       Task[]
@@ -123,7 +123,7 @@ model TaskComment {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    task   Task   @relation(fields: [taskId], references: [id])
+    task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
     taskId String
 
     user   User   @relation(fields: [userId], references: [id])
@@ -140,7 +140,7 @@ model TimeTrack {
     startTime DateTime
     endTime   DateTime?
 
-    task   Task   @relation(fields: [taskId], references: [id])
+    task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
     taskId String
 
     user   User   @relation(fields: [userId], references: [id])
@@ -157,7 +157,7 @@ model ActivityLog {
     user   User   @relation(fields: [userId], references: [id])
     userId String
 
-    project   Project @relation(fields: [projectId], references: [id])
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
     projectId String
 
     taskId    String?
