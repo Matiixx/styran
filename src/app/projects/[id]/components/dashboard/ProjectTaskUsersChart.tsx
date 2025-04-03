@@ -51,7 +51,19 @@ const ProjectTaskUsersChart = ({ data }: ProjectTaskUsersChartProps) => {
             />
           ))}
         </Pie>
-        <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+        <ChartTooltip
+          content={
+            <ChartTooltipContent
+              hideName
+              indicator="line"
+              labelFormatter={(_, payload) => {
+                const userId = payload?.[0]?.name as string;
+                const user = data[userId]?.user;
+                return `${user?.firstName} ${user?.lastName}`;
+              }}
+            />
+          }
+        />
         <Legend
           payload={dataArray.map((entry) => ({
             value: `${entry.user.firstName} ${entry.user.lastName}`,
