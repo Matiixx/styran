@@ -1,9 +1,16 @@
-"use client";
+import { Suspense } from "react";
+
 import { Clock } from "lucide-react";
 
 import map from "lodash/map";
+import reduce from "lodash/reduce";
 
+import { api } from "~/trpc/server";
+import dayjs from "~/utils/dayjs";
 import { cn } from "~/lib/utils";
+
+import { ProjectRouterOutput } from "~/server/api/routers/projects";
+
 import { UserAvatar } from "~/app/_components/UserAvatar";
 import {
   Card,
@@ -14,7 +21,7 @@ import {
 } from "~/components/ui/card";
 import { Progress } from "~/components/ui/progress";
 import { Separator } from "~/components/ui/separator";
-import { Button } from "~/components/ui/button";
+import { sortBy } from "lodash";
 
 type ProjectResourceUtilizationProps = {
   projectId: string;
@@ -42,56 +49,103 @@ export default function ProjectResourceUtilization({
 
       <CardContent>
         <div className="flex flex-col gap-6">
-          {map(USERS_UTILIZATION, ({ name, utilization }) => (
-            <UserUtilization key={name} name={name} utilization={utilization} />
-          ))}
+          <Suspense fallback={<div>Loading...</div>}>
+            <ProjectResourceUtilizationAsync projectId={projectId} />
+          </Suspense>
         </div>
 
-        <Button variant="outline" className="mt-4 w-full">
+        {/* <Button variant="outline" className="mt-4 w-full">
           View more
-        </Button>
+        </Button> */}
       </CardContent>
     </Card>
   );
 }
 
+const ProjectResourceUtilizationAsync = async ({
+  projectId,
+}: {
+  projectId: string;
+}) => {
+  const usersUtilization = await api.projects.getProjectResourceUtilization({
+    projectId,
+  });
+
+  const parsedUsersUtilization = parseUsersUtilization(usersUtilization);
+
+  return (
+    <>
+      {map(
+        parsedUsersUtilization,
+        ({ firstName, lastName, email, utilization, id: userId }) => (
+          <UserUtilization
+            key={userId}
+            user={{ email, firstName, lastName, userId }}
+            utilization={utilization}
+          />
+        ),
+      )}
+    </>
+  );
+};
+
+const parseUsersUtilization = (
+  usersUtilization: ProjectRouterOutput["getProjectResourceUtilization"],
+) => {
+  const utlizationMap = map(usersUtilization, (user) => {
+    return {
+      ...user,
+      utilization: reduce(
+        user.TimeTrack,
+        (acc, { startTime, endTime }) => {
+          const start = dayjs(startTime);
+          const end = dayjs(endTime);
+          return acc + end.diff(start, "milliseconds");
+        },
+        0,
+      ),
+    };
+  });
+
+  return sortBy(utlizationMap, ({ utilization }) => -1 * utilization);
+};
+
 const UserUtilization = ({
-  name,
+  user,
   utilization,
 }: {
-  name: string;
+  user: { email: string; firstName: string; lastName: string; userId: string };
   utilization: number;
 }) => {
+  const utilizationInHours = utilization / 1000 / 60 / 60;
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <UserAvatar
-            size="md"
-            user={{ email: name, firstName: name, lastName: name }}
-          />
-          <span>{name}</span>
+          <UserAvatar size="md" user={user} />
+          <span>{`${user.firstName} ${user.lastName}`}</span>
         </div>
         <div
           className={cn(
             "flex items-center gap-1",
-            getUtilizationColor(utilization),
+            getUtilizationColor(utilizationInHours),
           )}
         >
           <Clock size={16} />
-          <span>{utilization}/40 hrs</span>
+          <span>{utilizationInHours.toFixed(2)}/40 hrs</span>
         </div>
       </div>
       <div>
-        <Progress value={(utilization / 40) * 100} className="h-2" />
+        <Progress value={(utilizationInHours / 40) * 100} className="h-2" />
       </div>
       <span
         className={cn(
           "text-xs text-muted-foreground",
-          utilization > 40 && "text-red-500",
+          utilizationInHours > 40 && "text-red-500",
         )}
       >
-        Utilization {(utilization / 40) * 100}%
+        Utilization {((utilizationInHours / 40) * 100).toFixed(2)}%
       </span>
       <Separator />
     </div>

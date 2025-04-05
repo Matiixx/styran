@@ -216,6 +216,24 @@ const projectsRouter = createTRPCRouter({
       },
     });
   }),
+
+  getProjectResourceUtilization: projectMemberProcedure.query(
+    async ({ ctx }) => {
+      const { projectId } = ctx;
+
+      const usersWithTimeTrack = await ctx.db.user.findMany({
+        where: { projects: { some: { id: projectId } } },
+        select: {
+          id: true,
+          email: true,
+          lastName: true,
+          firstName: true,
+          TimeTrack: { where: { task: { projectId } } },
+        },
+      });
+      return usersWithTimeTrack;
+    },
+  ),
 });
 
 export type ProjectRouterOutput = inferRouterOutputs<typeof projectsRouter>;
