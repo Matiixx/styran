@@ -9,8 +9,10 @@ import {
 } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
+import { env } from "~/env";
 import { db } from "~/server/db";
 import { INVALID_CREDENTIALS } from "~/lib/errorCodes";
+import { customLogin } from "./utils";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -58,8 +60,22 @@ export const authConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials: Record<string, unknown>) {
         if (!credentials) return null;
+
+        if (credentials.custom) {
+          const customUser = await customLogin(
+            credentials.uid as string,
+            credentials.login as string,
+            credentials.password as string,
+          );
+
+          if (!customUser) {
+            throw new CredentialsError();
+          }
+
+          return customUser;
+        }
 
         const maybeUser = await db.user.findFirst({
           where: { email: credentials.email as string },

@@ -20,6 +20,8 @@ export const env = createEnv({
     SENDGRID_API_KEY: z.string(),
     SENDGRID_FROM_EMAIL: z.string(),
     RESET_PASSWORD_SECRET: z.string(),
+    CUSTOM_LOGIN: z.string(),
+    CUSTOM_PASSWORD: z.string(),
   },
 
   /**
@@ -44,6 +46,8 @@ export const env = createEnv({
     SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
     SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL,
     RESET_PASSWORD_SECRET: process.env.RESET_PASSWORD_SECRET,
+    CUSTOM_LOGIN: process.env.CUSTOM_LOGIN,
+    CUSTOM_PASSWORD: process.env.CUSTOM_PASSWORD,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
