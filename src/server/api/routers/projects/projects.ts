@@ -13,6 +13,7 @@ import { inviteUserEmailTemplate } from "~/server/sendgrid/inviteUserEmail";
 import { sendEmail } from "~/server/sendgrid";
 
 import { generateTempPassword, generateTicker } from "./utils";
+import { getCurrentDayInTimezone } from "~/utils/timeUtils";
 
 const projectsRouter = createTRPCRouter({
   getProjects: protectedProcedure.query(async ({ ctx }) => {
@@ -221,6 +222,15 @@ const projectsRouter = createTRPCRouter({
     async ({ ctx }) => {
       const { projectId } = ctx;
 
+      const projectTimezone = await ctx.db.project.findUnique({
+        where: { id: projectId },
+        select: { timezone: true },
+      });
+
+      const today = getCurrentDayInTimezone(projectTimezone?.timezone ?? 0);
+      const weekStart = today.startOf("week").add(1, "day");
+      const weekEnd = today.endOf("week").add(1, "day");
+
       const usersWithTimeTrack = await ctx.db.user.findMany({
         where: { projects: { some: { id: projectId } } },
         select: {
@@ -228,7 +238,12 @@ const projectsRouter = createTRPCRouter({
           email: true,
           lastName: true,
           firstName: true,
-          TimeTrack: { where: { task: { projectId } } },
+          TimeTrack: {
+            where: {
+              task: { projectId },
+              startTime: { gte: weekStart.toDate(), lte: weekEnd.toDate() },
+            },
+          },
         },
       });
       return usersWithTimeTrack;

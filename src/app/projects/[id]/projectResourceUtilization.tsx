@@ -4,12 +4,13 @@ import { Clock } from "lucide-react";
 
 import map from "lodash/map";
 import reduce from "lodash/reduce";
+import sortBy from "lodash/sortBy";
 
 import { api } from "~/trpc/server";
 import dayjs from "~/utils/dayjs";
 import { cn } from "~/lib/utils";
 
-import { ProjectRouterOutput } from "~/server/api/routers/projects";
+import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 
 import { UserAvatar } from "~/app/_components/UserAvatar";
 import {
@@ -21,19 +22,11 @@ import {
 } from "~/components/ui/card";
 import { Progress } from "~/components/ui/progress";
 import { Separator } from "~/components/ui/separator";
-import { sortBy } from "lodash";
+import ResourceUtilizationButton from "./components/dashboard/ResourceUtilizationButton";
 
 type ProjectResourceUtilizationProps = {
   projectId: string;
 };
-
-const USERS_UTILIZATION = [
-  { name: "Jane S.", utilization: 38 },
-  { name: "John D.", utilization: 25 },
-  { name: "Michael R.", utilization: 17 },
-  { name: "Emily F.", utilization: 10 },
-  { name: "Daniel M.", utilization: 42 },
-];
 
 export default function ProjectResourceUtilization({
   projectId,
@@ -54,9 +47,7 @@ export default function ProjectResourceUtilization({
           </Suspense>
         </div>
 
-        {/* <Button variant="outline" className="mt-4 w-full">
-          View more
-        </Button> */}
+        <ResourceUtilizationButton projectId={projectId} />
       </CardContent>
     </Card>
   );
@@ -99,7 +90,7 @@ const parseUsersUtilization = (
         user.TimeTrack,
         (acc, { startTime, endTime }) => {
           const start = dayjs(startTime);
-          const end = dayjs(endTime);
+          const end = endTime ? dayjs(endTime) : dayjs();
           return acc + end.diff(start, "milliseconds");
         },
         0,
