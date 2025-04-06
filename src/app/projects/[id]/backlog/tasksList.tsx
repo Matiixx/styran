@@ -13,7 +13,7 @@ import map from "lodash/map";
 import toLower from "lodash/toLower";
 import upperFirst from "lodash/upperFirst";
 
-import { Bookmark, Bug, Lightbulb, Plus, Vote } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -33,6 +33,7 @@ import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
 import { UserAvatar } from "~/app/_components/UserAvatar";
+import { getColorByStatus, TaskTypeIcon } from "~/utils/taskUtils";
 
 type Task = TasksRouterOutput["getTasks"][number];
 type TaskListProps = {
@@ -62,13 +63,6 @@ const TaskList = ({ tasks, projectId }: TaskListProps) => {
       </div>
     </div>
   );
-};
-
-const TaskTypeIcon: Record<TaskType, React.ReactNode> = {
-  BUG: <Bug className="text-red-500" />,
-  FEATURE: <Lightbulb className="text-yellow-500" />,
-  STORY: <Bookmark className="text-green-500" />,
-  TASK: <Vote className="text-blue-500" />,
 };
 
 export const TaskCard = ({ task }: { task: Task }) => {
@@ -120,13 +114,6 @@ export const TaskCard = ({ task }: { task: Task }) => {
   );
 };
 
-export const statusColor: Record<TaskStatus, string> = {
-  TODO: "bg-gray-400",
-  IN_PROGRESS: "bg-blue-300",
-  IN_REVIEW: "bg-blue-500",
-  DONE: "bg-green-400",
-};
-
 export const TaskStatusSelect = ({
   task,
   size = "sm",
@@ -163,7 +150,7 @@ export const TaskStatusSelect = ({
     >
       <SelectTrigger
         size={size}
-        className={cn(statusColor[task.status], "w-fit")}
+        className={cn(getColorByStatus(task.status), "w-fit")}
       >
         <span className="capitalize">{task.status}</span>
       </SelectTrigger>

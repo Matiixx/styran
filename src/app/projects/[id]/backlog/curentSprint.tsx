@@ -8,15 +8,16 @@ import isEmpty from "lodash/isEmpty";
 import map from "lodash/map";
 
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
+import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { cn } from "~/lib/utils";
 
 import { Button } from "~/components/ui/button";
 
-import { type TasksRouterOutput } from "~/server/api/routers/tasks";
-import { statusColor, TaskCard } from "./tasksList";
+import { TaskCard } from "./tasksList";
 import { StartSprintModal } from "./startSprintDialog";
 import { EndSprintModal } from "./endSprintDialog";
 import { Badge } from "~/components/ui/badge";
+import { getColorByStatus } from "~/utils/taskUtils";
 
 type Project = NonNullable<ProjectRouterOutput["getProject"]>;
 type Task = TasksRouterOutput["getTasks"][number];
@@ -65,27 +66,27 @@ export default function CurrentSprint({
             <div className="flex flex-row items-center gap-2">
               <Badge
                 className={cn(
-                  statusColor[TaskStatus.DONE],
+                  getColorByStatus(TaskStatus.DONE),
                   "text-black",
-                  `hover:${statusColor[TaskStatus.DONE]}`,
+                  `hover:${getColorByStatus(TaskStatus.DONE)}`,
                 )}
               >
                 {sprintPoints.DONE}
               </Badge>
               <Badge
                 className={cn(
-                  statusColor[TaskStatus.IN_PROGRESS],
+                  getColorByStatus(TaskStatus.IN_PROGRESS),
                   "text-black",
-                  `hover:${statusColor[TaskStatus.IN_PROGRESS]}`,
+                  `hover:${getColorByStatus(TaskStatus.IN_PROGRESS)}`,
                 )}
               >
                 {sprintPoints.IN_PROGRESS}
               </Badge>
               <Badge
                 className={cn(
-                  statusColor[TaskStatus.TODO],
+                  getColorByStatus(TaskStatus.TODO),
                   "text-black",
-                  `hover:${statusColor[TaskStatus.TODO]}`,
+                  `hover:${getColorByStatus(TaskStatus.TODO)}`,
                 )}
               >
                 {sprintPoints.TODO}

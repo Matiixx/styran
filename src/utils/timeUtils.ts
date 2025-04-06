@@ -16,4 +16,15 @@ const getUTCDate = (date: Dayjs, timezone: number) => {
   return date.subtract(timezone, "hours");
 };
 
-export { getTimezoneOffset, getCurrentDayInTimezone, getUTCDate };
+const TimeConstants = {
+  MILLISECONDS_IN_HOUR: 1000 * 60 * 60,
+  MILLISECONDS_IN_MINUTE: 1000 * 60,
+  MILLISECONDS_IN_SECOND: 1000,
+};
+
+export {
+  getTimezoneOffset,
+  getCurrentDayInTimezone,
+  getUTCDate,
+  TimeConstants,
+};
