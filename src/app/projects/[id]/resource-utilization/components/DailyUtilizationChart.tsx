@@ -16,6 +16,7 @@ import {
 import last from "lodash/last";
 import map from "lodash/map";
 import reduce from "lodash/reduce";
+import sortBy from "lodash/sortBy";
 
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 
@@ -47,7 +48,7 @@ const DailyUtilizationChart = ({
         {map(groupedUsersUtilization, (dayData, index) => (
           <Line
             key={dayData.dayString}
-            type="linear"
+            type="stepAfter"
             dataKey={`users[${index}].utilization`}
             stroke={dayData.users[index]?.color}
             strokeWidth={2}
@@ -73,22 +74,30 @@ const CustomTooltip = ({
   label,
 }: TooltipProps<number, string>) => {
   if (active && payload?.length) {
+    const sortedUsers = sortBy(
+      (payload[0]!.payload as { users: UserUtilization[] }).users,
+      (user) => {
+        return -user.utilization;
+      },
+    );
+
     return (
       <div className="flex flex-col border border-gray-400 bg-white p-4">
         <span className="text-sm font-medium">{label}</span>
-        {payload.map((item, index) => {
+        {payload.map((_, index) => {
+          const user = sortedUsers[index]!;
+
           return (
-            <div key={item.name} className="flex flex-row items-center gap-2">
+            <div key={user.userId} className="flex flex-row items-center gap-2">
               <div
                 className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: item.color }}
+                style={{ backgroundColor: user.color }}
               />
               <span className="text-sm">
-                {item.payload.users[index].firstName}{" "}
-                {item.payload.users[index].lastName}
+                {user.firstName} {user.lastName}
               </span>
               <span className="text-sm text-gray-500">
-                {item.payload.users[index].utilization.toFixed(2)}h
+                {user.utilization.toFixed(2)}hrs
               </span>
             </div>
           );
@@ -99,17 +108,19 @@ const CustomTooltip = ({
   return null;
 };
 
+type UserUtilization = {
+  utilization: number;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  color: string;
+};
+
 const groupUtilzationByDay = (
   usersUtilization: ProjectRouterOutput["getProjectResourceUtilization"],
 ): Array<{
-  users: {
-    utilization: number;
-    userId: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    color: string;
-  }[];
+  users: UserUtilization[];
   day: Dayjs;
   dayString: string;
 }> => {
