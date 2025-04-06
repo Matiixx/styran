@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import DailyUtilizationChart from "./components/DailyUtilizationChart";
+import TaskTimeTrackingTable from "./components/TaskTimeTrackingTable";
 
 const ResourceUtilization = ({ projectId }: { projectId: string }) => {
   return (
@@ -55,6 +56,8 @@ const ResourceUtilizationAsync = async ({
           <DailyUtilizationChart usersUtilization={usersUtilization} />
         </CardContent>
       </Card>
+
+      <TaskTimeTrackingTable usersUtilization={usersUtilization} />
     </>
   );
 };

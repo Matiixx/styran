@@ -243,6 +243,7 @@ const projectsRouter = createTRPCRouter({
               task: { projectId },
               startTime: { gte: weekStart.toDate(), lte: weekEnd.toDate() },
             },
+            include: { task: true },
           },
         },
       });
