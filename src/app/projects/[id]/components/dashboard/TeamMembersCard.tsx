@@ -3,13 +3,11 @@ import { Suspense } from "react";
 import { Users } from "lucide-react";
 import size from "lodash/size";
 
-import { cn } from "~/lib/utils";
 import { api } from "~/trpc/server";
 
-import { AvatarGroup, UserAvatar } from "~/app/_components/UserAvatar";
+import { AvatarGroup } from "~/app/_components/UserAvatar";
 import { Card, CardContent } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
-import { map } from "lodash";
 
 type TeamMembersCardSuspendedProps = {
   projectId: string;
