@@ -228,8 +228,8 @@ const projectsRouter = createTRPCRouter({
       });
 
       const today = getCurrentDayInTimezone(projectTimezone?.timezone ?? 0);
-      const weekStart = today.startOf("week").add(1, "day");
-      const weekEnd = today.endOf("week").add(1, "day");
+      const weekStart = today.startOf("week");
+      const weekEnd = today.endOf("week");
 
       const usersWithTimeTrack = await ctx.db.user.findMany({
         where: { projects: { some: { id: projectId } } },

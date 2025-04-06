@@ -115,7 +115,7 @@ const groupUtilzationByDay = (
 }> => {
   // TODO: get timezone of the project
   const today = getCurrentDayInTimezone(2);
-  const startWeek = today.startOf("week").add(1, "day");
+  const startWeek = today.startOf("week");
 
   const days = [];
 
