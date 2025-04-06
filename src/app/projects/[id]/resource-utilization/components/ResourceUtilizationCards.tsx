@@ -65,7 +65,7 @@ const TotalHoursCard = ({
           <div className="flex flex-col gap-2">
             <span className="text-sm text-gray-500">Total hours</span>
             <span className="text-2xl font-bold">
-              {totalHours.toFixed(2)} / {userCount * 40}h
+              {totalHours.toFixed(2)} / {userCount * 40}hrs
             </span>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -124,13 +124,13 @@ const AverageDailyUtilizationCard = ({
     Math.abs(
       getCurrentDayInTimezone(0)
         .startOf("week")
-        .add(1, "day")
         .diff(getCurrentDayInTimezone(0), "days"),
     ),
     5,
   );
 
-  const averageDailyUtilization = totalHours / userCount / workingDaysAmount;
+  const averageDailyUtilization =
+    totalHours / userCount / (workingDaysAmount || 1);
 
   return (
     <Card className="w-full" disableHover>
@@ -141,13 +141,14 @@ const AverageDailyUtilizationCard = ({
               Average daily utilization
             </span>
             <span className="text-2xl font-bold">
-              {averageDailyUtilization.toFixed(2)}h
+              {averageDailyUtilization.toFixed(2)}hrs
             </span>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <Timer className="h-6 w-6 text-primary" />
           </div>
         </div>
+        <span className="ml-1 text-sm text-muted-foreground">per user</span>
       </CardContent>
     </Card>
   );
