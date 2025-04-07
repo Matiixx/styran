@@ -25,13 +25,15 @@ import { getCurrentDayInTimezone } from "~/utils/timeUtils";
 import { stringToRGB } from "../../calendar/utils";
 
 const DailyUtilizationChart = ({
+  timezone,
   usersUtilization,
 }: {
+  timezone: number;
   usersUtilization: ProjectRouterOutput["getProjectResourceUtilization"];
 }) => {
   const groupedUsersUtilization = useMemo(
-    () => groupUtilzationByDay(usersUtilization),
-    [usersUtilization],
+    () => groupUtilzationByDay(usersUtilization, timezone),
+    [usersUtilization, timezone],
   );
 
   return (
@@ -119,13 +121,13 @@ type UserUtilization = {
 
 const groupUtilzationByDay = (
   usersUtilization: ProjectRouterOutput["getProjectResourceUtilization"],
+  timezone: number,
 ): Array<{
   users: UserUtilization[];
   day: Dayjs;
   dayString: string;
 }> => {
-  // TODO: get timezone of the project
-  const today = getCurrentDayInTimezone(2);
+  const today = getCurrentDayInTimezone(timezone);
   const startWeek = today.startOf("week");
 
   const days = [];
@@ -136,7 +138,7 @@ const groupUtilzationByDay = (
 
   const dailyUtilization = days.map((day) => ({
     day,
-    dayString: day.format("DD/MM/YYYY"),
+    dayString: day.format("L"),
     users: usersUtilization.map((user) => {
       const dayTimeTracking = user.TimeTrack.filter((track) => {
         const trackStartDay = dayjs(track.startTime).startOf("day");

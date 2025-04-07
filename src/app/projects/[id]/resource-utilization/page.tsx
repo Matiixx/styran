@@ -30,7 +30,7 @@ export default async function ProjectPage({
     <ProjectPageShell userId={session.user.id} project={project}>
       <ProjectNavigationButtons id={id} />
 
-      <ResourceUtilization projectId={id} />
+      <ResourceUtilization project={project} />
     </ProjectPageShell>
   );
 }

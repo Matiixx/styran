@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { api } from "~/trpc/server";
+import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 
 import ResourceUtilizationCards from "./components/ResourceUtilizationCards";
 import {
@@ -13,7 +14,11 @@ import {
 import DailyUtilizationChart from "./components/DailyUtilizationChart";
 import TaskTimeTrackingTable from "./components/TaskTimeTrackingTable";
 
-const ResourceUtilization = ({ projectId }: { projectId: string }) => {
+const ResourceUtilization = ({
+  project,
+}: {
+  project: NonNullable<ProjectRouterOutput["getProject"]>;
+}) => {
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 overflow-y-auto bg-white p-4">
       <span className="text-2xl font-bold text-black">
@@ -25,15 +30,20 @@ const ResourceUtilization = ({ projectId }: { projectId: string }) => {
           <div className="flex-1 text-center text-black">Loading...</div>
         }
       >
-        <ResourceUtilizationAsync projectId={projectId} />
+        <ResourceUtilizationAsync
+          timezone={project.timezone}
+          projectId={project.id}
+        />
       </Suspense>
     </div>
   );
 };
 
 const ResourceUtilizationAsync = async ({
+  timezone,
   projectId,
 }: {
+  timezone: number;
   projectId: string;
 }) => {
   const usersUtilization = await api.projects.getProjectResourceUtilization({
@@ -53,7 +63,10 @@ const ResourceUtilizationAsync = async ({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DailyUtilizationChart usersUtilization={usersUtilization} />
+          <DailyUtilizationChart
+            timezone={timezone}
+            usersUtilization={usersUtilization}
+          />
         </CardContent>
       </Card>
 
