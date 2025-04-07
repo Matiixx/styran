@@ -1,8 +1,12 @@
 import { TaskStatus } from "@prisma/client";
 
+import every from "lodash/every";
 import forEach from "lodash/forEach";
+import isEmpty from "lodash/isEmpty";
 import map from "lodash/map";
 import reduce from "lodash/reduce";
+
+import { Clock } from "lucide-react";
 
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 
@@ -35,6 +39,10 @@ const TaskTimeTrackingTable = ({
   const groupedUsersUtilizationByTask =
     groupUsersUtilizationByTask(usersUtilization);
 
+  const isEmptyTrackedTime = every(usersUtilization, ({ TimeTrack }) =>
+    isEmpty(TimeTrack),
+  );
+
   return (
     <Card disableHover>
       <CardHeader>
@@ -52,9 +60,13 @@ const TaskTimeTrackingTable = ({
           </TableHeader>
 
           <TableBody>
-            {map(groupedUsersUtilizationByTask, (task) => {
-              return <TaskTableRow key={task.task.id} task={task} />;
-            })}
+            {isEmptyTrackedTime ? (
+              <EmptyTaskTableRow />
+            ) : (
+              map(groupedUsersUtilizationByTask, (task) => {
+                return <TaskTableRow key={task.task.id} task={task} />;
+              })
+            )}
           </TableBody>
         </Table>
       </CardContent>
@@ -178,6 +190,26 @@ const TeamAllocationCell = ({
         </div>
       </div>
     </TableCell>
+  );
+};
+
+const EmptyTaskTableRow = () => {
+  return (
+    <TableRow>
+      <TableCell colSpan={99}>
+        <div className="flex flex-col items-center justify-center gap-4 py-4">
+          <div className="rounded-full bg-primary/10 p-3">
+            <Clock className="h-6 w-6 text-primary" />
+          </div>
+          <p className="text-lg font-semibold">No time tracked yet this week</p>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Team members haven&apos;t logged any hours for this week. Time
+            tracking data will appear here once team members start logging their
+            hours.
+          </p>
+        </div>
+      </TableCell>
+    </TableRow>
   );
 };
 
