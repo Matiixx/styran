@@ -11,11 +11,10 @@ import map from "lodash/map";
 
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { api } from "~/trpc/react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
-import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
-import { UserAvatar } from "~/app/_components/UserAvatar";
 
+import { UserAvatar } from "~/app/_components/UserAvatar";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import ProjectPageShell from "../projectPageShell";
 import {
   ALL_SELECT,
@@ -87,20 +86,16 @@ export default function BoardComponent({
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <ProjectPageShell project={project} userId={userId}>
-        <ProjectNavigationButtons id={projectId} />
+        <SortTasksHeader
+          users={project.users}
+          search={search}
+          userFilter={userFilter}
+          setSearch={setSearch}
+          setUserFilter={setUserFilter}
+        />
 
-        <div className="m-4">
-          <SortTasksHeader
-            users={project.users}
-            search={search}
-            userFilter={userFilter}
-            setSearch={setSearch}
-            setUserFilter={setUserFilter}
-          />
-        </div>
-
-        <div className="mt-4 w-full flex-1 overflow-y-auto">
-          <div className="flex min-h-full flex-row justify-between gap-4">
+        <div className="mt-4 w-full flex-1">
+          <div className="flex min-h-full flex-row justify-between gap-4 overflow-visible">
             {map(TaskStatus, (status) => (
               <BoardColumn
                 key={status}
@@ -132,8 +127,8 @@ const BoardColumn = ({ tasks, status, disabledTasks }: BoardColumnProps) => {
   return (
     <div
       className={cn(
-        "flex flex-1 select-none flex-col border border-black bg-black/20 shadow transition-colors",
-        isOver ? "border-green-500" : "",
+        "flex flex-1 select-none flex-col rounded-sm border border-black bg-gray-100 shadow transition-colors",
+        isOver && "bg-gray-300",
       )}
       ref={setNodeRef}
     >
@@ -173,7 +168,7 @@ const TaskCard = ({ task, disabled }: TaskCardProps) => {
   return (
     <Card
       className={cn(
-        "flex cursor-move flex-col border border-black/50 bg-white/10 p-2 text-white will-change-transform hover:text-black",
+        "flex cursor-move flex-col border border-black/50 bg-gray-200 p-2 text-black will-change-transform",
         disabled && "opacity-50",
       )}
       style={style}
@@ -192,7 +187,7 @@ const TaskCard = ({ task, disabled }: TaskCardProps) => {
             {task.ticker}
           </div>
 
-          {task.asigneeId && <UserAvatar user={task.asignee!} size="sm" />}
+          {task.asigneeId && <UserAvatar user={task.asignee} size="sm" />}
         </div>
       </CardContent>
     </Card>

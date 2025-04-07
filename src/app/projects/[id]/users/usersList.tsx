@@ -70,7 +70,7 @@ const UsersList = ({ users, project }: UsersListProps) => {
 
   return (
     <>
-      <div className="mx-4 my-8 flex w-full flex-col gap-6 overflow-hidden">
+      <div className="flex w-full flex-col gap-6 overflow-visible">
         <div className="flex w-full flex-row items-center justify-between gap-4">
           <Input
             className="w-fit"

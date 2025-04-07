@@ -134,10 +134,8 @@ export default function CalendarComponent({
 
   return (
     <ProjectPageShell userId={userId} project={project}>
-      <ProjectNavigationButtons id={projectId} />
-
-      <div className="flex flex-col overflow-y-auto">
-        <div className="my-4">
+      <div className="flex flex-col">
+        <div>
           <SortTasksHeader
             users={project.users}
             search={search}

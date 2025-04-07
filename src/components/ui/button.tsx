@@ -42,12 +42,22 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   isLoading?: boolean;
+  fullWidth?: boolean;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<unknown>;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { className, variant, size, asChild = false, onClick, isLoading, ...props },
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      onClick,
+      isLoading,
+      fullWidth,
+      ...props
+    },
     ref,
   ) => {
     const Comp = asChild ? Slot : "button";
@@ -66,6 +76,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           buttonVariants({ variant, size, className }),
           (isLoading || localIsLoading) && "overflow-hidden text-transparent",
+          fullWidth && "w-full",
         )}
         ref={ref}
         onClick={handleClick}

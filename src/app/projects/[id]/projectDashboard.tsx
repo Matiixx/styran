@@ -13,7 +13,7 @@ type ProjectDashboardProps = {
 
 const ProjectDashboard = ({ project }: ProjectDashboardProps) => {
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 overflow-y-auto bg-white p-4">
+    <div className="mx-auto flex w-full flex-col gap-8">
       <span className="text-2xl font-bold text-black">Project Dashboard</span>
       <ProjectDashboardCards project={project} />
       <ProjectActivityOverview projectId={project.id} />

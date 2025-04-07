@@ -1,7 +1,7 @@
 import { type PropsWithChildren } from "react";
 
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
-import ProjectDropdown from "./projectDropdown";
+import ProjectSidebar from "~/app/_components/projectSidebar";
 
 type ProjectPageShellProps = PropsWithChildren<{
   userId: string;
@@ -14,14 +14,13 @@ const ProjectPageShell = ({
   children,
 }: ProjectPageShellProps) => {
   return (
-    <div className="flex h-full w-full flex-1 flex-col px-16 py-16 pb-4 pt-32">
-      <div className="flex w-full flex-row items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold">{`[${project.ticker}] ${project.name}`}</h2>
-
-        {project.ownerId === userId && <ProjectDropdown project={project} />}
+    <div className="flex h-full w-full flex-1 flex-row overflow-y-auto pr-12 pt-28">
+      <ProjectSidebar userId={userId} project={project} />
+      <div className="flex h-full w-full flex-1 flex-col pb-4">
+        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col p-4">
+          {children}
+        </div>
       </div>
-
-      {children}
     </div>
   );
 };

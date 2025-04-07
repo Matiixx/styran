@@ -28,8 +28,8 @@ const ProjectDropdown = ({ project }: ProjectDropdownProps) => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <EllipsisVertical />
+          <Button variant="ghost" fullWidth className="justify-start">
+            Settings
           </Button>
         </DropdownMenuTrigger>
 

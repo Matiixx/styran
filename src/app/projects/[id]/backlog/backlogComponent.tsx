@@ -72,9 +72,7 @@ const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
 
   return (
     <ProjectPageShell project={project} userId={userId}>
-      <ProjectNavigationButtons id={id} />
-
-      <div className="m-4">
+      <div className="">
         <SortTasksHeader
           users={project.users}
           search={search}
@@ -91,7 +89,7 @@ const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
         sensors={[sensors]}
         id="backlog-dnd-context"
       >
-        <div className="mx-4 my-8 flex w-full flex-col gap-6 overflow-hidden">
+        <div className="flex w-full flex-col gap-6 overflow-hidden">
           <div className="overflow-y-auto">
             <CurrentSprint project={project} tasks={filteredTasks} />
 

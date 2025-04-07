@@ -48,7 +48,7 @@ const TaskList = ({ tasks, projectId }: TaskListProps) => {
 
   return (
     <div
-      className={cn("mt-8 transition-all", isOver ? "bg-black/30" : "")}
+      className={cn("mt-8 transition-all", isOver && "bg-black/20")}
       ref={setNodeRef}
     >
       <span className="text-lg font-semibold">Backlog</span>

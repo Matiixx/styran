@@ -28,8 +28,6 @@ export default async function ProjectPage({
 
   return (
     <ProjectPageShell userId={session.user.id} project={project}>
-      <ProjectNavigationButtons id={id} />
-
       <ResourceUtilization project={project} />
     </ProjectPageShell>
   );

@@ -20,7 +20,7 @@ const ResourceUtilization = ({
   project: NonNullable<ProjectRouterOutput["getProject"]>;
 }) => {
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 overflow-y-auto bg-white p-4">
+    <div className="flex w-full flex-col gap-8">
       <span className="text-2xl font-bold text-black">
         Resource Utilization
       </span>

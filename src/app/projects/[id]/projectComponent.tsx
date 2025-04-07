@@ -21,8 +21,6 @@ const ProjectComponent = async ({
 
   return (
     <ProjectPageShell userId={userId} project={project}>
-      <ProjectNavigationButtons id={id} />
-
       <ProjectDashboard project={project} />
     </ProjectPageShell>
   );

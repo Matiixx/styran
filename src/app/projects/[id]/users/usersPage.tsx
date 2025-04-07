@@ -26,8 +26,6 @@ const UsersProjectComponent = ({
 
   return (
     <ProjectPageShell userId={user.id} project={project}>
-      <ProjectNavigationButtons id={projectId} />
-
       <UsersList users={project.users} project={project} />
     </ProjectPageShell>
   );

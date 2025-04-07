@@ -46,10 +46,7 @@ export default function CurrentSprint({
   );
 
   return (
-    <div
-      className={cn("bg-white/20", isOver ? "bg-white/40" : "")}
-      ref={setNodeRef}
-    >
+    <div className={cn(isOver && "bg-black/20")} ref={setNodeRef}>
       <div
         className={cn(
           "my-2 flex flex-row items-center gap-4",
