@@ -15,12 +15,14 @@ export default async function Home() {
 
   return (
     <SessionProvider>
-      <main className="bg-gradient-background flex h-screen flex-col items-center justify-center">
+      <div className="flex h-screen w-full flex-col overflow-hidden">
         <Header />
-        <div className="flex w-full flex-1 flex-col items-center gap-12 overflow-y-scroll px-4 py-16 pt-24">
-          <MyProfilePage session={session} />
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex w-full flex-col items-center px-4 py-16 pt-24">
+            <MyProfilePage session={session} />
+          </div>
         </div>
-      </main>
+      </div>
     </SessionProvider>
   );
 }
