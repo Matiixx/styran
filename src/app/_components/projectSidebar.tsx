@@ -4,15 +4,17 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { type ProjectRouterOutput } from "~/server/api/routers/projects";
-
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
-import ProjectDropdown from "../projects/[id]/projectDropdown";
 
 type ProjectSidebarProps = {
   userId: string;
-  project: NonNullable<ProjectRouterOutput["getProject"]>;
+  project: {
+    id: string;
+    name: string;
+    ticker: string;
+    ownerId: string;
+  };
 };
 
 const ProjectSidebar = ({ userId, project }: ProjectSidebarProps) => {
@@ -104,10 +106,25 @@ const ProjectSidebar = ({ userId, project }: ProjectSidebarProps) => {
             Resource Utilization
           </Button>
         </Link>
+        {userId === project.ownerId && (
+          <>
+            <Separator className="my-4" />
 
-        <Separator className="my-4" />
-
-        {userId === project.ownerId && <ProjectDropdown project={project} />}
+            <Link href={`/projects/${project.id}/settings`}>
+              <Button
+                variant={
+                  isActive(`/projects/${project.id}/settings`)
+                    ? "default"
+                    : "ghost"
+                }
+                fullWidth
+                className="justify-start"
+              >
+                Settings
+              </Button>
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );

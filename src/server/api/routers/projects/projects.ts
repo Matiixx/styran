@@ -65,6 +65,24 @@ const projectsRouter = createTRPCRouter({
       return project;
     }),
 
+  getProjectSettings: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(({ ctx, input }) => {
+      const { id } = input;
+
+      const project = ctx.db.project.findUnique({
+        where: {
+          id,
+          OR: [
+            { ownerId: ctx.session.user.id },
+            { users: { some: { id: ctx.session.user.id } } },
+          ],
+        },
+      });
+
+      return project;
+    }),
+
   addProject: protectedProcedure
     .input(newProjectSchema)
     .mutation(({ ctx, input }) => {

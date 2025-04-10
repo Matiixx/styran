@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { type Session } from "next-auth";
 
 import { api } from "~/trpc/react";
-import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
 
 import ProjectPageShell from "../projectPageShell";
 import UsersList from "./usersList";

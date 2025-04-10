@@ -1,11 +1,15 @@
 import { type PropsWithChildren } from "react";
 
-import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 import ProjectSidebar from "~/app/_components/projectSidebar";
 
 type ProjectPageShellProps = PropsWithChildren<{
   userId: string;
-  project: NonNullable<ProjectRouterOutput["getProject"]>;
+  project: {
+    id: string;
+    name: string;
+    ticker: string;
+    ownerId: string;
+  };
 }>;
 
 const ProjectPageShell = ({
