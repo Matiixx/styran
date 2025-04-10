@@ -71,6 +71,7 @@ const UsersList = ({ users, project }: UsersListProps) => {
   return (
     <>
       <div className="flex w-full flex-col gap-6 overflow-visible">
+        <span className="text-2xl font-bold">Users</span>
         <div className="flex w-full flex-row items-center justify-between gap-4">
           <Input
             className="w-fit"
