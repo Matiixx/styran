@@ -3,8 +3,8 @@ import { Card } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
 import { AccountInfo } from "./accountInfo";
-import { AccountSecurity } from "./acountSecurity";
-import { AccountPreferences } from "./accountPrefetences";
+import { AccountSecurity } from "./accountSecurity";
+import { AccountPreferences } from "./accountPreferences";
 
 type ProfileTabsProps = {
   userInfo: UserRouterOutputs["getUserInfo"];
