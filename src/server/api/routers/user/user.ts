@@ -126,12 +126,7 @@ const userRouter = createTRPCRouter({
     }),
 
   changePassword: protectedProcedure
-    .input(
-      z.object({
-        oldPassword: z.string(),
-        newPassword: z.string(),
-      }),
-    )
+    .input(z.object({ oldPassword: z.string(), newPassword: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const user = await ctx.db.user.findUnique({
         where: { id: ctx.session.user.id },

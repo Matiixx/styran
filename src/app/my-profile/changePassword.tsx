@@ -1,31 +1,60 @@
 "use client";
 
-import { useState, type FC } from "react";
+import { type FC } from "react";
 import { toast } from "sonner";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { Button } from "~/components/ui/button";
 import { CardDescription, CardHeader } from "~/components/ui/card";
 import { InputWithLabel } from "~/components/ui/input";
 import { api } from "~/trpc/react";
 
+const passwordSchema = z
+  .object({
+    oldPassword: z.string().min(1, "Old password is required"),
+    newPassword: z
+      .string()
+      .min(5, "New password must be at least 5 characters"),
+    confirmNewPassword: z.string().min(1, "Please confirm your new password"),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Passwords do not match",
+    path: ["confirmNewPassword"],
+  });
+
+type PasswordFormValues = z.infer<typeof passwordSchema>;
+
 const ChangePassword: FC = () => {
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      oldPassword: "",
+      newPassword: "",
+      confirmNewPassword: "",
+    },
+  });
 
   const { mutateAsync: changePassword } = api.user.changePassword.useMutation();
 
-  const handleChangePassword = () => {
-    if (!oldPassword || !newPassword || !confirmNewPassword) {
-      return;
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      await changePassword({
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
+      });
+      toast("Password changed successfully");
+      reset();
+    } catch {
+      toast.error("There was an error changing your password");
     }
-    if (newPassword !== confirmNewPassword) {
-      return;
-    }
-    return changePassword({ oldPassword, newPassword })
-      .then(() => toast("Password changed"))
-      .catch(() => toast.error("There was an error changing your password"));
-  };
+  });
 
   return (
     <>
@@ -35,32 +64,40 @@ const ChangePassword: FC = () => {
       <CardDescription>
         Update your password to keep your account secure
       </CardDescription>
-      <div className="mt-6 flex w-full flex-col gap-4 rounded-xl">
+      <form
+        onSubmit={onSubmit}
+        className="mt-6 flex w-full flex-col gap-4 rounded-xl"
+      >
         <InputWithLabel
           label="Old Password"
           type="password"
           placeholder="Old Password"
-          value={oldPassword}
-          onChange={(e) => setOldPassword(e.target.value)}
+          {...register("oldPassword")}
+          error={!!errors.oldPassword?.message}
+          errorMessage={errors.oldPassword?.message}
         />
         <InputWithLabel
           label="New Password"
           type="password"
           placeholder="New Password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
+          {...register("newPassword")}
+          error={!!errors.newPassword?.message}
+          errorMessage={errors.newPassword?.message}
         />
         <InputWithLabel
           label="Confirm New Password"
           type="password"
           placeholder="Confirm New Password"
-          value={confirmNewPassword}
-          onChange={(e) => setConfirmNewPassword(e.target.value)}
+          {...register("confirmNewPassword")}
+          error={!!errors.confirmNewPassword?.message}
+          errorMessage={errors.confirmNewPassword?.message}
         />
-      </div>
-      <div className="mt-6 flex justify-end">
-        <Button onClick={handleChangePassword}>Change password</Button>
-      </div>
+        <div className="mt-6 flex justify-end">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Changing..." : "Change password"}
+          </Button>
+        </div>
+      </form>
     </>
   );
 };
