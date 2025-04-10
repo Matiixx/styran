@@ -31,26 +31,22 @@ export default function ProjectsComponent() {
   const [tasksStats] = api.tasks.getProjectsTasksStats.useSuspenseQuery();
 
   return (
-    <div className="flex w-full flex-1 overflow-y-auto">
-      <div className="w-full">
-        <div className="mx-auto max-w-7xl px-16 py-16 pt-32">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <AddNewProjectDialog open={open} setOpen={setOpen} />
+    <div className="mx-auto max-w-7xl px-16 py-16 pt-32">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <AddNewProjectDialog open={open} setOpen={setOpen} />
 
-            {map(data, ({ name, ticker, users, id }) => {
-              return (
-                <ProjectCard
-                  key={id}
-                  id={id}
-                  name={name}
-                  users={users}
-                  ticker={ticker}
-                  taskStats={tasksStats[id] ?? []}
-                />
-              );
-            })}
-          </div>
-        </div>
+        {map(data, ({ name, ticker, users, id }) => {
+          return (
+            <ProjectCard
+              key={id}
+              id={id}
+              name={name}
+              users={users}
+              ticker={ticker}
+              taskStats={tasksStats[id] ?? []}
+            />
+          );
+        })}
       </div>
     </div>
   );

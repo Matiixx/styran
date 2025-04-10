@@ -24,11 +24,12 @@ export default async function ProjectsPage() {
 
   return (
     <HydrateClient>
-      <main className="bg-gradient-background flex h-screen flex-col items-center justify-center">
+      <div className="flex h-screen w-full flex-col overflow-hidden">
         <Header />
-
-        <ProjectsComponent />
-      </main>
+        <div className="flex-1 overflow-y-auto">
+          <ProjectsComponent />
+        </div>
+      </div>
     </HydrateClient>
   );
 }

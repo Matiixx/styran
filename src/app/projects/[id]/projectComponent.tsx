@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
 import { api } from "~/trpc/server";
-import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
 
 import ProjectPageShell from "./projectPageShell";
 import ProjectDashboard from "./projectDashboard";
