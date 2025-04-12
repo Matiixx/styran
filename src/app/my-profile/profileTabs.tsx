@@ -30,7 +30,7 @@ const ProfileTabs = ({ userInfo }: ProfileTabsProps) => {
       </TabsContent>
       <TabsContent value="preferences">
         <Card disableHover>
-          <AccountPreferences />
+          <AccountPreferences userInfo={userInfo} />
         </Card>
       </TabsContent>
     </Tabs>

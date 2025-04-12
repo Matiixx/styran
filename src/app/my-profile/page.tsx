@@ -26,3 +26,7 @@ export default async function Home() {
     </SessionProvider>
   );
 }
+
+export const metadata = {
+  title: "My Profile",
+};

@@ -21,6 +21,8 @@ model User {
     jobTitle String?
     bio      String?
 
+    discordWebhookUrl String?
+
     ownedProjects Project[]
     projects      Project[] @relation("ProjectUsers")
 

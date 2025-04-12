@@ -7,6 +7,7 @@ import tasksRouter from "./routers/tasks";
 import sprintRouter from "./routers/sprint";
 import taskCommentsRouter from "./routers/taskComments";
 import timeTrackerRouter from "./routers/timeTracker";
+import integrationsRouter from "./routers/integrations";
 
 export const appRouter = createTRPCRouter({
   post: postRouter,
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   sprint: sprintRouter,
   taskComments: taskCommentsRouter,
   timeTracker: timeTrackerRouter,
+  integrations: integrationsRouter,
 });
 
 export type AppRouter = typeof appRouter;
