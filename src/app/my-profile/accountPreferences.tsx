@@ -13,6 +13,7 @@ import { CardContent, CardDescription, CardHeader } from "~/components/ui/card";
 import { InputWithLabel } from "~/components/ui/input";
 import { Switch } from "~/components/ui/switch";
 import { Button } from "~/components/ui/button";
+import { Collapse } from "~/components/ui/collapse";
 
 type AccountPreferencesProps = {
   userInfo: UserRouterOutputs["getUserInfo"];
@@ -85,7 +86,7 @@ const AccountPreferences = ({ userInfo }: AccountPreferencesProps) => {
               disabled={isPending}
             />
           </div>
-          {open && (
+          <Collapse isOpen={open}>
             <div className="flex flex-col items-end gap-2">
               <span className="w-full text-sm text-muted-foreground">
                 You will be notified when you have new messages or tasks
@@ -101,9 +102,14 @@ const AccountPreferences = ({ userInfo }: AccountPreferencesProps) => {
                   onDiscordWebhookUrlChange(e.currentTarget.value);
                 }}
               />
-              <Button onClick={onTestClick}>Test webhook</Button>
+              <Button
+                onClick={onTestClick}
+                disabled={isPending || !userInfo.discordWebhookUrl}
+              >
+                Test webhook
+              </Button>
             </div>
-          )}
+          </Collapse>
         </div>
       </CardContent>
     </>
