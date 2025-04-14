@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { type UserRouterOutputs } from "~/server/api/routers/user";
@@ -16,11 +16,15 @@ import { Button } from "~/components/ui/button";
 import { Collapse } from "~/components/ui/collapse";
 
 type AccountPreferencesProps = {
-  userInfo: UserRouterOutputs["getUserInfo"];
+  userInfo: UserRouterOutputs["getUserInfo"] & {
+    discordId?: string | null;
+    discordAccessToken?: string | null;
+  };
 };
 
 const AccountPreferences = ({ userInfo }: AccountPreferencesProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(Boolean(userInfo.discordWebhookUrl));
   const [discordWebhookUrl, setDiscordWebhookUrl] = useState(
     userInfo.discordWebhookUrl ?? "",
@@ -29,6 +33,16 @@ const AccountPreferences = ({ userInfo }: AccountPreferencesProps) => {
     api.user.updateUserInfo.useMutation({ onSuccess: () => router.refresh() });
   const { mutateAsync: testWebhook } =
     api.integrations.testDiscordPersonalWebhook.useMutation();
+
+  // Check for Discord connection success/failure messages
+  useEffect(() => {
+    if (searchParams.get("discord") === "connected") {
+      toast.success("Discord account connected successfully!");
+    }
+    if (searchParams.get("error")) {
+      toast.error(`Discord connection failed: ${searchParams.get("error")}`);
+    }
+  }, [searchParams]);
 
   const onOpenChange = (value: boolean) => {
     setOpen(value);
@@ -54,6 +68,8 @@ const AccountPreferences = ({ userInfo }: AccountPreferencesProps) => {
       toast.error("Failed to test webhook");
     });
   };
+
+  const isDiscordConnected = Boolean(userInfo.discordId);
 
   return (
     <>
@@ -110,6 +126,33 @@ const AccountPreferences = ({ userInfo }: AccountPreferencesProps) => {
               </Button>
             </div>
           </Collapse>
+        </div>
+
+        <div className="flex flex-col gap-2 border-b py-4">
+          <div className="flex justify-between gap-1">
+            <div className="font-medium">Discord account</div>
+            {isDiscordConnected ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-green-600">Connected</span>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  window.location.href = "/api/discord/connect";
+                }}
+                disabled={isPending}
+              >
+                Connect Discord
+              </Button>
+            )}
+          </div>
+          <span className="w-full text-sm text-muted-foreground">
+            Connect your Discord account to verify your identity and improve
+            your user experience. This allows us to associate your Discord
+            identity with your account.
+          </span>
         </div>
       </CardContent>
     </>

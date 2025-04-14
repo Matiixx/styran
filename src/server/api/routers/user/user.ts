@@ -170,6 +170,8 @@ const userRouter = createTRPCRouter({
         email: z.string().email().optional(),
         bio: z.string().nullable().optional(),
         discordWebhookUrl: z.string().nullable().optional(),
+        discordId: z.string().nullable().optional(),
+        discordAccessToken: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -189,6 +191,12 @@ const userRouter = createTRPCRouter({
         ...(input.bio !== undefined && { bio: input.bio ?? undefined }),
         ...(input.discordWebhookUrl !== undefined && {
           discordWebhookUrl: input.discordWebhookUrl ?? undefined,
+        }),
+        ...(input.discordId !== undefined && {
+          discordId: input.discordId ?? undefined,
+        }),
+        ...(input.discordAccessToken !== undefined && {
+          discordAccessToken: input.discordAccessToken ?? undefined,
         }),
       };
 
