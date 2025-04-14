@@ -10,6 +10,7 @@ export const newProjectSchema = z.object({
     .max(4, { message: "Ticker should have at most 4 characters" })
     .optional()
     .or(z.literal("")),
+  description: z.string().optional().nullable(),
   timezone: z.number().min(-12).max(12).optional(),
 });
 
@@ -17,4 +18,7 @@ export const editProjectSchema = z.object({
   id: z.string(),
   name: newProjectSchema.shape.name,
   ticker: newProjectSchema.shape.ticker,
+  timezone: newProjectSchema.shape.timezone,
+  description: newProjectSchema.shape.description,
+  discordWebhookUrl: z.string().optional().nullable(),
 });

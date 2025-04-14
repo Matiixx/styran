@@ -24,10 +24,11 @@ type InputWithLabelProps = React.ComponentProps<"input"> & {
   label: string;
   error?: boolean;
   errorMessage?: string;
+  description?: string;
 };
 
 const InputWithLabel = React.forwardRef<HTMLInputElement, InputWithLabelProps>(
-  ({ className, label, error, errorMessage, ...props }, ref) => {
+  ({ className, label, error, errorMessage, description, ...props }, ref) => {
     return (
       <div className={cn("grid w-full items-center gap-1.5", className)}>
         <Label>{label}</Label>
@@ -37,6 +38,9 @@ const InputWithLabel = React.forwardRef<HTMLInputElement, InputWithLabelProps>(
           ref={ref}
         />
         {error && <Label className="text-destructive">{errorMessage}</Label>}
+        {description && !error && (
+          <Label className="text-xs text-muted-foreground">{description}</Label>
+        )}
       </div>
     );
   },
