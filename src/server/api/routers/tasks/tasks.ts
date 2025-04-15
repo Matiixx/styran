@@ -15,6 +15,7 @@ import {
   UNASSIGNED_USER_ID,
   UpdateTaskSchema,
 } from "~/lib/schemas/taskSchemas";
+import { ActivityType } from "~/lib/schemas/activityType";
 
 import {
   createTRPCRouter,
@@ -24,8 +25,8 @@ import {
 import dayjs from "~/utils/dayjs";
 
 const tasksRouter = createTRPCRouter({
-  createTask: protectedProcedure
-    .input(z.intersection(z.object({ projectId: z.string() }), NewTaskSchema))
+  createTask: projectMemberProcedure
+    .input(NewTaskSchema)
     .mutation(async ({ ctx, input }) => {
       const validatedProject = await ctx.db.project.findUnique({
         where: {
@@ -45,7 +46,7 @@ const tasksRouter = createTRPCRouter({
         });
       }
 
-      return ctx.db.task.create({
+      const newTask = await ctx.db.task.create({
         data: {
           title: input.title,
           type: input.type,
@@ -57,6 +58,19 @@ const tasksRouter = createTRPCRouter({
           ),
         },
       });
+
+      await ctx.db.activityLog.create({
+        data: {
+          activityType: ActivityType.TaskCreated,
+          description: `Task [${newTask.ticker}] ${newTask.title} (${newTask.type}) was created`,
+          userId: ctx.session.user.id,
+          projectId: validatedProject.id,
+          taskId: newTask.id,
+          newValue: JSON.stringify(newTask),
+        },
+      });
+
+      return newTask;
     }),
 
   getTasks: protectedProcedure
@@ -174,7 +188,7 @@ const tasksRouter = createTRPCRouter({
         updates.doneAt = input.doneAt;
       }
 
-      return ctx.db.task.update({
+      const updatedTask = await ctx.db.task.update({
         where: {
           id: input.taskId,
           project: {
@@ -187,6 +201,20 @@ const tasksRouter = createTRPCRouter({
         },
         data: updates,
       });
+
+      await ctx.db.activityLog.create({
+        data: {
+          activityType: ActivityType.TaskUpdated,
+          description: `Task [${updatedTask.ticker}] ${updatedTask.title} (${updatedTask.type}) was updated`,
+          userId: ctx.session.user.id,
+          projectId: input.projectId,
+          taskId: input.taskId,
+          oldValue: JSON.stringify(currentState),
+          newValue: JSON.stringify(updatedTask),
+        },
+      });
+
+      return updatedTask;
     }),
 
   moveTask: protectedProcedure
@@ -242,7 +270,7 @@ const tasksRouter = createTRPCRouter({
         },
       } = ctx;
 
-      return ctx.db.task.delete({
+      const deletedTask = await ctx.db.task.delete({
         where: {
           id: taskId,
           project: {
@@ -250,6 +278,18 @@ const tasksRouter = createTRPCRouter({
           },
         },
       });
+
+      await ctx.db.activityLog.create({
+        data: {
+          activityType: ActivityType.TaskDeleted,
+          description: `Task [${deletedTask.ticker}] ${deletedTask.title} (${deletedTask.type}) was deleted`,
+          userId,
+          projectId: deletedTask.projectId,
+          oldValue: JSON.stringify(deletedTask),
+        },
+      });
+
+      return deletedTask;
     }),
 
   getCompletedTaskCount: protectedProcedure

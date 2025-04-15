@@ -48,7 +48,9 @@ const ProjectSidebar = ({ userId, project }: ProjectSidebarProps) => {
         <Link href={`/projects/${project.id}/backlog`}>
           <Button
             variant={
-              isActive(`/projects/${project.id}/backlog`) ? "default" : "ghost"
+              isActive(`/projects/${project.id}/backlog`, false)
+                ? "default"
+                : "ghost"
             }
             fullWidth
             className="justify-start"

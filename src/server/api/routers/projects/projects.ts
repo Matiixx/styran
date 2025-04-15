@@ -268,6 +268,21 @@ const projectsRouter = createTRPCRouter({
       return usersWithTimeTrack;
     },
   ),
+
+  getLastActivity: projectMemberProcedure
+    .input(z.object({ count: z.number().optional().default(5) }))
+    .query(async ({ ctx, input }) => {
+      const { count } = input;
+
+      const activity = await ctx.db.activityLog.findMany({
+        where: { projectId: ctx.projectId },
+        orderBy: { createdAt: "desc" },
+        take: count,
+        include: { task: true, user: true, sprint: true },
+      });
+
+      return activity;
+    }),
 });
 
 export type ProjectRouterOutput = inferRouterOutputs<typeof projectsRouter>;

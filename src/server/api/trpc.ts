@@ -9,12 +9,11 @@
 
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 import { type OpenApiMeta } from "trpc-to-openapi";
 
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { z } from "zod";
 
 /**
  * 1. CONTEXT

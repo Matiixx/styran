@@ -1,9 +1,16 @@
 "use client";
 
+import Link from "next/link";
+
 import map from "lodash/map";
 
-import { UserAvatar } from "~/app/_components/UserAvatar";
+import { type Task } from "@prisma/client";
+import { api } from "~/trpc/react";
+import { type ProjectRouterOutput } from "~/server/api/routers/projects";
+import { ActivityType } from "~/lib/schemas/activityType";
 import dayjs from "~/utils/dayjs";
+
+import { UserAvatar } from "~/app/_components/UserAvatar";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -18,51 +25,13 @@ type ProjectLastActivityProps = {
   projectId: string;
 };
 
-const LAST_ACTIVITY = [
-  {
-    user: {
-      firstName: "Jane",
-      lastName: "S.",
-      email: "jane.s@example.com",
-    },
-    action: "task-create",
-    task: "Task 1",
-    date: dayjs().subtract(1, "day"),
-  },
-  {
-    user: {
-      firstName: "John",
-      lastName: "D.",
-      email: "john.d@example.com",
-    },
-    action: "task-update",
-    task: "Task 2",
-    date: dayjs().subtract(2, "day"),
-  },
-  {
-    user: {
-      firstName: "Michael",
-      lastName: "R.",
-      email: "michael.r@example.com",
-    },
-    action: "task-comment",
-    task: "Task 3",
-    date: dayjs().subtract(3, "day"),
-  },
-  {
-    user: {
-      firstName: "Emily",
-      lastName: "F.",
-      email: "emily.f@example.com",
-    },
-    action: "time-track",
-    date: dayjs().subtract(4, "day"),
-  },
-];
-
 export default function ProjectLastActivity({
   projectId,
 }: ProjectLastActivityProps) {
+  const { data: activityLogs } = api.projects.getLastActivity.useQuery({
+    projectId,
+  });
+
   return (
     <Card disableHover>
       <CardHeader>
@@ -71,8 +40,8 @@ export default function ProjectLastActivity({
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4">
-          {map(LAST_ACTIVITY, (activity) => (
-            <AcivityCard key={activity.user.email} activity={activity} />
+          {map(activityLogs, (activity) => (
+            <AcivityCard key={activity.id} activity={activity} />
           ))}
         </div>
 
@@ -87,7 +56,7 @@ export default function ProjectLastActivity({
 const AcivityCard = ({
   activity,
 }: {
-  activity: (typeof LAST_ACTIVITY)[number];
+  activity: ProjectRouterOutput["getLastActivity"][number];
 }) => {
   return (
     <div className="flex flex-col gap-2">
@@ -96,10 +65,12 @@ const AcivityCard = ({
 
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <span className="font-medium">{activity.user.firstName}</span>
+            <Link href={`/user/${activity.user.id}`}>
+              <span className="font-medium">{activity.user.firstName}</span>
+            </Link>
             <span className="text-muted-foreground">•</span>
             <span className="text-sm text-muted-foreground">
-              {activity.date.fromNow()}
+              {dayjs(activity.createdAt).fromNow()}
             </span>
           </div>
 
@@ -111,15 +82,61 @@ const AcivityCard = ({
   );
 };
 
-const getActivityText = (activity: (typeof LAST_ACTIVITY)[number]) => {
-  switch (activity.action) {
-    case "task-create":
-      return `${activity.user.firstName} created a task ${activity.task} `;
-    case "task-update":
-      return `${activity.user.firstName} updated a task ${activity.task} `;
-    case "task-comment":
-      return `${activity.user.firstName} commented on a task ${activity.task}`;
-    case "time-track":
-      return `${activity.user.firstName} tracked time`;
+const getActivityText = (
+  activity: ProjectRouterOutput["getLastActivity"][number],
+) => {
+  const activityType = activity.activityType as ActivityType;
+
+  if (activityType === ActivityType.TaskCreated) {
+    const task = JSON.parse(activity.newValue ?? "{}") as Task;
+
+    return (
+      <>
+        {activity.user.firstName} created a task{" "}
+        <Link
+          href={`/projects/${activity.projectId}/backlog/task/${activity.task?.id}`}
+          className="font-semibold"
+        >
+          [{task?.ticker}]
+        </Link>{" "}
+        {task?.title}
+      </>
+    );
+  } else if (activityType === ActivityType.TaskUpdated) {
+    const task = JSON.parse(activity.newValue ?? "{}") as Task;
+
+    return (
+      <>
+        {activity.user.firstName} updated a task{" "}
+        <Link
+          href={`/projects/${activity.projectId}/backlog/task/${activity.task?.id}`}
+          className="font-semibold"
+        >
+          [{task?.ticker}]
+        </Link>{" "}
+        {task?.title}
+      </>
+    );
+  } else if (activityType === ActivityType.CommentCreated) {
+    return (
+      <>
+        {activity.user.firstName} commented on a task{" "}
+        <Link
+          href={`/projects/${activity.projectId}/backlog/task/${activity.task?.id}`}
+          className="font-semibold"
+        >
+          [{activity.task?.ticker}]
+        </Link>{" "}
+        {activity.task?.title}
+      </>
+    );
+  } else if (activityType === ActivityType.TaskDeleted) {
+    const task = JSON.parse(activity.oldValue ?? "{}") as Task;
+    return (
+      <>
+        {activity.user.firstName} deleted a task{" "}
+        <span className="font-semibold">[{task.ticker}]</span> {task.title}
+      </>
+    );
   }
 };
