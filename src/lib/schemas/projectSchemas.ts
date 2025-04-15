@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+export const discordRegex = new RegExp(
+  "^https://discord.com/api/webhooks/.+/.+$",
+);
+
 export const newProjectSchema = z.object({
   name: z
     .string()
@@ -20,5 +24,10 @@ export const editProjectSchema = z.object({
   ticker: newProjectSchema.shape.ticker,
   timezone: newProjectSchema.shape.timezone,
   description: newProjectSchema.shape.description,
-  discordWebhookUrl: z.string().optional().nullable(),
+  discordWebhookUrl: z
+    .string()
+    .regex(discordRegex, "Invalid Discord webhook URL")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
 });

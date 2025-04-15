@@ -54,13 +54,18 @@ export default function ProjectSettingsForm({
 }: ProjectSettingsFormProps) {
   const { mutateAsync: updateProject } = api.projects.editProject.useMutation();
 
-  const { control, register, handleSubmit } = useForm({
+  const {
+    control,
+    formState: { errors },
+    register,
+    handleSubmit,
+  } = useForm({
+    mode: "onTouched",
     defaultValues: getDefaultValues(project),
     resolver: zodResolver(editProjectSchemaForm),
   });
 
   const onSubmit = handleSubmit((data) => {
-    console.log(data);
     return updateProject({
       ...data,
       timezone: Number(data.timezone),
@@ -114,6 +119,8 @@ export default function ProjectSettingsForm({
             label="Discord Webhook URL"
             placeholder="https://discord.com/api/webhooks/..."
             description="The URL of the Discord webhook for your project. You will receive notifications about project."
+            error={!!errors.discordWebhookUrl}
+            errorMessage={errors.discordWebhookUrl?.message}
             {...register("discordWebhookUrl")}
           />
 
