@@ -7,15 +7,12 @@ import {
 } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { ActivityType } from "~/lib/schemas/activityType";
 
 const timeTrackerRouter = createTRPCRouter({
   addTime: protectedProcedure
     .input(
-      z.object({
-        taskId: z.string(),
-        endTime: z.date(),
-        startTime: z.date(),
-      }),
+      z.object({ taskId: z.string(), endTime: z.date(), startTime: z.date() }),
     )
     .mutation(async ({ ctx, input }) => {
       const { taskId, startTime, endTime } = input;
@@ -43,8 +40,20 @@ const timeTrackerRouter = createTRPCRouter({
       }
 
       return ctx.db.$transaction(async (tx) => {
-        await tx.timeTrack.create({
+        const timeTrack = await tx.timeTrack.create({
           data: { taskId, startTime, endTime, userId },
+          include: { task: { select: { ticker: true, title: true } } },
+        });
+
+        await tx.activityLog.create({
+          data: {
+            activityType: ActivityType.TimeTrackCreated,
+            description: `Time track was created for task ${taskId} by ${userId}`,
+            userId,
+            taskId: hasAccess.id,
+            projectId: hasAccess.projectId,
+            newValue: JSON.stringify(timeTrack),
+          },
         });
 
         return tx.task.update({
@@ -97,16 +106,34 @@ const timeTrackerRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      return ctx.db.timeTrack.delete({ where: { id: timeId } });
+      return ctx.db.$transaction(async (tx) => {
+        const timeTrack = await tx.timeTrack.delete({
+          where: { id: timeId },
+          include: {
+            task: {
+              select: { projectId: true, id: true, ticker: true, title: true },
+            },
+          },
+        });
+
+        await tx.activityLog.create({
+          data: {
+            activityType: ActivityType.TimeTrackDeleted,
+            description: `Time track was deleted for task ${timeTrack.task.id} by ${userId}`,
+            userId,
+            taskId: timeTrack.task.id,
+            projectId: timeTrack.task.projectId,
+            oldValue: JSON.stringify(timeTrack),
+          },
+        });
+
+        return timeTrack;
+      });
     }),
 
   updateTime: protectedProcedure
     .input(
-      z.object({
-        timeId: z.string(),
-        startTime: z.date(),
-        endTime: z.date(),
-      }),
+      z.object({ timeId: z.string(), startTime: z.date(), endTime: z.date() }),
     )
     .mutation(async ({ ctx, input }) => {
       const { timeId, startTime, endTime } = input;
@@ -128,9 +155,29 @@ const timeTrackerRouter = createTRPCRouter({
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
 
-      return ctx.db.timeTrack.update({
-        where: { id: timeId },
-        data: { startTime, endTime },
+      return ctx.db.$transaction(async (tx) => {
+        const timeTrack = await tx.timeTrack.update({
+          where: { id: timeId },
+          data: { startTime, endTime },
+          include: {
+            task: {
+              select: { projectId: true, id: true, ticker: true, title: true },
+            },
+          },
+        });
+
+        await tx.activityLog.create({
+          data: {
+            activityType: ActivityType.TimeTrackUpdated,
+            description: `Time track was updated for task ${timeTrack.task.id} by ${userId}`,
+            userId,
+            taskId: timeTrack.task.id,
+            projectId: timeTrack.task.projectId,
+            newValue: JSON.stringify(timeTrack),
+          },
+        });
+
+        return timeTrack;
       });
     }),
 });

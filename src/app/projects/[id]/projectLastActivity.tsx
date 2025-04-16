@@ -202,5 +202,59 @@ const getActivityText = (
         </Link>
       </>
     );
+  } else if (activityType === ActivityType.TimeTrackCreated) {
+    const timeTrack = JSON.parse(activity.newValue ?? "{}") as {
+      taskId: string;
+      task: { ticker: string; title: string };
+    };
+
+    return (
+      <>
+        {activity.user.firstName} added time tracking for a task{" "}
+        <Link
+          href={`/projects/${activity.projectId}/backlog/task/${timeTrack.taskId}`}
+          className="font-semibold"
+        >
+          [{timeTrack.task.ticker}]
+        </Link>{" "}
+        {timeTrack.task.title}
+      </>
+    );
+  } else if (activityType === ActivityType.TimeTrackUpdated) {
+    const timeTrack = JSON.parse(activity.newValue ?? "{}") as {
+      taskId: string;
+      task: { ticker: string; title: string };
+    };
+
+    return (
+      <>
+        {activity.user.firstName} updated time tracking for a task{" "}
+        <Link
+          href={`/projects/${activity.projectId}/backlog/task/${timeTrack.taskId}`}
+          className="font-semibold"
+        >
+          [{timeTrack.task.ticker}]
+        </Link>{" "}
+        {timeTrack.task.title}
+      </>
+    );
+  } else if (activityType === ActivityType.TimeTrackDeleted) {
+    const timeTrack = JSON.parse(activity.oldValue ?? "{}") as {
+      taskId: string;
+      task: { ticker: string; title: string };
+    };
+
+    return (
+      <>
+        {activity.user.firstName} deleted time tracking for a task{" "}
+        <Link
+          href={`/projects/${activity.projectId}/backlog/task/${timeTrack.taskId}`}
+          className="font-semibold"
+        >
+          [{timeTrack.task.ticker}]
+        </Link>{" "}
+        {timeTrack.task.title}
+      </>
+    );
   }
 };
