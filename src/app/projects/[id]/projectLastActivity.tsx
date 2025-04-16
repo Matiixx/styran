@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import map from "lodash/map";
 
-import { type Task } from "@prisma/client";
+import { TaskComment, type Task } from "@prisma/client";
 import { api } from "~/trpc/react";
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 import { ActivityType } from "~/lib/schemas/activityType";
@@ -117,6 +117,14 @@ const getActivityText = (
         {task?.title}
       </>
     );
+  } else if (activityType === ActivityType.TaskDeleted) {
+    const task = JSON.parse(activity.oldValue ?? "{}") as Task;
+    return (
+      <>
+        {activity.user.firstName} deleted a task{" "}
+        <span className="font-semibold">[{task.ticker}]</span> {task.title}
+      </>
+    );
   } else if (activityType === ActivityType.CommentCreated) {
     return (
       <>
@@ -130,12 +138,40 @@ const getActivityText = (
         {activity.task?.title}
       </>
     );
-  } else if (activityType === ActivityType.TaskDeleted) {
-    const task = JSON.parse(activity.oldValue ?? "{}") as Task;
+  } else if (activityType === ActivityType.CommentUpdated) {
+    const comment = JSON.parse(activity.newValue ?? "{}") as {
+      taskId: string;
+      task: { ticker: string; title: string };
+    };
+
     return (
       <>
-        {activity.user.firstName} deleted a task{" "}
-        <span className="font-semibold">[{task.ticker}]</span> {task.title}
+        {activity.user.firstName} updated a comment on a task{" "}
+        <Link
+          href={`/projects/${activity.projectId}/backlog/task/${comment.taskId}`}
+          className="font-semibold"
+        >
+          [{comment.task.ticker}]
+        </Link>{" "}
+        {comment.task.title}
+      </>
+    );
+  } else if (activityType === ActivityType.CommentDeleted) {
+    const comment = JSON.parse(activity.oldValue ?? "{}") as {
+      taskId: string;
+      task: { ticker: string; title: string };
+    };
+
+    return (
+      <>
+        {activity.user.firstName} deleted a comment on a task{" "}
+        <Link
+          href={`/projects/${activity.projectId}/backlog/task/${comment.taskId}`}
+          className="font-semibold"
+        >
+          [{comment.task.ticker}]
+        </Link>{" "}
+        {comment.task.title}
       </>
     );
   }

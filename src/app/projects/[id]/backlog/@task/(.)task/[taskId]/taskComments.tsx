@@ -78,9 +78,13 @@ export default function TaskComments({
             comment={comment}
             isAuthor={isAuthor}
             onEdit={(content) =>
-              updateComment({ commentId: comment.id, content }).then(noop)
+              updateComment({ projectId, commentId: comment.id, content }).then(
+                noop,
+              )
             }
-            onDelete={() => deleteComment({ commentId: comment.id }).then(noop)}
+            onDelete={() =>
+              deleteComment({ projectId, commentId: comment.id }).then(noop)
+            }
           />
         );
       })}

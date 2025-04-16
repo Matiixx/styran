@@ -6,7 +6,12 @@ import {
   type inferRouterOutputs,
 } from "@trpc/server";
 
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  projectMemberProcedure,
+  protectedProcedure,
+} from "~/server/api/trpc";
+import { ActivityType } from "~/lib/schemas/activityType";
 
 const taskCommentsRouter = createTRPCRouter({
   addComment: protectedProcedure
@@ -45,6 +50,16 @@ const taskCommentsRouter = createTRPCRouter({
           data: { content, taskId, userId },
         });
 
+        await tx.activityLog.create({
+          data: {
+            activityType: ActivityType.CommentCreated,
+            description: `Task [${taskId}] was commented by ${userId}`,
+            userId,
+            taskId,
+            projectId,
+          },
+        });
+
         return tx.task.update({
           where: { id: taskId },
           data: { updatedAt: new Date() },
@@ -80,16 +95,30 @@ const taskCommentsRouter = createTRPCRouter({
       });
     }),
 
-  deleteComment: protectedProcedure
+  deleteComment: projectMemberProcedure
     .input(z.object({ commentId: z.string() }))
     .mutation(({ ctx, input }) => {
-      const { commentId } = input;
+      const { commentId, projectId } = input;
       const {
         user: { id: userId },
       } = ctx.session;
 
       return ctx.db.$transaction(async (tx) => {
-        await tx.taskComment.delete({ where: { id: commentId, userId } });
+        const deletedComment = await tx.taskComment.delete({
+          where: { id: commentId, userId },
+          include: { task: { select: { ticker: true, title: true } } },
+        });
+
+        await tx.activityLog.create({
+          data: {
+            activityType: ActivityType.CommentDeleted,
+            description: `Task comment was deleted by ${userId}`,
+            userId,
+            commentId,
+            projectId,
+            oldValue: JSON.stringify(deletedComment),
+          },
+        });
 
         return tx.task.updateMany({
           where: { TaskComment: { some: { id: commentId } } },
@@ -98,18 +127,30 @@ const taskCommentsRouter = createTRPCRouter({
       });
     }),
 
-  editComment: protectedProcedure
+  editComment: projectMemberProcedure
     .input(z.object({ commentId: z.string(), content: z.string() }))
     .mutation(({ ctx, input }) => {
-      const { commentId, content } = input;
+      const { commentId, content, projectId } = input;
       const {
         user: { id: userId },
       } = ctx.session;
 
       return ctx.db.$transaction(async (tx) => {
-        await tx.taskComment.update({
+        const updatedComment = await tx.taskComment.update({
           where: { id: commentId, userId },
           data: { content },
+          include: { task: { select: { ticker: true, title: true } } },
+        });
+
+        await tx.activityLog.create({
+          data: {
+            activityType: ActivityType.CommentUpdated,
+            description: `Task comment was updated by ${userId}`,
+            userId,
+            commentId,
+            projectId,
+            newValue: JSON.stringify(updatedComment),
+          },
         });
 
         return tx.task.updateMany({
