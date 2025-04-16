@@ -13,7 +13,6 @@ import map from "lodash/map";
 import upperFirst from "lodash/upperFirst";
 
 import { api } from "~/trpc/react";
-import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
 
 import dayjs from "~/utils/dayjs";
 
@@ -162,13 +161,14 @@ export default function CalendarComponent({
           </SortTasksHeader>
         </div>
 
-        <div className="mt-2 min-h-[800px] flex-1">
+        <div className="mt-4 min-h-[750px] flex-1">
           <DnDCalendar
             localizer={localizer}
             defaultDate={dayjs().toDate()}
             defaultView="month"
             resizable
             selectable
+            views={["month"]}
             events={events}
             style={{ height: "100%", color: "white" }}
             eventPropGetter={(taskEvent) => {
