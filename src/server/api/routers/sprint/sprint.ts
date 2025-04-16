@@ -1,15 +1,16 @@
 import { z } from "zod";
 import { TRPCError, type inferRouterOutputs } from "@trpc/server";
 
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, projectMemberProcedure } from "~/server/api/trpc";
 import { StartSprintSchema } from "~/lib/schemas/sprintSchemas";
 import { startOfDay } from "date-fns";
 import { UTCDate } from "@date-fns/utc";
 import { TaskStatus } from "@prisma/client";
+import { ActivityType } from "~/lib/schemas/activityType";
 
 const sprintRouter = createTRPCRouter({
-  startSprint: protectedProcedure
-    .input(StartSprintSchema.extend({ projectId: z.string() }))
+  startSprint: projectMemberProcedure
+    .input(StartSprintSchema)
     .mutation(async ({ ctx, input }) => {
       const parsedInput = {
         ...input,
@@ -17,13 +18,15 @@ const sprintRouter = createTRPCRouter({
         endDate: new UTCDate(startOfDay(input.endDate)),
       };
 
+      let sprint;
+
       if (parsedInput.includeTasksFromBacklog) {
         const freeTaskIds = await ctx.db.task.findMany({
           where: { projectId: parsedInput.projectId, sprintId: null },
           select: { id: true },
         });
 
-        const sprint = ctx.db.sprint
+        sprint = await ctx.db.sprint
           .create({
             data: {
               name: parsedInput.name,
@@ -47,10 +50,8 @@ const sprintRouter = createTRPCRouter({
               message: "Some sprint is already active",
             });
           });
-
-        return sprint;
       } else {
-        const sprint = ctx.db.sprint
+        sprint = await ctx.db.sprint
           .create({
             data: {
               name: parsedInput.name,
@@ -71,35 +72,56 @@ const sprintRouter = createTRPCRouter({
               message: "Some sprint is already active",
             });
           });
-
-        return sprint;
       }
+
+      await ctx.db.activityLog.create({
+        data: {
+          activityType: ActivityType.SprintCreated,
+          description: `Sprint [${parsedInput.name}] was created`,
+          userId: ctx.session.user.id,
+          projectId: parsedInput.projectId,
+          sprintId: sprint.id,
+          newValue: JSON.stringify(sprint),
+        },
+      });
+
+      return sprint;
     }),
 
-  endSprint: protectedProcedure
-    .input(z.object({ sprintId: z.string(), projectId: z.string() }))
+  endSprint: projectMemberProcedure
+    .input(z.object({ sprintId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.$transaction([
-        ctx.db.task.updateMany({
+      return ctx.db.$transaction(async (tx) => {
+        await tx.task.updateMany({
           where: {
             project: { id: input.projectId, ownerId: ctx.session.user.id },
             sprintId: input.sprintId,
             status: { not: TaskStatus.DONE },
           },
           data: { sprintId: null },
-        }),
+        });
 
-        ctx.db.sprint.update({
+        const sprint = await tx.sprint.update({
           where: {
             id: input.sprintId,
             project: { id: input.projectId, ownerId: ctx.session.user.id },
           },
+          data: { endAt: new UTCDate(), isActive: false },
+        });
+
+        await tx.activityLog.create({
           data: {
-            endAt: new UTCDate(),
-            isActive: false,
+            userId: ctx.session.user.id,
+            projectId: input.projectId,
+            sprintId: sprint.id,
+            activityType: ActivityType.SprintCompleted,
+            description: `Sprint [${sprint.name}] was completed`,
+            newValue: JSON.stringify(sprint),
           },
-        }),
-      ]);
+        });
+
+        return sprint;
+      });
     }),
 });
 

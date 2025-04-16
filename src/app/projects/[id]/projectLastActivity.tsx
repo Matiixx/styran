@@ -174,5 +174,33 @@ const getActivityText = (
         {comment.task.title}
       </>
     );
+  } else if (activityType === ActivityType.SprintCreated) {
+    const sprint = JSON.parse(activity.newValue ?? "{}") as { name: string };
+
+    return (
+      <>
+        {activity.user.firstName} started new sprint{" "}
+        <Link
+          href={`/projects/${activity.projectId}/backlog`}
+          className="font-semibold"
+        >
+          {sprint.name}
+        </Link>
+      </>
+    );
+  } else if (activityType === ActivityType.SprintCompleted) {
+    const sprint = JSON.parse(activity.newValue ?? "{}") as { name: string };
+
+    return (
+      <>
+        {activity.user.firstName} completed sprint{" "}
+        <Link
+          href={`/projects/${activity.projectId}/backlog`}
+          className="font-semibold"
+        >
+          {sprint.name}
+        </Link>
+      </>
+    );
   }
 };
