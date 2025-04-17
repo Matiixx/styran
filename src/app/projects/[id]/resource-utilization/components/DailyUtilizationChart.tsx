@@ -21,19 +21,20 @@ import sortBy from "lodash/sortBy";
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 
 import dayjs, { type Dayjs } from "~/utils/dayjs";
-import { getCurrentDayInTimezone } from "~/utils/timeUtils";
 import { stringToRGB } from "../../calendar/utils";
 
 const DailyUtilizationChart = ({
-  timezone,
+  startDate,
+  daysDuration,
   usersUtilization,
 }: {
-  timezone: number;
+  startDate: Date;
+  daysDuration: number;
   usersUtilization: ProjectRouterOutput["getProjectResourceUtilization"];
 }) => {
   const groupedUsersUtilization = useMemo(
-    () => groupUtilzationByDay(usersUtilization, timezone),
-    [usersUtilization, timezone],
+    () => groupUtilzationByDay(startDate, daysDuration, usersUtilization),
+    [startDate, daysDuration, usersUtilization],
   );
 
   return (
@@ -120,20 +121,19 @@ type UserUtilization = {
 };
 
 const groupUtilzationByDay = (
+  startDate: Date,
+  daysDuration: number,
   usersUtilization: ProjectRouterOutput["getProjectResourceUtilization"],
-  timezone: number,
 ): Array<{
   users: UserUtilization[];
   day: Dayjs;
   dayString: string;
 }> => {
-  const today = getCurrentDayInTimezone(timezone);
-  const startWeek = today.startOf("week");
-
   const days = [];
+  const startDay = dayjs(startDate);
 
-  for (let i = 0; i < 7; i++) {
-    days.push(startWeek.clone().add(i, "day"));
+  for (let i = 0; i < daysDuration; i++) {
+    days.push(startDay.clone().add(i, "day"));
   }
 
   const dailyUtilization = days.map((day) => ({

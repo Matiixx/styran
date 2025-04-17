@@ -1,18 +1,22 @@
 import { Clock, Timer, Users } from "lucide-react";
 
-import { reduce, size } from "lodash";
+import reduce from "lodash/reduce";
+import size from "lodash/size";
 
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 
 import dayjs from "~/utils/dayjs";
-import { getCurrentDayInTimezone } from "~/utils/timeUtils";
 import { Card, CardContent } from "~/components/ui/card";
 import { Progress } from "~/components/ui/progress";
 
 const ResourceUtilizationCards = ({
+  daysDuration,
   usersUtilization,
+  workingDaysAmount,
 }: {
+  daysDuration: number;
   usersUtilization: ProjectRouterOutput["getProjectResourceUtilization"];
+  workingDaysAmount: number;
 }) => {
   const totalAmount = reduce(
     usersUtilization,
@@ -39,24 +43,40 @@ const ResourceUtilizationCards = ({
 
   return (
     <>
-      <TotalHoursCard userCount={userCount} totalAmount={totalAmount} />
-      <AverageUtilizationCard userCount={userCount} totalAmount={totalAmount} />
+      <TotalHoursCard
+        duration={daysDuration}
+        userCount={userCount}
+        totalAmount={totalAmount}
+        workingDaysAmount={workingDaysAmount}
+      />
+      <AverageUtilizationCard
+        userCount={userCount}
+        totalAmount={totalAmount}
+        workingDaysAmount={workingDaysAmount}
+      />
       <AverageDailyUtilizationCard
         userCount={userCount}
         totalAmount={totalAmount}
+        workingDaysAmount={workingDaysAmount}
       />
     </>
   );
 };
 
 const TotalHoursCard = ({
+  duration,
   userCount,
   totalAmount,
+  workingDaysAmount,
 }: {
+  duration: number;
   userCount: number;
   totalAmount: number;
+  workingDaysAmount: number;
 }) => {
   const totalHours = totalAmount / 1000 / 60 / 60;
+
+  const maxHours = userCount * 8 * workingDaysAmount;
 
   return (
     <Card className="w-full" disableHover>
@@ -65,7 +85,7 @@ const TotalHoursCard = ({
           <div className="flex flex-col gap-2">
             <span className="text-sm text-gray-500">Total hours</span>
             <span className="text-2xl font-bold">
-              {totalHours.toFixed(2)} / {userCount * 40}hrs
+              {totalHours.toFixed(2)} / {maxHours}hrs
             </span>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -73,23 +93,36 @@ const TotalHoursCard = ({
           </div>
         </div>
         <span className="ml-1 text-sm text-muted-foreground">
-          across current working week
+          across current {getPeriodText(duration)}
         </span>
       </CardContent>
     </Card>
   );
 };
 
+const getPeriodText = (duration: number) => {
+  if (duration > 20) {
+    return "month";
+  } else if (duration > 7) {
+    return "sprint";
+  } else {
+    return "working week";
+  }
+};
+
 const AverageUtilizationCard = ({
   userCount,
   totalAmount,
+  workingDaysAmount,
 }: {
   userCount: number;
   totalAmount: number;
+  workingDaysAmount: number;
 }) => {
   const totalHours = totalAmount / 1000 / 60 / 60;
 
-  const averageUtilization = (totalHours / (userCount * 40)) * 100;
+  const averageUtilization =
+    (totalHours / (userCount * 8 * workingDaysAmount)) * 100;
 
   return (
     <Card className="w-full" disableHover>
@@ -114,20 +147,13 @@ const AverageUtilizationCard = ({
 const AverageDailyUtilizationCard = ({
   userCount,
   totalAmount,
+  workingDaysAmount,
 }: {
   userCount: number;
   totalAmount: number;
+  workingDaysAmount: number;
 }) => {
   const totalHours = totalAmount / 1000 / 60 / 60;
-
-  const workingDaysAmount = Math.min(
-    Math.abs(
-      getCurrentDayInTimezone(0)
-        .startOf("week")
-        .diff(getCurrentDayInTimezone(0), "days"),
-    ),
-    5,
-  );
 
   const averageDailyUtilization =
     totalHours / userCount / (workingDaysAmount || 1);

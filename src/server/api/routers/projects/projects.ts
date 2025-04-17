@@ -11,9 +11,11 @@ import {
 import { SALT_ROUNDS, SHOULD_SEND_EMAIL } from "~/server/constant";
 import { inviteUserEmailTemplate } from "~/server/sendgrid/inviteUserEmail";
 import { sendEmail } from "~/server/sendgrid";
+import { getCurrentDayInTimezone } from "~/utils/timeUtils";
+import { ResourceUtilizationDuration } from "~/lib/resourceUtilization/durations";
+import dayjs, { type Dayjs } from "~/utils/dayjs";
 
 import { generateTempPassword, generateTicker } from "./utils";
-import { getCurrentDayInTimezone } from "~/utils/timeUtils";
 
 const projectsRouter = createTRPCRouter({
   getProjects: protectedProcedure.query(async ({ ctx }) => {
@@ -236,21 +238,38 @@ const projectsRouter = createTRPCRouter({
     });
   }),
 
-  getProjectResourceUtilization: projectMemberProcedure.query(
-    async ({ ctx }) => {
+  getProjectResourceUtilization: projectMemberProcedure
+    .input(
+      z.object({
+        duration: z
+          .nativeEnum(ResourceUtilizationDuration)
+          .optional()
+          .default(ResourceUtilizationDuration.WEEK),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
       const { projectId } = ctx;
+      const { duration } = input;
 
       const projectTimezone = await ctx.db.project.findUnique({
         where: { id: projectId },
-        select: { timezone: true },
+        select: { timezone: true, sprint: { where: { isActive: true } } },
       });
 
       const today = getCurrentDayInTimezone(projectTimezone?.timezone ?? 0);
-      const weekStart = today.startOf("week");
-      const weekEnd = today.endOf("week");
+      const { start, end } = getStartAndEnd(
+        duration,
+        today,
+        projectTimezone?.sprint[0],
+      );
 
-      const usersWithTimeTrack = await ctx.db.user.findMany({
-        where: { projects: { some: { id: projectId } } },
+      const usersWithTimeTrack = ctx.db.user.findMany({
+        where: {
+          OR: [
+            { projects: { some: { id: projectId } } },
+            { ownedProjects: { some: { id: projectId } } },
+          ],
+        },
         select: {
           id: true,
           email: true,
@@ -259,15 +278,15 @@ const projectsRouter = createTRPCRouter({
           TimeTrack: {
             where: {
               task: { projectId },
-              startTime: { gte: weekStart.toDate(), lte: weekEnd.toDate() },
+              startTime: { gte: start.toDate(), lte: end.toDate() },
             },
             include: { task: true },
           },
         },
       });
+
       return usersWithTimeTrack;
-    },
-  ),
+    }),
 
   getLastActivity: projectMemberProcedure
     .input(z.object({ count: z.number().optional().default(5) }))
@@ -284,6 +303,37 @@ const projectsRouter = createTRPCRouter({
       return activity;
     }),
 });
+
+const getStartAndEnd = (
+  duration: ResourceUtilizationDuration,
+  today: Dayjs,
+  sprint: { startAt: Date; endAt: Date } | undefined,
+) => {
+  if (duration === ResourceUtilizationDuration.WEEK) {
+    return {
+      start: today.startOf("week"),
+      end: today.endOf("week"),
+    };
+  }
+  if (duration === ResourceUtilizationDuration.MONTH) {
+    return {
+      start: today.startOf("month"),
+      end: today.endOf("month"),
+    };
+  }
+
+  if (duration === ResourceUtilizationDuration.SPRINT && !!sprint) {
+    return {
+      start: dayjs(sprint.startAt),
+      end: dayjs(sprint.endAt),
+    };
+  }
+
+  return {
+    start: today.startOf("week"),
+    end: today.endOf("week"),
+  };
+};
 
 export type ProjectRouterOutput = inferRouterOutputs<typeof projectsRouter>;
 
