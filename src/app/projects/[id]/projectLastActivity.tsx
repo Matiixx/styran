@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import map from "lodash/map";
 
-import { TaskComment, type Task } from "@prisma/client";
+import { type Task } from "@prisma/client";
 import { api } from "~/trpc/react";
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 import { ActivityType } from "~/lib/schemas/activityType";

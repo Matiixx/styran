@@ -171,7 +171,11 @@ const AddNewTaskCard = ({ projectId }: { projectId: string }) => {
   const { mutateAsync: createTask } = api.tasks.createTask.useMutation({
     onSuccess: () => {
       toast("Task created");
-      return utils.tasks.getTasks.invalidate({ projectId });
+      return Promise.all([
+        utils.tasks.getTasks.invalidate({ projectId }),
+        utils.tasks.getActivityOverview.invalidate({ projectId }),
+        utils.projects.getLastActivity.invalidate({ projectId }),
+      ]);
     },
     onError: () => {
       toast.error("Error creating task");

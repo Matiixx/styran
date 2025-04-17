@@ -30,7 +30,11 @@ const TaskSettings = ({
   const utils = api.useUtils();
   const { mutateAsync: deleteTask } = api.tasks.deleteTask.useMutation({
     onSuccess: () => {
-      return utils.tasks.getTasks.invalidate({ projectId });
+      return Promise.all([
+        utils.tasks.getTasks.invalidate({ projectId }),
+        utils.tasks.getActivityOverview.invalidate({ projectId }),
+        utils.projects.getLastActivity.invalidate({ projectId }),
+      ]);
     },
   });
 
