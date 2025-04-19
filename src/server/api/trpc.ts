@@ -165,3 +165,24 @@ export const projectMemberProcedure = protectedProcedure
     }
     return next({ ctx: { projectId } });
   });
+
+export const protectedOpenProcedure = publicProcedure
+  .use(timingMiddleware)
+  .use(async ({ ctx, next }) => {
+    const authHeader = ctx.headers.get("authorization");
+
+    if (!authHeader?.startsWith("Bearer ")) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Missing or invalid authorization header",
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    if (token !== process.env.OPEN_SECRET) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
+    }
+
+    return next();
+  });

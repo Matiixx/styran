@@ -2,12 +2,12 @@ import { z } from "zod";
 
 import {
   createTRPCRouter,
+  protectedOpenProcedure,
   protectedProcedure,
-  publicProcedure,
 } from "~/server/api/trpc";
 
 const postRouter = createTRPCRouter({
-  hello: publicProcedure
+  hello: protectedOpenProcedure
     .meta({ openapi: { method: "POST", path: "/hello" } })
     .input(z.object({ text: z.string() }))
     .output(z.object({ greeting: z.string() }))
