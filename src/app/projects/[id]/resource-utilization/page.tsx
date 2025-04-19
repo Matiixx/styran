@@ -1,11 +1,13 @@
 import { redirect } from "next/navigation";
+import { type Metadata } from "next";
 
 import { auth } from "~/server/auth";
 import { api } from "~/trpc/server";
 
+import { ResourceUtilizationDuration } from "~/lib/resourceUtilization/durations";
+
 import ResourceUtilization from "./resourceUtilization";
 import ProjectPageShell from "../projectPageShell";
-import { ResourceUtilizationDuration } from "~/lib/resourceUtilization/durations";
 
 export default async function ProjectPage({
   params,
@@ -48,4 +50,17 @@ export default async function ProjectPage({
       />
     </ProjectPageShell>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const id = (await params).id;
+  const project = await api.projects.getProject({ id });
+
+  return {
+    title: `${project?.name ?? "Project"} - Resource Utilization`,
+  };
 }
