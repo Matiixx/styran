@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
+import { Skeleton } from "~/components/ui/skeleton";
 
 type ProjectLastActivityProps = {
   projectId: string;
@@ -28,9 +29,10 @@ type ProjectLastActivityProps = {
 export default function ProjectLastActivity({
   projectId,
 }: ProjectLastActivityProps) {
-  const { data: activityLogs } = api.projects.getLastActivity.useQuery({
-    projectId,
-  });
+  const { data: activityLogs, isLoading } =
+    api.projects.getLastActivity.useQuery({
+      projectId,
+    });
 
   return (
     <Card disableHover>
@@ -40,9 +42,19 @@ export default function ProjectLastActivity({
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4">
-          {map(activityLogs, (activity) => (
-            <AcivityCard key={activity.id} activity={activity} />
-          ))}
+          {isLoading ? (
+            <>
+              <ActivityCardSkeleton />
+              <ActivityCardSkeleton />
+              <ActivityCardSkeleton />
+              <ActivityCardSkeleton />
+              <ActivityCardSkeleton />
+            </>
+          ) : (
+            map(activityLogs, (activity) => (
+              <AcivityCard key={activity.id} activity={activity} />
+            ))
+          )}
         </div>
 
         <Button variant="outline" className="mt-4 w-full">
@@ -75,6 +87,27 @@ const AcivityCard = ({
           </div>
 
           <span>{getActivityText(activity)}</span>
+        </div>
+      </div>
+      <Separator />
+    </div>
+  );
+};
+
+const ActivityCardSkeleton = () => {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        <Skeleton className="h-6 w-6 rounded-full" />
+
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-20" />
+            <span className="text-muted-foreground">•</span>
+            <Skeleton className="h-4 w-24" />
+          </div>
+
+          <Skeleton className="h-6 w-[250px]" />
         </div>
       </div>
       <Separator />
