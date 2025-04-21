@@ -58,6 +58,7 @@ enum TaskType {
     BUG
     FEATURE
     STORY
+    // EVENT // TODO: Add event type
 }
 
 enum TaskStatus {

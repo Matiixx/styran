@@ -1,0 +1,47 @@
+import { TaskPriority, type Task } from "@prisma/client";
+
+import { type DiscordEmbed } from "~/server/integrations/discord/discord.d";
+
+import {
+  getColorByPriority,
+  priorityToString,
+  taskStatusToString,
+} from "~/utils/taskUtils";
+import dayjs from "~/utils/dayjs";
+
+const hexToDecimal = (hex: string) => {
+  const hexWithoutHash = hex.replace("#", "");
+  return parseInt(hexWithoutHash, 16);
+};
+
+const generateDiscordTaskEmbed = (
+  task: Task & { asignee: { firstName: string; lastName: string } | null },
+): DiscordEmbed => {
+  const assigneeMessage = task.asignee
+    ? `Task is assigned to **${task.asignee.firstName} ${task.asignee.lastName}**\n\n`
+    : "There is no assignee for this task!\n\n";
+
+  const priorityColor = getColorByPriority(
+    task.priority ?? TaskPriority.NONE,
+  ).color;
+
+  const description = task.description
+    ? `**Description:** ${task.description}\n\n`
+    : "";
+  const priority = `**Priority:** ${priorityToString(task.priority)}\n\n`;
+  const status = `**Status:** ${taskStatusToString(task.status)}\n\n`;
+  const storyPoints =
+    task.storyPoints !== null
+      ? `**Story Points:** ${task.storyPoints}\n\n`
+      : "";
+  const deadline = `**Deadline:** ${dayjs(task.doneAt).format("DD.MM.YYYY HH:mm")}`;
+
+  return {
+    title: `[${task.ticker}] ${task.title}`,
+    color: hexToDecimal(priorityColor),
+    url: `http://localhost:3000/projects/${task.projectId}/backlog/task/${task.id}`,
+    description: `${assigneeMessage}${description}${priority}${status}${storyPoints}${deadline}`,
+  };
+};
+
+export { generateDiscordTaskEmbed };

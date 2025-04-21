@@ -1,6 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
+import isEmpty from "lodash/isEmpty";
+import size from "lodash/size";
+
 import {
   createTRPCRouter,
   protectedOpenProcedure,
@@ -8,7 +11,13 @@ import {
 } from "~/server/api/trpc";
 import { sendDiscordMessage } from "~/server/integrations/discord";
 import { executePromisesBatch } from "~/utils/promiseUtils";
-import { getTimezonesInTargetHourWindow, DayOfWeek } from "~/utils/timeUtils";
+import {
+  getTimezonesInTargetHourWindow,
+  DayOfWeek,
+  getCurrentDayInTimezone,
+} from "~/utils/timeUtils";
+
+import { generateDiscordTaskEmbed } from "./utils";
 
 const integrationsRouter = createTRPCRouter({
   testDiscordPersonalWebhook: protectedProcedure.mutation(async ({ ctx }) => {
@@ -63,6 +72,13 @@ const integrationsRouter = createTRPCRouter({
         return { success: true };
       }
 
+      const endOfWeek = getCurrentDayInTimezone(targetTimezones[0]!).endOf(
+        "week",
+      );
+      const startOfWeek = getCurrentDayInTimezone(targetTimezones[0]!).startOf(
+        "week",
+      );
+
       const projectsToNotify = await ctx.db.project.findMany({
         where: {
           discordWebhookUrl: { not: null },
@@ -73,6 +89,13 @@ const integrationsRouter = createTRPCRouter({
           name: true,
           discordWebhookUrl: true,
           timezone: true,
+          tasks: {
+            where: {
+              status: { not: "DONE" },
+              doneAt: { lte: endOfWeek.toDate(), gte: startOfWeek.toDate() },
+            },
+            include: { asignee: true },
+          },
         },
       });
 
@@ -85,15 +108,27 @@ const integrationsRouter = createTRPCRouter({
           `Sending Monday ${TARGET_HOUR}:00 notification to project: ${project.id} - ${project.name} (timezone: ${project.timezone})`,
         );
 
+        if (isEmpty(project.tasks)) {
+          return sendDiscordMessage(
+            project.discordWebhookUrl!,
+            `Good news! There is no task with deadline in the ${startOfWeek.format("DD.MM.YYYY")} - ${endOfWeek.format("DD.MM.YYYY")} period for project ${project.name}!`,
+          ).catch((error) => {
+            console.error(error);
+          });
+        }
+
+        const taskEmbeds = project.tasks.map(generateDiscordTaskEmbed);
+
+        console.log(`Send ${size(taskEmbeds)} embeds`);
+
+        const thisWeekTasksMessage = `**${startOfWeek.format("DD.MM.YYYY")} - ${endOfWeek.format("DD.MM.YYYY")}**\n\nGood Monday morning! It's the start of a new week for project ${project.name}!\nHere are the tasks or events due this week:`;
+
         return sendDiscordMessage(
           project.discordWebhookUrl!,
-          `Good Monday morning! It's the start of a new week for project ${project.name}!`,
+          thisWeekTasksMessage,
+          taskEmbeds,
         ).catch((error) => {
-          console.error(
-            `Error sending message to project ${project.id} - ${project.name}:`,
-            error,
-          );
-          return;
+          console.error(error);
         });
       });
 
