@@ -35,11 +35,12 @@ const generateDiscordTaskEmbed = (
       ? `**Story Points:** ${task.storyPoints}\n\n`
       : "";
   const deadline = `**Deadline:** ${dayjs(task.doneAt).format("DD.MM.YYYY HH:mm")}`;
+  const url = `${process.env.APP_URL}/projects/${task.projectId}/backlog/task/${task.id}`;
 
   return {
-    title: `[${task.ticker}] ${task.title}`,
+    url,
     color: hexToDecimal(priorityColor),
-    url: `http://localhost:3000/projects/${task.projectId}/backlog/task/${task.id}`,
+    title: `[${task.ticker}] ${task.title}`,
     description: `${assigneeMessage}${description}${priority}${status}${storyPoints}${deadline}`,
   };
 };
