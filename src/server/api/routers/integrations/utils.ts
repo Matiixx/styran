@@ -7,7 +7,7 @@ import {
   priorityToString,
   taskStatusToString,
 } from "~/utils/taskUtils";
-import dayjs from "~/utils/dayjs";
+import { getDayInTimezone } from "~/utils/timeUtils";
 
 const hexToDecimal = (hex: string) => {
   const hexWithoutHash = hex.replace("#", "");
@@ -15,7 +15,10 @@ const hexToDecimal = (hex: string) => {
 };
 
 const generateDiscordTaskEmbed = (
-  task: Task & { asignee: { firstName: string; lastName: string } | null },
+  task: Task & {
+    asignee: { firstName: string; lastName: string } | null;
+    timezone: number;
+  },
 ): DiscordEmbed => {
   const assigneeMessage = task.asignee
     ? `Task is assigned to **${task.asignee.firstName} ${task.asignee.lastName}**\n\n`
@@ -34,7 +37,7 @@ const generateDiscordTaskEmbed = (
     task.storyPoints !== null
       ? `**Story Points:** ${task.storyPoints}\n\n`
       : "";
-  const deadline = `**Deadline:** ${dayjs(task.doneAt).format("DD.MM.YYYY HH:mm")}`;
+  const deadline = `**Deadline:** ${getDayInTimezone(task.doneAt!, task.timezone).format("DD.MM.YYYY HH:mm")}`;
   const url = `${process.env.APP_URL}/projects/${task.projectId}/backlog/task/${task.id}`;
 
   return {

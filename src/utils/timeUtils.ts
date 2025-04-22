@@ -16,6 +16,15 @@ const getUTCDate = (date: Dayjs, timezone: number) => {
   return date.subtract(timezone, "hours");
 };
 
+const getDayUTC = (date: Date) => {
+  return dayjs(date).utc();
+};
+
+const getDayInTimezone = (date: Date, timezone: number) => {
+  const utc = getDayUTC(date);
+  return utc.add(timezone, "hours");
+};
+
 const isTimeWithinHourWindow = (
   timezone: number,
   targetHour = 8,
@@ -109,9 +118,11 @@ const TimeConstants = {
 };
 
 export {
+  getDayUTC,
   getTimezoneOffset,
   getCurrentDayInTimezone,
   getUTCDate,
+  getDayInTimezone,
   isTimeWithinHourWindow,
   getTimezonesInTargetHourWindow,
   DayOfWeek,

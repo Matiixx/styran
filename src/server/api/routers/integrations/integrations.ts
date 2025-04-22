@@ -15,7 +15,9 @@ import {
   getTimezonesInTargetHourWindow,
   DayOfWeek,
   getCurrentDayInTimezone,
+  getDayInTimezone,
 } from "~/utils/timeUtils";
+import dayjs from "~/utils/dayjs";
 
 import { generateDiscordTaskEmbed } from "./utils";
 
@@ -117,7 +119,9 @@ const integrationsRouter = createTRPCRouter({
           });
         }
 
-        const taskEmbeds = project.tasks.map(generateDiscordTaskEmbed);
+        const taskEmbeds = project.tasks.map((task) =>
+          generateDiscordTaskEmbed({ ...task, timezone: project.timezone }),
+        );
 
         console.log(`Send ${size(taskEmbeds)} embeds`);
 
@@ -133,6 +137,70 @@ const integrationsRouter = createTRPCRouter({
       });
 
       await executePromisesBatch(sendMessagePromises, 10);
+
+      console.log("All messages sent successfully.");
+
+      return { success: true };
+    }),
+
+  sendHourlyDiscordNotifications: protectedOpenProcedure
+    .meta({
+      openapi: { method: "POST", path: "/sendHourlyDiscordNotifications" },
+    })
+    .input(z.void())
+    .output(z.object({ success: z.boolean() }))
+    .query(async ({ ctx }) => {
+      const now = dayjs.utc().add(1, "hour");
+
+      const roundedHour =
+        now.minute() >= 30
+          ? now.add(1, "hour").startOf("hour")
+          : now.startOf("hour");
+
+      console.log(
+        `Checking for tasks due between ${roundedHour.format("HH:mm")} and ${roundedHour.add(1, "hour").format("HH:mm")} UTC`,
+      );
+
+      const tasksDueInNextHour = await ctx.db.task.findMany({
+        where: {
+          doneAt: {
+            lte: roundedHour.endOf("hour").toDate(),
+            gte: roundedHour.startOf("hour").toDate(),
+          },
+          status: { not: "DONE" },
+          project: { discordWebhookUrl: { not: null } },
+        },
+        include: {
+          project: {
+            select: {
+              id: true,
+              name: true,
+              timezone: true,
+              discordWebhookUrl: true,
+            },
+          },
+          asignee: true,
+        },
+      });
+
+      console.log(
+        `Found ${size(tasksDueInNextHour)} tasks due within the next hour.`,
+      );
+
+      const sendMessagePromises = tasksDueInNextHour.map((task) => () => {
+        const message = `**${task.title}** deadline within the next hour!\n${getDayInTimezone(task.doneAt!, task.project.timezone).format("DD.MM.YYYY HH:mm")}`;
+
+        return sendDiscordMessage(task.project.discordWebhookUrl!, message, [
+          generateDiscordTaskEmbed({
+            ...task,
+            timezone: task.project.timezone,
+          }),
+        ]);
+      });
+
+      await executePromisesBatch(sendMessagePromises, 10);
+
+      console.log("All messages sent successfully.");
 
       return { success: true };
     }),
