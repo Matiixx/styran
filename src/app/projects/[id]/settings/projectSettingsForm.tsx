@@ -4,6 +4,8 @@ import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import { toast } from "sonner";
+
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 import { api } from "~/trpc/react";
 
@@ -57,6 +59,7 @@ export default function ProjectSettingsForm({
   const {
     control,
     formState: { errors },
+    reset,
     register,
     handleSubmit,
   } = useForm({
@@ -69,7 +72,17 @@ export default function ProjectSettingsForm({
     return updateProject({
       ...data,
       timezone: Number(data.timezone),
-    });
+    })
+      .then(() =>
+        toast("Project settings updated successfully", {
+          icon: "🔧",
+        }),
+      )
+      .catch(() =>
+        toast.error("Failed to update project settings, please try again.", {
+          icon: "🚨",
+        }),
+      );
   });
 
   return (
@@ -125,7 +138,12 @@ export default function ProjectSettingsForm({
           />
 
           <div className="flex w-full justify-end gap-4">
-            <Button variant="outline">Cancel</Button>
+            <Button
+              variant="outline"
+              onClick={() => reset(getDefaultValues(project))}
+            >
+              Restore Defaults
+            </Button>
             <Button onClick={onSubmit}>Save</Button>
           </div>
         </CardContent>
