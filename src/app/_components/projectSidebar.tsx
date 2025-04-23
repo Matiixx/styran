@@ -108,6 +108,19 @@ const ProjectSidebar = ({ userId, project }: ProjectSidebarProps) => {
             Resource Utilization
           </Button>
         </Link>
+
+        <Link href={`/projects/${project.id}/activity`}>
+          <Button
+            variant={
+              isActive(`/projects/${project.id}/activity`) ? "default" : "ghost"
+            }
+            fullWidth
+            className="justify-start"
+          >
+            Activity Log
+          </Button>
+        </Link>
+
         {userId === project.ownerId && (
           <>
             <Separator className="my-4" />

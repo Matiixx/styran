@@ -26,6 +26,7 @@ const ResourceUtilizationTabs = ({
     },
     [router, searchParams],
   );
+
   return (
     <Tabs value={duration} onValueChange={handleTabChange}>
       <TabsList>

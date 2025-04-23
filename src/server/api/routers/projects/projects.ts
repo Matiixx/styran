@@ -16,6 +16,7 @@ import { ResourceUtilizationDuration } from "~/lib/resourceUtilization/durations
 import dayjs, { type Dayjs } from "~/utils/dayjs";
 
 import { generateTempPassword, generateTicker } from "./utils";
+import { ActivityType } from "~/lib/schemas/activityType";
 
 const projectsRouter = createTRPCRouter({
   getProjects: protectedProcedure.query(async ({ ctx }) => {
@@ -301,6 +302,45 @@ const projectsRouter = createTRPCRouter({
       });
 
       return activity;
+    }),
+
+  getActivityLogs: projectMemberProcedure
+    .input(
+      z.object({
+        from: z.date().optional(),
+        to: z.date().optional(),
+        type: z.nativeEnum(ActivityType).optional(),
+        user: z.string().optional(),
+        page: z.number().optional().default(1),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { from, to, type, user, projectId, page } = input;
+      const LIMIT = 10;
+
+      const activityLogs = await ctx.db.activityLog.findMany({
+        where: {
+          user: user ? { id: user } : undefined,
+          createdAt: { gte: from, lte: to },
+          projectId,
+          activityType: type,
+        },
+        include: { task: true, user: true, sprint: true },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * LIMIT,
+        take: LIMIT,
+      });
+
+      const total = await ctx.db.activityLog.count({
+        where: {
+          user: user ? { id: user } : undefined,
+          createdAt: { gte: from, lte: to },
+          projectId,
+          activityType: type,
+        },
+      });
+
+      return { activityLogs, totalPages: Math.ceil(total / LIMIT) };
     }),
 });
 
