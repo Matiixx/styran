@@ -32,7 +32,11 @@ export default async function ProjectPage({
 
   return (
     <ProjectPageShell userId={session.user.id} project={project}>
-      <ActivityPage projectId={id} page={searchParams.page} />
+      <ActivityPage
+        projectId={id}
+        page={searchParams.page}
+        searchParams={searchParams}
+      />
     </ProjectPageShell>
   );
 }

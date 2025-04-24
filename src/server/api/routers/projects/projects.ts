@@ -307,23 +307,45 @@ const projectsRouter = createTRPCRouter({
   getActivityLogs: projectMemberProcedure
     .input(
       z.object({
-        from: z.date().optional(),
-        to: z.date().optional(),
+        from: z.number().optional(), // unix timestamp
+        to: z.number().optional(), // unix timestamp
         type: z.nativeEnum(ActivityType).optional(),
         user: z.string().optional(),
         page: z.number().optional().default(1),
+        searchQuery: z.string().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const { from, to, type, user, projectId, page } = input;
+      const { from, to, type, user, projectId, page, searchQuery } = input;
       const LIMIT = 10;
+
+      const fromDate = from ? dayjs(from).toDate() : undefined;
+      const toDate = to ? dayjs(to).toDate() : undefined;
 
       const activityLogs = await ctx.db.activityLog.findMany({
         where: {
           user: user ? { id: user } : undefined,
-          createdAt: { gte: from, lte: to },
+          createdAt: { gte: fromDate, lte: toDate },
           projectId,
           activityType: type,
+          OR: [
+            {
+              task: { title: { contains: searchQuery, mode: "insensitive" } },
+            },
+            {
+              task: { ticker: { contains: searchQuery, mode: "insensitive" } },
+            },
+            {
+              user: {
+                firstName: { contains: searchQuery, mode: "insensitive" },
+              },
+            },
+            {
+              user: {
+                lastName: { contains: searchQuery, mode: "insensitive" },
+              },
+            },
+          ],
         },
         include: { task: true, user: true, sprint: true },
         orderBy: { createdAt: "desc" },
@@ -334,7 +356,7 @@ const projectsRouter = createTRPCRouter({
       const total = await ctx.db.activityLog.count({
         where: {
           user: user ? { id: user } : undefined,
-          createdAt: { gte: from, lte: to },
+          createdAt: { gte: fromDate, lte: toDate },
           projectId,
           activityType: type,
         },

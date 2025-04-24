@@ -5,7 +5,7 @@ import { type Task } from "@prisma/client";
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 import { ActivityType } from "~/lib/schemas/activityType";
 
-export  const getActivityText = (
+export const getActivityText = (
   activity: ProjectRouterOutput["getLastActivity"][number],
 ) => {
   const activityType = activity.activityType as ActivityType;
@@ -179,5 +179,40 @@ export  const getActivityText = (
         {timeTrack.task.title}
       </>
     );
+  }
+};
+
+export const getActivityTypeLabel = (activityType: ActivityType) => {
+  switch (activityType) {
+    case ActivityType.TaskCreated:
+      return "Task Created";
+    case ActivityType.TaskUpdated:
+      return "Task Updated";
+    case ActivityType.TaskDeleted:
+      return "Task Deleted";
+    case ActivityType.CommentCreated:
+      return "Comment Created";
+    case ActivityType.CommentUpdated:
+      return "Comment Updated";
+    case ActivityType.CommentDeleted:
+      return "Comment Deleted";
+    case ActivityType.SprintCreated:
+      return "Sprint Created";
+    case ActivityType.SprintCompleted:
+      return "Sprint Completed";
+    case ActivityType.TimeTrackCreated:
+      return "Time Track Created";
+    case ActivityType.TimeTrackUpdated:
+      return "Time Track Updated";
+    case ActivityType.TimeTrackDeleted:
+      return "Time Track Deleted";
+    case ActivityType.ProjectCreated:
+      return "Project Created";
+    case ActivityType.ProjectUpdated:
+      return "Project Updated";
+    case ActivityType.ProjectDeleted:
+      return "Project Deleted";
+    default:
+      return activityType;
   }
 };

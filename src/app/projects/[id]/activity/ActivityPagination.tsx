@@ -1,3 +1,5 @@
+import forEach from "lodash/forEach";
+
 import {
   Pagination,
   PaginationContent,
@@ -11,11 +13,29 @@ import {
 const ActivityPagination = ({
   page,
   totalPages,
+  searchParams,
 }: {
   page?: string;
   totalPages: number;
+  searchParams: Record<string, string | string[]>;
 }) => {
   const parsedPage = page ? Number(page) : 1;
+
+  const createPageUrl = (pageNumber: number) => {
+    const params = new URLSearchParams();
+
+    forEach(searchParams, (value, key) => {
+      if (Array.isArray(value)) {
+        value.forEach((v) => params.append(key, v));
+      } else {
+        params.set(key, value);
+      }
+    });
+
+    params.set("page", pageNumber.toString());
+
+    return `?${params.toString()}`;
+  };
 
   return (
     <Pagination>
@@ -23,7 +43,7 @@ const ActivityPagination = ({
         <PaginationItem>
           <PaginationPrevious
             disabled={parsedPage === 1}
-            href={`?page=${parsedPage - 1}`}
+            href={createPageUrl(parsedPage - 1)}
           />
         </PaginationItem>
 
@@ -44,7 +64,7 @@ const ActivityPagination = ({
         <PaginationItem>
           <PaginationNext
             disabled={parsedPage === totalPages}
-            href={`?page=${parsedPage + 1}`}
+            href={createPageUrl(parsedPage + 1)}
           />
         </PaginationItem>
       </PaginationContent>
