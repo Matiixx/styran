@@ -359,6 +359,24 @@ const projectsRouter = createTRPCRouter({
           createdAt: { gte: fromDate, lte: toDate },
           projectId,
           activityType: type,
+          OR: [
+            {
+              task: { title: { contains: searchQuery, mode: "insensitive" } },
+            },
+            {
+              task: { ticker: { contains: searchQuery, mode: "insensitive" } },
+            },
+            {
+              user: {
+                firstName: { contains: searchQuery, mode: "insensitive" },
+              },
+            },
+            {
+              user: {
+                lastName: { contains: searchQuery, mode: "insensitive" },
+              },
+            },
+          ],
         },
       });
 

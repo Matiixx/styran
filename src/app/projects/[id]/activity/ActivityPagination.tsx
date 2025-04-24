@@ -37,6 +37,8 @@ const ActivityPagination = ({
     return `?${params.toString()}`;
   };
 
+  const pageNumbers = getPageNumbers(parsedPage, totalPages);
+
   return (
     <Pagination>
       <PaginationContent>
@@ -47,20 +49,23 @@ const ActivityPagination = ({
           />
         </PaginationItem>
 
-        <PaginationItem>
-          <PaginationLink href="#">1</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#" isActive>
-            2
-          </PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#">3</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationEllipsis />
-        </PaginationItem>
+        {pageNumbers.map((pageNumber, index) =>
+          pageNumber === null ? (
+            <PaginationItem key={`ellipsis-${index}`}>
+              <PaginationEllipsis />
+            </PaginationItem>
+          ) : (
+            <PaginationItem key={pageNumber}>
+              <PaginationLink
+                href={createPageUrl(pageNumber)}
+                isActive={parsedPage === pageNumber}
+              >
+                {pageNumber}
+              </PaginationLink>
+            </PaginationItem>
+          ),
+        )}
+
         <PaginationItem>
           <PaginationNext
             disabled={parsedPage === totalPages}
@@ -70,6 +75,49 @@ const ActivityPagination = ({
       </PaginationContent>
     </Pagination>
   );
+};
+
+const getPageNumbers = (
+  parsedPage: number,
+  totalPages: number,
+): (number | null)[] => {
+  const pages: (number | null)[] = [];
+  const MAX_VISIBLE_PAGES = 5;
+
+  if (totalPages <= MAX_VISIBLE_PAGES) {
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+  } else {
+    pages.push(1);
+
+    let start = Math.max(2, parsedPage - 1);
+    let end = Math.min(totalPages - 1, parsedPage + 1);
+
+    if (parsedPage <= 3) {
+      end = Math.min(totalPages - 1, 4);
+    } else if (parsedPage >= totalPages - 2) {
+      start = Math.max(2, totalPages - 3);
+    }
+
+    if (start > 2) {
+      pages.push(null);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    if (end < totalPages - 1) {
+      pages.push(null);
+    }
+
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+  }
+
+  return pages;
 };
 
 export default ActivityPagination;
