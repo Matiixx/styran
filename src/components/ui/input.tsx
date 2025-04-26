@@ -47,4 +47,6 @@ const InputWithLabel = React.forwardRef<HTMLInputElement, InputWithLabelProps>(
 );
 InputWithLabel.displayName = "InputWithLabel";
 
-export { Input, InputWithLabel };
+type InputProps = React.ComponentProps<"input">;
+
+export { Input, InputWithLabel, type InputProps };
