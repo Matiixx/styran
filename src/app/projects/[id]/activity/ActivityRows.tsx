@@ -1,16 +1,17 @@
+import Link from "next/link";
+
 import map from "lodash/map";
 
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 import dayjs from "~/utils/dayjs";
-// import { api } from "~/trpc/react";
-
-import Link from "next/link";
-
 import { UserAvatar } from "~/app/_components/UserAvatar";
+import { type ActivityType } from "~/lib/schemas/activityType";
 
+import { Card } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
-import { getActivityText } from "./activityUtils";
+
+import { getActivityText, getActivityTypeIcon } from "./activityUtils";
 
 export const ActivityRows = ({
   rows,
@@ -32,11 +33,11 @@ export const AcivityCard = ({
   activity: ProjectRouterOutput["getLastActivity"][number];
 }) => {
   return (
-    <div className="flex flex-col gap-2">
+    <Card disableHover className="flex flex-col gap-2 p-4">
       <div className="flex gap-2">
-        <UserAvatar user={activity.user} size="sm" />
+        <UserAvatar user={activity.user} size="md" />
 
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <Link href={`/user/${activity.user.id}`}>
               <span className="font-medium">{activity.user.firstName}</span>
@@ -46,12 +47,18 @@ export const AcivityCard = ({
               {dayjs(activity.createdAt).fromNow()}
             </span>
           </div>
-
-          <span>{getActivityText(activity)}</span>
+          <div className="flex flex-row items-center gap-1">
+            <div className="flex items-center justify-center rounded-full bg-gray-200 p-1">
+              {getActivityTypeIcon(
+                activity.activityType as ActivityType,
+                "h-4 w-4",
+              )}
+            </div>
+            <span>{getActivityText(activity)}</span>
+          </div>
         </div>
       </div>
-      <Separator />
-    </div>
+    </Card>
   );
 };
 

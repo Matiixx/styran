@@ -1,5 +1,17 @@
 import Link from "next/link";
 
+import {
+  Check,
+  Clock,
+  FilePenLine,
+  ListCheck,
+  MessageSquareDiff,
+  MessageSquareMore,
+  MessageSquareX,
+  Plus,
+  Trash2,
+} from "lucide-react";
+
 import { type Task } from "@prisma/client";
 
 import { type ProjectRouterOutput } from "~/server/api/routers/projects";
@@ -214,5 +226,43 @@ export const getActivityTypeLabel = (activityType: ActivityType) => {
       return "Project Deleted";
     default:
       return activityType;
+  }
+};
+
+export const getActivityTypeIcon = (
+  activityType: ActivityType,
+  className?: string,
+) => {
+  switch (activityType) {
+    case ActivityType.TaskCreated:
+      return <Plus className={className} />;
+    case ActivityType.TaskUpdated:
+      return <FilePenLine className={className} />;
+    case ActivityType.TaskDeleted:
+      return <Trash2 className={className} />;
+    case ActivityType.CommentCreated:
+      return <MessageSquareDiff className={className} />;
+    case ActivityType.CommentUpdated:
+      return <MessageSquareMore className={className} />;
+    case ActivityType.CommentDeleted:
+      return <MessageSquareX className={className} />;
+    case ActivityType.SprintCreated:
+      return <Plus className={className} />;
+    case ActivityType.SprintCompleted:
+      return <Check className={className} />;
+    case ActivityType.TimeTrackCreated:
+      return <Clock className={className} />;
+    case ActivityType.TimeTrackUpdated:
+      return <Clock className={className} />;
+    case ActivityType.TimeTrackDeleted:
+      return <Clock className={className} />;
+    case ActivityType.ProjectCreated:
+      return <Plus className={className} />;
+    case ActivityType.ProjectUpdated:
+      return <FilePenLine className={className} />;
+    case ActivityType.ProjectDeleted:
+      return <Trash2 className={className} />;
+    default:
+      return <ListCheck className={className} />;
   }
 };
