@@ -1,4 +1,4 @@
-import { ReactScan } from "./ReactScan";
+// import { ReactScan } from "./ReactScan";
 import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
