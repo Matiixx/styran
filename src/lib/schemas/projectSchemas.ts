@@ -30,4 +30,5 @@ export const editProjectSchema = z.object({
     .optional()
     .nullable()
     .or(z.literal("")),
+  customTaskTypes: z.array(z.string()).optional(),
 });

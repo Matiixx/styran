@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { InputTags } from "~/components/ui/input-tags";
 
 type ProjectSettingsFormProps = {
   project: NonNullable<ProjectRouterOutput["getProjectSettings"]>;
@@ -48,6 +49,7 @@ const getDefaultValues = (
     description: project.description ?? null,
     timezone: project.timezone.toString() ?? "1",
     discordWebhookUrl: project.discordWebhookUrl ?? null,
+    customTaskTypes: project.customTaskTypes ?? [],
   };
 };
 
@@ -125,6 +127,23 @@ export default function ProjectSettingsForm({
                   </SelectContent>
                 </Select>
               )}
+            />
+          </div>
+
+          <div className="flex w-full flex-col gap-2">
+            <Label>Custom Task/Event Types</Label>
+            <Controller
+              name="customTaskTypes"
+              control={control}
+              render={({ field: { value, onChange } }) => {
+                return (
+                  <InputTags
+                    value={value ?? []}
+                    placeholder="i.e. 'Meeting', 'Event'"
+                    onChange={onChange}
+                  />
+                );
+              }}
             />
           </div>
 
