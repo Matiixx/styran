@@ -50,6 +50,7 @@ const tasksRouter = createTRPCRouter({
         data: {
           title: input.title,
           type: input.type,
+          customType: input.customType || null,
           createdById: ctx.session.user.id,
           projectId: validatedProject.id,
           ticker: generateTaskTicker(

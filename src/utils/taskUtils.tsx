@@ -1,7 +1,7 @@
-import { TaskPriority, TaskStatus, type TaskType } from "@prisma/client";
+import { TaskPriority, TaskStatus, TaskType } from "@prisma/client";
 import { tailwindColors } from "~/styles/colors";
 
-import { Bookmark, Bug, Check, Lightbulb, Vote } from "lucide-react";
+import { Bookmark, Bug, FileCheck, Lightbulb, Vote } from "lucide-react";
 
 const taskStatusToString = (status: TaskStatus) => {
   switch (status) {
@@ -59,12 +59,20 @@ const getColorByStatus = (status: TaskStatus) => {
   }
 };
 
-const TaskTypeIcon: Record<TaskType, React.ReactNode> = {
-  BUG: <Bug className="text-red-500" />,
-  FEATURE: <Lightbulb className="text-yellow-500" />,
-  STORY: <Bookmark className="text-green-500" />,
-  TASK: <Vote className="text-blue-500" />,
-  CUSTOM: <Check className="text-gray-500" />,
+const getTaskTypeIcon = (type: string): React.ReactNode => {
+  switch (type) {
+    case TaskType.BUG:
+      return <Bug className="text-red-500" />;
+    case TaskType.FEATURE:
+      return <Lightbulb className="text-yellow-500" />;
+    case TaskType.STORY:
+      return <Bookmark className="text-green-500" />;
+    case TaskType.TASK:
+      return <Vote className="text-blue-500" />;
+    case TaskType.CUSTOM:
+    default:
+      return <FileCheck className="text-gray-500" />;
+  }
 };
 
 const priorityToString = (priority: TaskPriority | null) => {
@@ -82,7 +90,7 @@ const priorityToString = (priority: TaskPriority | null) => {
 };
 
 export {
-  TaskTypeIcon,
+  getTaskTypeIcon,
   getColorByStatus,
   priorityToString,
   taskStatusToString,

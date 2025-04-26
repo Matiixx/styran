@@ -93,7 +93,11 @@ const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
           <div className="overflow-y-auto">
             <CurrentSprint project={project} tasks={filteredTasks} />
 
-            <TaskList tasks={filteredTasks} projectId={id} />
+            <TaskList
+              tasks={filteredTasks}
+              projectId={id}
+              customTaskTypes={project.customTaskTypes}
+            />
           </div>
         </div>
       </DndContext>

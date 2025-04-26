@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useCallback } from "react";
 import { TaskStatus, TaskType } from "@prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
@@ -12,6 +13,7 @@ import filter from "lodash/filter";
 import map from "lodash/map";
 import toLower from "lodash/toLower";
 import upperFirst from "lodash/upperFirst";
+import values from "lodash/values";
 
 import { Plus } from "lucide-react";
 
@@ -33,18 +35,17 @@ import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
 import { UserAvatar } from "~/app/_components/UserAvatar";
-import { getColorByStatus, TaskTypeIcon } from "~/utils/taskUtils";
+import { getColorByStatus, getTaskTypeIcon } from "~/utils/taskUtils";
 
 type Task = TasksRouterOutput["getTasks"][number];
 type TaskListProps = {
   tasks: Task[];
   projectId: string;
+  customTaskTypes: string[];
 };
 
-const TaskList = ({ tasks, projectId }: TaskListProps) => {
-  const { setNodeRef, isOver } = useDroppable({
-    id: "backlog",
-  });
+const TaskList = ({ tasks, projectId, customTaskTypes }: TaskListProps) => {
+  const { setNodeRef, isOver } = useDroppable({ id: "backlog" });
 
   return (
     <div
@@ -59,7 +60,10 @@ const TaskList = ({ tasks, projectId }: TaskListProps) => {
             <TaskCard key={task.id} task={task} />
           ),
         )}
-        <AddNewTaskCard projectId={projectId} />
+        <AddNewTaskCard
+          projectId={projectId}
+          customTaskTypes={customTaskTypes}
+        />
       </div>
     </div>
   );
@@ -90,7 +94,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
     >
       <CardContent className="flex flex-row justify-between">
         <div className="flex flex-row items-center gap-2">
-          {TaskTypeIcon[task.type]}
+          {getTaskTypeIcon(task.type)}
           <Badge
             variant="outline"
             className={task.status === TaskStatus.DONE ? "line-through" : ""}
@@ -166,7 +170,13 @@ export const TaskStatusSelect = ({
   );
 };
 
-const AddNewTaskCard = ({ projectId }: { projectId: string }) => {
+const AddNewTaskCard = ({
+  projectId,
+  customTaskTypes,
+}: {
+  projectId: string;
+  customTaskTypes: string[];
+}) => {
   const utils = api.useUtils();
   const { mutateAsync: createTask } = api.tasks.createTask.useMutation({
     onSuccess: () => {
@@ -182,7 +192,7 @@ const AddNewTaskCard = ({ projectId }: { projectId: string }) => {
     },
   });
 
-  const { control, register, handleSubmit, reset } = useForm<
+  const { control, register, handleSubmit, reset, setValue, watch } = useForm<
     z.infer<typeof NewTaskSchema>
   >({
     mode: "onChange",
@@ -190,9 +200,40 @@ const AddNewTaskCard = ({ projectId }: { projectId: string }) => {
     resolver: zodResolver(NewTaskSchema),
   });
 
+  const customType = watch("customType");
+  const type = watch("type");
+
+  const combinedTypeValue = useMemo(
+    () => `${type}_${customType || ""}`,
+    [type, customType],
+  );
+
+  const handleTypeChange = useCallback(
+    (value: string) => {
+      const [typeValue, customTypeValue] = value.split("_");
+      setValue("type", typeValue as TaskType);
+      setValue("customType", customTypeValue || undefined);
+    },
+    [setValue],
+  );
+
   const onSubmit = handleSubmit((data) => {
     return createTask({ ...data, projectId }).then(() => reset());
   });
+
+  const options: Array<{ type: TaskType; customType?: string; value: string }> =
+    useMemo(() => {
+      return [
+        ...values(TaskType)
+          .filter((type) => type !== TaskType.CUSTOM)
+          .map((type) => ({ type: type as TaskType, value: `${type}_` })),
+        ...customTaskTypes.map((customType) => ({
+          type: TaskType.CUSTOM,
+          customType,
+          value: `${TaskType.CUSTOM}_${customType}`,
+        })),
+      ];
+    }, [customTaskTypes]);
 
   return (
     <Card size="compact">
@@ -203,21 +244,24 @@ const AddNewTaskCard = ({ projectId }: { projectId: string }) => {
           <Controller
             name="type"
             control={control}
-            render={({ field: { value, onChange } }) => (
-              <Select value={value} onValueChange={onChange}>
+            render={() => (
+              <Select
+                value={combinedTypeValue}
+                onValueChange={handleTypeChange}
+              >
                 <SelectTrigger className="max-w-[200px]">
                   <SelectValue placeholder="Select a task type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Task Type</SelectLabel>
-                    {map(TaskType, (type, key) => (
+                    {map(options, ({ type, customType, value }, key) => (
                       <SelectItem
-                        icon={TaskTypeIcon[type]}
                         key={key}
-                        value={type}
+                        icon={getTaskTypeIcon(type)}
+                        value={value}
                       >
-                        {upperFirst(toLower(type))}
+                        {upperFirst(toLower(customType ?? type))}
                       </SelectItem>
                     ))}
                   </SelectGroup>

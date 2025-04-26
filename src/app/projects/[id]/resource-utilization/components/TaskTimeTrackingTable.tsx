@@ -15,8 +15,8 @@ import dayjs from "~/utils/dayjs";
 import { TimeConstants } from "~/utils/timeUtils";
 import {
   getColorByStatus,
+  getTaskTypeIcon,
   taskStatusToString,
-  TaskTypeIcon,
 } from "~/utils/taskUtils";
 
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -94,7 +94,7 @@ const TaskTableRow = ({
     <TableRow className="text-base">
       <TableCell className="flex flex-col gap-0.5">
         <div className="flex flex-row items-center gap-2">
-          {TaskTypeIcon[task.task.type]}
+          {getTaskTypeIcon(task.task.type)}
           <Badge
             variant="outline"
             className={
