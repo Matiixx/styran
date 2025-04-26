@@ -10,6 +10,11 @@ import { type ActivityType } from "~/lib/schemas/activityType";
 import { Card } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 
 import { getActivityText, getActivityTypeIcon } from "./activityUtils";
 
@@ -43,9 +48,16 @@ export const AcivityCard = ({
               <span className="font-medium">{activity.user.firstName}</span>
             </Link>
             <span className="text-muted-foreground">•</span>
-            <span className="text-sm text-muted-foreground">
-              {dayjs(activity.createdAt).fromNow()}
-            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="text-sm text-muted-foreground">
+                  {dayjs(activity.createdAt).fromNow()}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {dayjs(activity.createdAt).format("LLL")}
+              </TooltipContent>
+            </Tooltip>
           </div>
           <div className="flex flex-row items-center gap-1">
             <div className="flex items-center justify-center rounded-full bg-gray-200 p-1">
