@@ -8,7 +8,6 @@ import { UserAvatar } from "~/app/_components/UserAvatar";
 import { type ActivityType } from "~/lib/schemas/activityType";
 
 import { Card } from "~/components/ui/card";
-import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
 import {
   Tooltip,
@@ -76,11 +75,11 @@ export const AcivityCard = ({
 
 export const ActivityCardSkeleton = () => {
   return (
-    <div className="flex flex-col gap-2">
+    <Card disableHover className="flex flex-col gap-2 p-4">
       <div className="flex gap-2">
-        <Skeleton className="h-6 w-6 rounded-full" />
+        <Skeleton className="h-8 w-8 rounded-full" />
 
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-20" />
             <span className="text-muted-foreground">•</span>
@@ -90,7 +89,6 @@ export const ActivityCardSkeleton = () => {
           <Skeleton className="h-6 w-[250px]" />
         </div>
       </div>
-      <Separator />
-    </div>
+    </Card>
   );
 };

@@ -4,7 +4,7 @@ import { api, HydrateClient } from "~/trpc/server";
 import { type ActivityType } from "~/lib/schemas/activityType";
 
 import ActivityFilters from "./ActivityFilters";
-import { ActivityRows } from "./ActivityRows";
+import { ActivityCardSkeleton, ActivityRows } from "./ActivityRows";
 import ActivityPagination from "./ActivityPagination";
 
 const ActivityPage = ({
@@ -49,7 +49,17 @@ const ActivityPageContentAsync = async ({
     <>
       <ActivityFiltersPrefetch projectId={projectId} />
 
-      <Suspense fallback={<>Loading...</>}>
+      <Suspense
+        fallback={
+          <div className="flex flex-col gap-4 p-4">
+            <ActivityCardSkeleton />
+            <ActivityCardSkeleton />
+            <ActivityCardSkeleton />
+            <ActivityCardSkeleton />
+            <ActivityCardSkeleton />
+          </div>
+        }
+      >
         <ActivityLogsContainerAsync
           page={page}
           projectId={projectId}
