@@ -9,9 +9,9 @@ import { useRouter } from "next/navigation";
 import debounce from "lodash/debounce";
 import map from "lodash/map";
 
+import { api } from "~/trpc/react";
 import dayjs, { type Dayjs } from "~/utils/dayjs";
 import { ActivityType } from "~/lib/schemas/activityType";
-import { type ProjectRouterOutput } from "~/server/api/routers/projects";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -42,13 +42,11 @@ export type ActivityFiltersParams = Partial<{
   page: string;
 }>;
 
-const ActivityFilters = ({
-  users,
-  projectId,
-}: {
-  users: ProjectRouterOutput["getProjectMembers"];
-  projectId: string;
-}) => {
+const ActivityFilters = ({ projectId }: { projectId: string }) => {
+  const [users, { isLoading }] =
+    api.projects.getProjectMembers.useSuspenseQuery({
+      projectId,
+    });
   const router = useRouter();
 
   const [filters, setFilters] = useState<{
@@ -169,6 +167,7 @@ const ActivityFilters = ({
             <Label>User</Label>
             <Select
               value={filters.user}
+              disabled={isLoading}
               onValueChange={(value) => updateFilter("user", value)}
             >
               <SelectTrigger>
@@ -176,7 +175,7 @@ const ActivityFilters = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All users</SelectItem>
-                {users.map((user) => (
+                {map(users, (user) => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.firstName} {user.lastName}
                   </SelectItem>
@@ -184,6 +183,7 @@ const ActivityFilters = ({
               </SelectContent>
             </Select>
           </div>
+
           <div>
             <Label>Date Range</Label>
             <DatePickerRange

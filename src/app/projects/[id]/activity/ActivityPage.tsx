@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { api } from "~/trpc/server";
+import { api, HydrateClient } from "~/trpc/server";
 import { type ActivityType } from "~/lib/schemas/activityType";
 
 import ActivityFilters from "./ActivityFilters";
@@ -47,9 +47,7 @@ const ActivityPageContentAsync = async ({
 }) => {
   return (
     <>
-      <Suspense fallback={<>Loading...</>}>
-        <ActivityFiltersAsync projectId={projectId} />
-      </Suspense>
+      <ActivityFiltersPrefetch projectId={projectId} />
 
       <Suspense fallback={<>Loading...</>}>
         <ActivityLogsContainerAsync
@@ -62,10 +60,18 @@ const ActivityPageContentAsync = async ({
   );
 };
 
-const ActivityFiltersAsync = async ({ projectId }: { projectId: string }) => {
-  const users = await api.projects.getProjectMembers({ projectId });
+const ActivityFiltersPrefetch = async ({
+  projectId,
+}: {
+  projectId: string;
+}) => {
+  void api.projects.getProjectMembers.prefetch({ projectId });
 
-  return <ActivityFilters projectId={projectId} users={users} />;
+  return (
+    <HydrateClient>
+      <ActivityFilters projectId={projectId} />
+    </HydrateClient>
+  );
 };
 
 const ActivityLogsContainerAsync = async ({
