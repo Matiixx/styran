@@ -83,12 +83,7 @@ export default function CalendarComponent({
       return compact([sprintToCalendarEvent(project?.sprint)]);
     }
 
-    const filteredTasks = filterTasks(
-      tempTasks,
-      search,
-      userFilter,
-      statusFilter,
-    );
+    const filteredTasks = filterTasks(tasks, search, userFilter, statusFilter);
     if (showType === ShowType.TASKS) {
       return map(filteredTasks, taskToCalendarEvent);
     }
@@ -97,7 +92,7 @@ export default function CalendarComponent({
       sprintToCalendarEvent(project?.sprint),
       ...map(filteredTasks, taskToCalendarEvent),
     ]);
-  }, [tempTasks, project?.sprint, search, userFilter, statusFilter, showType]);
+  }, [tasks, project?.sprint, search, userFilter, statusFilter, showType]);
 
   const onEventResize = useCallback(
     (e: EventInteractionArgs<TaskEvent>) => {
