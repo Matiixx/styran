@@ -3,6 +3,9 @@ import { tailwindColors } from "~/styles/colors";
 
 import { Bookmark, Bug, FileCheck, Lightbulb, Vote } from "lucide-react";
 
+import toLower from "lodash/toLower";
+import upperFirst from "lodash/upperFirst";
+
 const taskStatusToString = (status: TaskStatus) => {
   switch (status) {
     case TaskStatus.TODO:
@@ -89,7 +92,10 @@ const priorityToString = (priority: TaskPriority | null) => {
   }
 };
 
+const getTaskType = (type: string) => upperFirst(toLower(type));
+
 export {
+  getTaskType,
   getTaskTypeIcon,
   getColorByStatus,
   priorityToString,

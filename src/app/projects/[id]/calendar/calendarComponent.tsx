@@ -40,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { CalendarTaskDialog } from "./CalendarTaskDialog";
 
 const localizer = dayjsLocalizer(dayjs);
 const DnDCalendar = withDragAndDrop<TaskEvent>(Calendar);
@@ -64,6 +65,7 @@ export default function CalendarComponent({
   const [tasks] = api.tasks.getTasks.useSuspenseQuery({ projectId });
 
   const [tempTasks, setTempTasks] = useState<Tasks>(tasks);
+  const [selectedEvent, setSelectedEvent] = useState<TaskEvent | null>(null);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL_SELECT);
@@ -183,7 +185,7 @@ export default function CalendarComponent({
               };
             }}
             onEventResize={onEventResize}
-            // onEventDrop={}
+            onSelectEvent={setSelectedEvent}
             onDrillDown={() => {
               // onClick day number
             }}
@@ -193,6 +195,10 @@ export default function CalendarComponent({
           />
         </div>
       </div>
+      <CalendarTaskDialog
+        task={tasks.find((t) => t.id === selectedEvent?.resource.id)}
+        setOpen={() => setSelectedEvent(null)}
+      />
     </ProjectPageShell>
   );
 }

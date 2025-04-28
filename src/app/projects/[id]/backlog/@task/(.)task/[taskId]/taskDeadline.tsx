@@ -30,15 +30,6 @@ const TaskDeadline = ({
       },
     });
 
-  const parseToDateTimePicker = (date: Dayjs | null) => {
-    if (!date) return "";
-    return date.format("YYYY-MM-DDTHH:mm");
-  };
-
-  const parseFromDateTimePicker = (date: string) => {
-    return dayjs(date);
-  };
-
   const handleChange = (time: string, mode: "start" | "end") => {
     const parsedTime = parseFromDateTimePicker(time);
 
@@ -86,4 +77,13 @@ const TaskDeadline = ({
   );
 };
 
-export { TaskDeadline };
+const parseToDateTimePicker = (date: Dayjs | null) => {
+  if (!date) return "";
+  return date.format("YYYY-MM-DDTHH:mm");
+};
+
+const parseFromDateTimePicker = (date: string) => {
+  return dayjs(date);
+};
+
+export { TaskDeadline, parseToDateTimePicker, parseFromDateTimePicker };
