@@ -13,7 +13,6 @@ import filter from "lodash/filter";
 import map from "lodash/map";
 import toLower from "lodash/toLower";
 import upperFirst from "lodash/upperFirst";
-import values from "lodash/values";
 
 import { Plus } from "lucide-react";
 
@@ -35,7 +34,13 @@ import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
 import { UserAvatar } from "~/app/_components/UserAvatar";
-import { getColorByStatus, getTaskTypeIcon } from "~/utils/taskUtils";
+import {
+  combinedTypeKey,
+  getColorByStatus,
+  getTaskTypeIcon,
+  splitTypeKey,
+  taskTypesOptions,
+} from "~/utils/taskUtils";
 
 type Task = TasksRouterOutput["getTasks"][number];
 type TaskListProps = {
@@ -204,14 +209,15 @@ const AddNewTaskCard = ({
   const type = watch("type");
 
   const combinedTypeValue = useMemo(
-    () => `${type}_${customType || ""}`,
+    () => combinedTypeKey(type, customType),
     [type, customType],
   );
 
   const handleTypeChange = useCallback(
     (value: string) => {
-      const [typeValue, customTypeValue] = value.split("_");
-      setValue("type", typeValue as TaskType);
+      const { type: typeValue, customType: customTypeValue } =
+        splitTypeKey(value);
+      setValue("type", typeValue);
       setValue("customType", customTypeValue || undefined);
     },
     [setValue],
@@ -221,19 +227,10 @@ const AddNewTaskCard = ({
     return createTask({ ...data, projectId }).then(() => reset());
   });
 
-  const options: Array<{ type: TaskType; customType?: string; value: string }> =
-    useMemo(() => {
-      return [
-        ...values(TaskType)
-          .filter((type) => type !== TaskType.CUSTOM)
-          .map((type) => ({ type: type as TaskType, value: `${type}_` })),
-        ...customTaskTypes.map((customType) => ({
-          type: TaskType.CUSTOM,
-          customType,
-          value: `${TaskType.CUSTOM}_${customType}`,
-        })),
-      ];
-    }, [customTaskTypes]);
+  const options = useMemo(
+    () => taskTypesOptions(customTaskTypes),
+    [customTaskTypes],
+  );
 
   return (
     <Card size="compact">

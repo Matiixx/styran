@@ -5,6 +5,7 @@ import { Bookmark, Bug, FileCheck, Lightbulb, Vote } from "lucide-react";
 
 import toLower from "lodash/toLower";
 import upperFirst from "lodash/upperFirst";
+import values from "lodash/values";
 
 const taskStatusToString = (status: TaskStatus) => {
   switch (status) {
@@ -94,9 +95,39 @@ const priorityToString = (priority: TaskPriority | null) => {
 
 const getTaskType = (type: string) => upperFirst(toLower(type));
 
+const combinedTypeKey = (type: TaskType, customType?: string) =>
+  `${type}_${customType || ""}`;
+
+const splitTypeKey = (type: string) => {
+  const [typeValue, customTypeValue] = type.split("_");
+  return { type: typeValue as TaskType, customType: customTypeValue };
+};
+
+const taskTypesOptions = (
+  customTaskTypes: string[],
+): Array<{
+  type: TaskType;
+  value: string;
+  customType?: string;
+}> => {
+  return [
+    ...values(TaskType)
+      .filter((type) => type !== TaskType.CUSTOM)
+      .map((type) => ({ type: type as TaskType, value: `${type}_` })),
+    ...customTaskTypes.map((customType) => ({
+      type: TaskType.CUSTOM,
+      customType,
+      value: `${TaskType.CUSTOM}_${customType}`,
+    })),
+  ];
+};
+
 export {
   getTaskType,
+  splitTypeKey,
+  combinedTypeKey,
   getTaskTypeIcon,
+  taskTypesOptions,
   getColorByStatus,
   priorityToString,
   taskStatusToString,

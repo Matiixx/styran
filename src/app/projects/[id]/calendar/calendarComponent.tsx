@@ -21,18 +21,6 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./customCalendarStyles.css";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 
-import ProjectPageShell from "../projectPageShell";
-import {
-  sprintToCalendarEvent,
-  stringToRGB,
-  taskToCalendarEvent,
-  type TaskEvent,
-} from "./utils";
-import {
-  ALL_SELECT,
-  filterTasks,
-  SortTasksHeader,
-} from "../backlog/sortHeader";
 import {
   Select,
   SelectContent,
@@ -51,6 +39,18 @@ import {
   CalendarCreateEventDialog,
   CalendarTaskDialog,
 } from "./CalendarTaskDialog";
+import ProjectPageShell from "../projectPageShell";
+import {
+  sprintToCalendarEvent,
+  stringToRGB,
+  taskToCalendarEvent,
+  type TaskEvent,
+} from "./utils";
+import {
+  ALL_SELECT,
+  filterTasks,
+  SortTasksHeader,
+} from "../backlog/sortHeader";
 
 const localizer = dayjsLocalizer(dayjs);
 const DnDCalendar = withDragAndDrop<TaskEvent>(Calendar);
@@ -65,29 +65,6 @@ const ShowType = {
   TASKS: "Tasks",
   SPRINT: "Sprint",
 } as const;
-
-const DayCellWrapper = ({
-  value,
-  children,
-  setSelectedDate,
-}: {
-  value: Date;
-  children: React.ReactNode;
-  setSelectedDate: (date: Date) => void;
-}) => {
-  const handleContextMenu = () => {
-    setSelectedDate(value);
-  };
-
-  return (
-    <div
-      onContextMenu={handleContextMenu}
-      className="flex h-full w-full overflow-visible border-l-[1px]"
-    >
-      {children}
-    </div>
-  );
-};
 
 export default function CalendarComponent({
   userId,
@@ -209,7 +186,7 @@ export default function CalendarComponent({
         </div>
 
         <div className="mt-4 min-h-[750px] flex-1">
-          <ContextMenu>
+          <ContextMenu modal={false}>
             <ContextMenuTrigger>
               <DnDCalendar
                 localizer={localizer}
@@ -262,10 +239,36 @@ export default function CalendarComponent({
 
       <CalendarCreateEventDialog
         day={selectedDate}
+        projectId={projectId}
+        customTaskTypes={project.customTaskTypes}
         setOpen={() => {
           setSelectedDate(null);
+          setContextDate(null);
         }}
       />
     </ProjectPageShell>
   );
 }
+
+const DayCellWrapper = ({
+  value,
+  children,
+  setSelectedDate,
+}: {
+  value: Date;
+  children: React.ReactNode;
+  setSelectedDate: (date: Date) => void;
+}) => {
+  const handleContextMenu = () => {
+    setSelectedDate(value);
+  };
+
+  return (
+    <div
+      onContextMenu={handleContextMenu}
+      className="flex h-full w-full overflow-visible border-l-[1px]"
+    >
+      {children}
+    </div>
+  );
+};

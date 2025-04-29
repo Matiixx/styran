@@ -57,6 +57,8 @@ const tasksRouter = createTRPCRouter({
             validatedProject.ticker,
             validatedProject._count.tasks,
           ),
+          startAt: input.startAt,
+          doneAt: input.doneAt,
         },
       });
 

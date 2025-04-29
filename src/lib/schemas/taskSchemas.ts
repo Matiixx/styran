@@ -5,6 +5,8 @@ export const NewTaskSchema = z.object({
   title: z.string().min(1),
   type: z.nativeEnum(TaskType),
   customType: z.string().optional(),
+  startAt: z.date().optional(),
+  doneAt: z.date().optional(),
 });
 
 export const UNASSIGNED_USER_ID = "unassigned";
