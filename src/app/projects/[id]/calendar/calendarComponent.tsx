@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { redirect } from "next/navigation";
 
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
@@ -40,7 +40,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { CalendarTaskDialog } from "./CalendarTaskDialog";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuTrigger,
+} from "~/components/ui/context-menu";
+import {
+  CalendarCreateEventDialog,
+  CalendarTaskDialog,
+} from "./CalendarTaskDialog";
 
 const localizer = dayjsLocalizer(dayjs);
 const DnDCalendar = withDragAndDrop<TaskEvent>(Calendar);
@@ -56,6 +66,29 @@ const ShowType = {
   SPRINT: "Sprint",
 } as const;
 
+const DayCellWrapper = ({
+  value,
+  children,
+  setSelectedDate,
+}: {
+  value: Date;
+  children: React.ReactNode;
+  setSelectedDate: (date: Date) => void;
+}) => {
+  const handleContextMenu = () => {
+    setSelectedDate(value);
+  };
+
+  return (
+    <div
+      onContextMenu={handleContextMenu}
+      className="flex h-full w-full overflow-visible border-l-[1px]"
+    >
+      {children}
+    </div>
+  );
+};
+
 export default function CalendarComponent({
   userId,
   projectId,
@@ -66,6 +99,8 @@ export default function CalendarComponent({
 
   const [tempTasks, setTempTasks] = useState<Tasks>(tasks);
   const [selectedEvent, setSelectedEvent] = useState<TaskEvent | null>(null);
+  const [contextDate, setContextDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL_SELECT);
@@ -83,7 +118,12 @@ export default function CalendarComponent({
       return compact([sprintToCalendarEvent(project?.sprint)]);
     }
 
-    const filteredTasks = filterTasks(tasks, search, userFilter, statusFilter);
+    const filteredTasks = filterTasks(
+      tempTasks,
+      search,
+      userFilter,
+      statusFilter,
+    );
     if (showType === ShowType.TASKS) {
       return map(filteredTasks, taskToCalendarEvent);
     }
@@ -92,7 +132,11 @@ export default function CalendarComponent({
       sprintToCalendarEvent(project?.sprint),
       ...map(filteredTasks, taskToCalendarEvent),
     ]);
-  }, [tasks, project?.sprint, search, userFilter, statusFilter, showType]);
+  }, [tempTasks, project?.sprint, search, userFilter, statusFilter, showType]);
+
+  useEffect(() => {
+    setTempTasks(tasks);
+  }, [tasks]);
 
   const onEventResize = useCallback(
     (e: EventInteractionArgs<TaskEvent>) => {
@@ -123,6 +167,12 @@ export default function CalendarComponent({
     },
     [projectId, tasks, updateTask],
   );
+
+  const handleCreateEvent = () => {
+    if (contextDate) {
+      setSelectedDate(contextDate);
+    }
+  };
 
   if (!project) {
     redirect("/projects");
@@ -159,40 +209,62 @@ export default function CalendarComponent({
         </div>
 
         <div className="mt-4 min-h-[750px] flex-1">
-          <DnDCalendar
-            localizer={localizer}
-            defaultDate={dayjs().toDate()}
-            defaultView="month"
-            resizable
-            selectable
-            views={["month"]}
-            events={events}
-            style={{ height: "100%", color: "white" }}
-            eventPropGetter={(taskEvent) => {
-              const { background, foreground } = stringToRGB(
-                taskEvent.resource.id,
-              );
-              return {
-                className: disabledTasks.includes(taskEvent.resource.id)
-                  ? "opacity-50"
-                  : "",
-                style: { backgroundColor: background, color: foreground },
-              };
-            }}
-            onEventResize={onEventResize}
-            onSelectEvent={setSelectedEvent}
-            onDrillDown={() => {
-              // onClick day number
-            }}
-            onSelectSlot={() => {
-              // onClick whole day cell
-            }}
-          />
+          <ContextMenu>
+            <ContextMenuTrigger>
+              <DnDCalendar
+                localizer={localizer}
+                defaultDate={dayjs().toDate()}
+                defaultView="month"
+                resizable
+                selectable
+                views={["month"]}
+                events={events}
+                style={{ height: "100%", color: "white" }}
+                components={{
+                  dateCellWrapper: (props) => (
+                    <DayCellWrapper
+                      {...props}
+                      setSelectedDate={setContextDate}
+                    />
+                  ),
+                }}
+                eventPropGetter={(taskEvent) => {
+                  const { background, foreground } = stringToRGB(
+                    taskEvent.resource.id,
+                  );
+                  return {
+                    className: disabledTasks.includes(taskEvent.resource.id)
+                      ? "opacity-50"
+                      : "",
+                    style: { backgroundColor: background, color: foreground },
+                  };
+                }}
+                onEventResize={onEventResize}
+                onSelectEvent={setSelectedEvent}
+              />
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuLabel>
+                {dayjs(contextDate).format("LL")}
+              </ContextMenuLabel>
+              <ContextMenuItem onClick={handleCreateEvent}>
+                Create New Event
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
         </div>
       </div>
+
       <CalendarTaskDialog
         task={tasks.find((t) => t.id === selectedEvent?.resource.id)}
         setOpen={() => setSelectedEvent(null)}
+      />
+
+      <CalendarCreateEventDialog
+        day={selectedDate}
+        setOpen={() => {
+          setSelectedDate(null);
+        }}
       />
     </ProjectPageShell>
   );

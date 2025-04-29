@@ -56,3 +56,7 @@
 .rbc-day-bg.rbc-off-range-bg {
   background-color: rgba(0, 0, 0, 0.1);
 }
+
+.rbc-header {
+  color: black;
+}

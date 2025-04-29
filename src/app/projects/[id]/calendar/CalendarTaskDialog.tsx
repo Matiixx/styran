@@ -116,7 +116,9 @@ const CalendarTaskDialog = ({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline">Cancel</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
           <Button type="submit" onClick={handleSubmit}>
             Save changes
           </Button>
@@ -126,4 +128,73 @@ const CalendarTaskDialog = ({
   );
 };
 
-export { CalendarTaskDialog };
+const CalendarCreateEventDialog = ({
+  day,
+  setOpen,
+}: {
+  day: Date | null;
+  setOpen: (open: boolean) => void;
+}) => {
+  return (
+    <Dialog open={!!day} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-[550px]">
+        <DialogHeader>
+          <DialogTitle>
+            {/* [{task?.ticker}] {getTaskType(task?.customType ?? task?.type ?? "")}{" "} */}
+            details
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-3 py-4">
+          <InputWithLabel
+            label="Name"
+            // value={title}
+            // onChange={(e) => {
+            //   setTitle(e.target.value);
+            // }}
+          />
+
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              placeholder="Type your message here."
+              className="min-h-24 resize-none p-2"
+              // value={description ?? ""}
+              // onChange={(e) => {
+              //   setDescription(e.target.value);
+              // }}
+            />
+          </div>
+
+          <div className="flex flex-row gap-2">
+            <InputWithLabel
+              label="Start Task Date"
+              type="datetime-local"
+              // value={parseToDateTimePicker(startAt)}
+              // onChange={(e) => {
+              //   setStartAt(parseFromDateTimePicker(e.target.value));
+              // }}
+            />
+            <InputWithLabel
+              label="Task Deadline"
+              type="datetime-local"
+              // value={parseToDateTimePicker(doneAt)}
+              // onChange={(e) => {
+              //   setDoneAt(parseFromDateTimePicker(e.target.value));
+              // }}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button type="submit" onClick={() => 1}>
+            Save changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export { CalendarTaskDialog, CalendarCreateEventDialog };
