@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   YAxis,
   Tooltip,
+  Legend,
 } from "recharts";
 import { differenceInDays } from "date-fns";
 
@@ -55,6 +56,13 @@ const BurndownChart = ({ sprint }: BurndownChartProps) => {
           dataKey="estimatedEffort"
           stroke="#82ca9d"
           dot={false}
+        />
+        <Legend
+          wrapperStyle={{ paddingTop: "8px" }}
+          payload={[
+            { value: "Actual", color: "#8884d8" },
+            { value: "Estimated", color: "#82ca9d" },
+          ]}
         />
       </LineChart>
     </ResponsiveContainer>
