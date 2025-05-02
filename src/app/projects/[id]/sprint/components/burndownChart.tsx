@@ -50,7 +50,12 @@ const BurndownChart = ({ sprint }: BurndownChartProps) => {
           stroke="#8884d8"
           strokeWidth={2}
         />
-        <Line type="linear" dataKey="estimatedEffort" stroke="#82ca9d" />
+        <Line
+          type="linear"
+          dataKey="estimatedEffort"
+          stroke="#82ca9d"
+          dot={false}
+        />
       </LineChart>
     </ResponsiveContainer>
   );
