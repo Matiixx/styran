@@ -123,6 +123,13 @@ const sprintRouter = createTRPCRouter({
         return sprint;
       });
     }),
+
+  getCurrentSprint: projectMemberProcedure.query(async ({ ctx }) => {
+    return ctx.db.sprint.findFirst({
+      where: { projectId: ctx.projectId, isActive: true },
+      include: { tasks: true },
+    });
+  }),
 });
 
 export type SprintRouterOutput = inferRouterOutputs<typeof sprintRouter>;

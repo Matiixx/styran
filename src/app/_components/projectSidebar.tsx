@@ -109,6 +109,18 @@ const ProjectSidebar = ({ userId, project }: ProjectSidebarProps) => {
           </Button>
         </Link>
 
+        <Link href={`/projects/${project.id}/sprint`}>
+          <Button
+            variant={
+              isActive(`/projects/${project.id}/sprint`) ? "default" : "ghost"
+            }
+            fullWidth
+            className="justify-start"
+          >
+            Sprint Management
+          </Button>
+        </Link>
+
         <Link href={`/projects/${project.id}/activity`}>
           <Button
             variant={
