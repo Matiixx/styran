@@ -51,6 +51,12 @@ import {
   filterTasks,
   SortTasksHeader,
 } from "../backlog/sortHeader";
+import {
+  combinedTypeKey,
+  splitTypeKey,
+  taskTypesOptions,
+} from "~/utils/taskUtils";
+import { filter, toLower } from "lodash";
 
 const localizer = dayjsLocalizer(dayjs);
 const DnDCalendar = withDragAndDrop<TaskEvent>(Calendar);
@@ -101,8 +107,18 @@ export default function CalendarComponent({
       userFilter,
       statusFilter,
     );
+
     if (showType === ShowType.TASKS) {
       return map(filteredTasks, taskToCalendarEvent);
+    }
+
+    if (showType !== ALL_SELECT) {
+      const filterByTaskType = filter(filteredTasks, (task) => {
+        const taskTypeKey = combinedTypeKey(task.type, task.customType);
+        return taskTypeKey === showType;
+      });
+
+      return map(filterByTaskType, taskToCalendarEvent);
     }
 
     return compact([
@@ -175,11 +191,16 @@ export default function CalendarComponent({
 
               <SelectContent>
                 <SelectItem value={ALL_SELECT}>All events</SelectItem>
-                {map(ShowType, (type, key) => (
-                  <SelectItem key={key} value={type}>
-                    {upperFirst(type)}
-                  </SelectItem>
-                ))}
+                <SelectItem value={ShowType.SPRINT}>Sprint</SelectItem>
+                <SelectItem value={ShowType.TASKS}>Tasks</SelectItem>
+                {map(
+                  taskTypesOptions(project.customTaskTypes),
+                  ({ type, value, customType }) => (
+                    <SelectItem key={value} value={value}>
+                      {upperFirst(toLower(customType ?? type))}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
           </SortTasksHeader>

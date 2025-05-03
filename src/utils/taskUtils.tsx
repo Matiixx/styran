@@ -95,7 +95,7 @@ const priorityToString = (priority: TaskPriority | null) => {
 
 const getTaskType = (type: string) => upperFirst(toLower(type));
 
-const combinedTypeKey = (type: TaskType, customType?: string) =>
+const combinedTypeKey = (type: TaskType, customType?: string | null) =>
   `${type}_${customType || ""}`;
 
 const splitTypeKey = (type: string) => {
