@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { Skeleton } from "~/components/ui/skeleton";
 
 import { getActivityTypeLabel } from "./activityUtils";
 
@@ -195,6 +196,24 @@ const ActivityFilters = ({ projectId }: { projectId: string }) => {
               className="w-full overflow-hidden"
             />
           </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export const ActivityFiltersSkeleton = () => {
+  return (
+    <Card disableHover>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Filters</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 gap-4 pt-12 md:grid-cols-2 lg:grid-cols-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
         </div>
       </CardContent>
     </Card>

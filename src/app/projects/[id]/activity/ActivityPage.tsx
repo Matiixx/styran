@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { api, HydrateClient } from "~/trpc/server";
 import { type ActivityType } from "~/lib/schemas/activityType";
 
-import ActivityFilters from "./ActivityFilters";
+import ActivityFilters, { ActivityFiltersSkeleton } from "./ActivityFilters";
 import { ActivityCardSkeleton, ActivityRows } from "./ActivityRows";
 import ActivityPagination from "./ActivityPagination";
 
@@ -25,13 +25,11 @@ const ActivityPage = ({
         </span>
       </div>
 
-      <Suspense>
-        <ActivityPageContentAsync
-          page={page}
-          projectId={projectId}
-          searchParams={searchParams}
-        />
-      </Suspense>
+      <ActivityPageContentAsync
+        page={page}
+        projectId={projectId}
+        searchParams={searchParams}
+      />
     </div>
   );
 };
@@ -47,7 +45,9 @@ const ActivityPageContentAsync = async ({
 }) => {
   return (
     <>
-      <ActivityFiltersPrefetch projectId={projectId} />
+      <Suspense fallback={<ActivityFiltersSkeleton />}>
+        <ActivityFiltersPrefetch projectId={projectId} />
+      </Suspense>
 
       <Suspense
         fallback={
