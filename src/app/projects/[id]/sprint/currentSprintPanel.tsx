@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { api } from "~/trpc/server";
 import { type SprintRouterOutput } from "~/server/api/routers/sprint";
 
-import { CardHeader, CardTitle } from "~/components/ui/card";
+import { CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 
 import BurndownChart from "./components/burndownChart";
@@ -20,6 +20,7 @@ const CurrentSprintPanel = async ({
     <>
       <CardHeader>
         <CardTitle>Current Sprint - {currentSprintData.name}</CardTitle>
+        <CardDescription>Sprint Goal: {currentSprintData.goal}</CardDescription>
       </CardHeader>
 
       <CardTitle className="text-xl">Burndown Chart</CardTitle>
