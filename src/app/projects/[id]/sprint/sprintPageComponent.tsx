@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 import { api } from "~/trpc/server";
 
 import ProjectPageShell from "../projectPageShell";
@@ -15,7 +17,7 @@ const SprintPageComponent = async ({
   const project = await api.projects.getProjectSettings({ id });
 
   if (!project) {
-    return <div>Project not found</div>;
+    redirect("/projects");
   }
 
   return (

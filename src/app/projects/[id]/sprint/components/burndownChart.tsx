@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { TaskStatus } from "@prisma/client";
 import {
   CartesianGrid,
@@ -33,7 +35,7 @@ type ChartDataPoint = {
 };
 
 const BurndownChart = ({ sprint }: BurndownChartProps) => {
-  const data = getBurndownData(sprint);
+  const data = useMemo(() => getBurndownData(sprint), [sprint]);
 
   return (
     <ResponsiveContainer width="100%" height={400}>

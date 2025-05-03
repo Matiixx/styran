@@ -1,7 +1,7 @@
 import { Card } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
-import CurrentSprintPanel from "./currentSprintPanel";
+import CurrentSprintPanelSuspended from "./currentSprintPanel";
 
 const SprintTabs = ({ projectId }: { projectId: string }) => {
   return (
@@ -14,7 +14,7 @@ const SprintTabs = ({ projectId }: { projectId: string }) => {
       </TabsList>
       <TabsContent value="current">
         <Card disableHover>
-          <CurrentSprintPanel projectId={projectId} />
+          <CurrentSprintPanelSuspended projectId={projectId} />
         </Card>
       </TabsContent>
       <TabsContent value="history">
