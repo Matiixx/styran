@@ -11,12 +11,12 @@ import {
 
 import { api } from "~/trpc/react";
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
-import ProjectNavigationButtons from "~/app/_components/projectNavigationButtons";
 
 import ProjectPageShell from "../projectPageShell";
 import TaskList from "./tasksList";
 import CurrentSprint from "./curentSprint";
 import { ALL_SELECT, filterTasks, SortTasksHeader } from "./sortHeader";
+import { useLiveTasks } from "./hooks";
 
 type BacklogComponentProps = {
   id: string;
@@ -27,7 +27,7 @@ type Task = TasksRouterOutput["getTasks"][number];
 const BacklogComponent = ({ id, userId }: BacklogComponentProps) => {
   const utils = api.useUtils();
   const [project] = api.projects.getProject.useSuspenseQuery({ id });
-  const [tasks] = api.tasks.getTasks.useSuspenseQuery({ projectId: id });
+  const { tasks } = useLiveTasks(id);
   const { mutateAsync: updateTask } = api.tasks.moveTask.useMutation({
     onSuccess: () => {
       return utils.tasks.getTasks.invalidate({ projectId: id });

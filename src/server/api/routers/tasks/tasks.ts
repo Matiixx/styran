@@ -1,10 +1,12 @@
-import { type Prisma, TaskStatus } from "@prisma/client";
+import { type Prisma, type Task, TaskStatus } from "@prisma/client";
 import {
   type inferRouterInputs,
   type inferRouterOutputs,
+  tracked,
   TRPCError,
 } from "@trpc/server";
 import { z } from "zod";
+import { EventEmitter, on } from "events";
 
 import map from "lodash/map";
 import padStart from "lodash/padStart";
@@ -23,6 +25,8 @@ import {
   projectMemberProcedure,
 } from "~/server/api/trpc";
 import dayjs from "~/utils/dayjs";
+
+const taskEventEmitter = new EventEmitter();
 
 const tasksRouter = createTRPCRouter({
   createTask: projectMemberProcedure
@@ -61,6 +65,8 @@ const tasksRouter = createTRPCRouter({
           doneAt: input.doneAt,
         },
       });
+
+      taskEventEmitter.emit("taskUpdate", newTask);
 
       await ctx.db.activityLog.create({
         data: {
@@ -205,6 +211,8 @@ const tasksRouter = createTRPCRouter({
         data: updates,
       });
 
+      taskEventEmitter.emit("taskUpdate", updatedTask);
+
       await ctx.db.activityLog.create({
         data: {
           activityType: ActivityType.TaskUpdated,
@@ -281,6 +289,8 @@ const tasksRouter = createTRPCRouter({
           },
         },
       });
+
+      taskEventEmitter.emit("taskUpdate", deletedTask);
 
       await ctx.db.activityLog.create({
         data: {
@@ -472,6 +482,40 @@ const tasksRouter = createTRPCRouter({
       },
     });
   }),
+
+  onTaskUpsert: projectMemberProcedure
+    .input(z.object({ projectId: z.string() }))
+    .subscription(async function* ({ input, ctx }) {
+      for await (const [task] of on(taskEventEmitter, "taskUpdate")) {
+        if ((task as Task).projectId === input.projectId) {
+          const tasks = await ctx.db.task.findMany({
+            where: {
+              projectId: input.projectId,
+              project: {
+                OR: [
+                  { users: { some: { id: ctx.session.user.id } } },
+                  { ownerId: ctx.session.user.id },
+                ],
+              },
+              OR: [{ Sprint: { isActive: true } }, { sprintId: null }],
+            },
+            orderBy: { createdAt: "asc" },
+            include: {
+              asignee: {
+                select: {
+                  id: true,
+                  email: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          });
+
+          yield tracked(input.projectId, tasks);
+        }
+      }
+    }),
 });
 
 export const generateTaskTicker = (
