@@ -1,13 +1,21 @@
 import { z } from "zod";
+import { EventEmitter, on } from "events";
 
 import {
+  tracked,
   TRPCError,
   type inferRouterInputs,
   type inferRouterOutputs,
 } from "@trpc/server";
 
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  projectMemberProcedure,
+  protectedProcedure,
+} from "~/server/api/trpc";
 import { ActivityType } from "~/lib/schemas/activityType";
+
+const timeTrackEventEmitter = new EventEmitter();
 
 const timeTrackerRouter = createTRPCRouter({
   addTime: protectedProcedure
@@ -56,10 +64,18 @@ const timeTrackerRouter = createTRPCRouter({
           },
         });
 
-        return tx.task.update({
-          where: { id: taskId },
-          data: { updatedAt: new Date() },
-        });
+        return tx.task
+          .update({
+            where: { id: taskId },
+            data: { updatedAt: new Date() },
+          })
+          .then((task) => {
+            timeTrackEventEmitter.emit("onTrackTimesUpsert", {
+              taskId: task.id,
+              projectId: task.projectId,
+            });
+            return task;
+          });
       });
     }),
 
@@ -106,29 +122,42 @@ const timeTrackerRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      return ctx.db.$transaction(async (tx) => {
-        const timeTrack = await tx.timeTrack.delete({
-          where: { id: timeId },
-          include: {
-            task: {
-              select: { projectId: true, id: true, ticker: true, title: true },
+      return ctx.db
+        .$transaction(async (tx) => {
+          const timeTrack = await tx.timeTrack.delete({
+            where: { id: timeId },
+            include: {
+              task: {
+                select: {
+                  projectId: true,
+                  id: true,
+                  ticker: true,
+                  title: true,
+                },
+              },
             },
-          },
-        });
+          });
 
-        await tx.activityLog.create({
-          data: {
-            activityType: ActivityType.TimeTrackDeleted,
-            description: `Time track was deleted for task ${timeTrack.task.id} by ${userId}`,
-            userId,
+          await tx.activityLog.create({
+            data: {
+              activityType: ActivityType.TimeTrackDeleted,
+              description: `Time track was deleted for task ${timeTrack.task.id} by ${userId}`,
+              userId,
+              taskId: timeTrack.task.id,
+              projectId: timeTrack.task.projectId,
+              oldValue: JSON.stringify(timeTrack),
+            },
+          });
+
+          return timeTrack;
+        })
+        .then((timeTrack) => {
+          timeTrackEventEmitter.emit("onTrackTimesUpsert", {
             taskId: timeTrack.task.id,
             projectId: timeTrack.task.projectId,
-            oldValue: JSON.stringify(timeTrack),
-          },
+          });
+          return timeTrack;
         });
-
-        return timeTrack;
-      });
     }),
 
   updateTime: protectedProcedure
@@ -155,30 +184,70 @@ const timeTrackerRouter = createTRPCRouter({
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
 
-      return ctx.db.$transaction(async (tx) => {
-        const timeTrack = await tx.timeTrack.update({
-          where: { id: timeId },
-          data: { startTime, endTime },
-          include: {
-            task: {
-              select: { projectId: true, id: true, ticker: true, title: true },
+      return ctx.db
+        .$transaction(async (tx) => {
+          const timeTrack = await tx.timeTrack.update({
+            where: { id: timeId },
+            data: { startTime, endTime },
+            include: {
+              task: {
+                select: {
+                  projectId: true,
+                  id: true,
+                  ticker: true,
+                  title: true,
+                },
+              },
             },
-          },
-        });
+          });
 
-        await tx.activityLog.create({
-          data: {
-            activityType: ActivityType.TimeTrackUpdated,
-            description: `Time track was updated for task ${timeTrack.task.id} by ${userId}`,
-            userId,
+          await tx.activityLog.create({
+            data: {
+              activityType: ActivityType.TimeTrackUpdated,
+              description: `Time track was updated for task ${timeTrack.task.id} by ${userId}`,
+              userId,
+              taskId: timeTrack.task.id,
+              projectId: timeTrack.task.projectId,
+              newValue: JSON.stringify(timeTrack),
+            },
+          });
+
+          return timeTrack;
+        })
+        .then((timeTrack) => {
+          timeTrackEventEmitter.emit("onTrackTimesUpsert", {
             taskId: timeTrack.task.id,
             projectId: timeTrack.task.projectId,
-            newValue: JSON.stringify(timeTrack),
-          },
+          });
+          return timeTrack;
         });
+    }),
 
-        return timeTrack;
-      });
+  onTrackTimesUpsert: projectMemberProcedure
+    .input(z.object({ taskId: z.string() }))
+    .subscription(async function* ({ input, ctx }) {
+      for await (const [timeTrack] of on(
+        timeTrackEventEmitter,
+        "onTrackTimesUpsert",
+      )) {
+        if ((timeTrack as { taskId: string }).taskId === input.taskId) {
+          const times = await ctx.db.timeTrack.findMany({
+            where: {
+              taskId: input.taskId,
+              task: {
+                project: {
+                  OR: [
+                    { ownerId: ctx.session.user.id },
+                    { users: { some: { id: ctx.session.user.id } } },
+                  ],
+                },
+              },
+            },
+            include: { user: true },
+          });
+          yield tracked(input.taskId, times);
+        }
+      }
     }),
 });
 

@@ -12,7 +12,10 @@ const useLiveTask = (projectId: string, taskId: string) => {
   });
   const [comments, setComments] = useState(commentsQuery);
 
-  const [trackTimes] = api.timeTracker.getTimes.useSuspenseQuery({ taskId });
+  const [trackTimesQuery] = api.timeTracker.getTimes.useSuspenseQuery({
+    taskId,
+  });
+  const [trackTimes, setTrackTimes] = useState(trackTimesQuery);
 
   const taskSubscription = api.tasks.onTaskUpsert.useSubscription(
     { projectId, taskId },
@@ -25,6 +28,12 @@ const useLiveTask = (projectId: string, taskId: string) => {
       { onData: (comments) => setComments(comments.data) },
     );
 
+  const trackTimesSubscription =
+    api.timeTracker.onTrackTimesUpsert.useSubscription(
+      { projectId, taskId },
+      { onData: (trackTimes) => setTrackTimes(trackTimes.data) },
+    );
+
   useEffect(() => {
     setTask(taskQuery);
   }, [taskQuery]);
@@ -33,7 +42,18 @@ const useLiveTask = (projectId: string, taskId: string) => {
     setComments(commentsQuery);
   }, [commentsQuery]);
 
-  return { task, comments, trackTimes, taskSubscription, commentsSubscription };
+  useEffect(() => {
+    setTrackTimes(trackTimesQuery);
+  }, [trackTimesQuery]);
+
+  return {
+    task,
+    comments,
+    trackTimes,
+    taskSubscription,
+    commentsSubscription,
+    trackTimesSubscription,
+  };
 };
 
 export { useLiveTask };
