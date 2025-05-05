@@ -22,7 +22,14 @@ const useLiveTasks = (projectId: string) => {
 
   const subscription = api.tasks.onTasksUpsert.useSubscription(
     { projectId },
-    { onData: (tasks) => addTask(tasks.data) },
+    {
+      onData: (tasks) => {
+        if (!tasks.data || "_heartbeat" in tasks.data) {
+          return;
+        }
+        addTask(tasks.data);
+      },
+    },
   );
 
   return { tasks, subscription };
