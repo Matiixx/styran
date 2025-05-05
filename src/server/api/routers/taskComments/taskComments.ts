@@ -1,6 +1,8 @@
 import { z } from "zod";
+import { EventEmitter, on } from "events";
 
 import {
+  tracked,
   TRPCError,
   type inferRouterInputs,
   type inferRouterOutputs,
@@ -12,6 +14,8 @@ import {
   protectedProcedure,
 } from "~/server/api/trpc";
 import { ActivityType } from "~/lib/schemas/activityType";
+
+const taskCommentEventEmitter = new EventEmitter();
 
 const taskCommentsRouter = createTRPCRouter({
   addComment: protectedProcedure
@@ -60,11 +64,18 @@ const taskCommentsRouter = createTRPCRouter({
           },
         });
 
-        return tx.task.update({
-          where: { id: taskId },
-          data: { updatedAt: new Date() },
-          select: { id: true },
-        });
+        return tx.task
+          .update({
+            where: { id: taskId },
+            data: { updatedAt: new Date() },
+            select: { id: true },
+          })
+          .then(() => {
+            taskCommentEventEmitter.emit("onTaskCommentUpsert", {
+              taskId,
+              projectId,
+            });
+          });
       });
     }),
 
@@ -106,7 +117,9 @@ const taskCommentsRouter = createTRPCRouter({
       return ctx.db.$transaction(async (tx) => {
         const deletedComment = await tx.taskComment.delete({
           where: { id: commentId, userId },
-          include: { task: { select: { ticker: true, title: true } } },
+          include: {
+            task: { select: { id: true, ticker: true, title: true } },
+          },
         });
 
         await tx.activityLog.create({
@@ -120,10 +133,17 @@ const taskCommentsRouter = createTRPCRouter({
           },
         });
 
-        return tx.task.updateMany({
-          where: { TaskComment: { some: { id: commentId } } },
-          data: { updatedAt: new Date() },
-        });
+        return tx.task
+          .updateMany({
+            where: { TaskComment: { some: { id: commentId } } },
+            data: { updatedAt: new Date() },
+          })
+          .then(() => {
+            taskCommentEventEmitter.emit("onTaskCommentUpsert", {
+              taskId: deletedComment.task.id,
+              projectId,
+            });
+          });
       });
     }),
 
@@ -139,7 +159,9 @@ const taskCommentsRouter = createTRPCRouter({
         const updatedComment = await tx.taskComment.update({
           where: { id: commentId, userId },
           data: { content },
-          include: { task: { select: { ticker: true, title: true } } },
+          include: {
+            task: { select: { id: true, ticker: true, title: true } },
+          },
         });
 
         await tx.activityLog.create({
@@ -153,11 +175,59 @@ const taskCommentsRouter = createTRPCRouter({
           },
         });
 
-        return tx.task.updateMany({
-          where: { TaskComment: { some: { id: commentId } } },
-          data: { updatedAt: new Date() },
-        });
+        return tx.task
+          .updateMany({
+            where: { TaskComment: { some: { id: commentId } } },
+            data: { updatedAt: new Date() },
+          })
+          .then(() => {
+            taskCommentEventEmitter.emit("onTaskCommentUpsert", {
+              taskId: updatedComment.task.id,
+              projectId,
+            });
+          });
       });
+    }),
+
+  onTaskCommentUpsert: projectMemberProcedure
+    .input(z.object({ taskId: z.string(), projectId: z.string() }))
+    .subscription(async function* ({ input, ctx }) {
+      for await (const [taskComment] of on(
+        taskCommentEventEmitter,
+        "onTaskCommentUpsert",
+      )) {
+        if (
+          (taskComment as { projectId: string }).projectId === input.projectId
+        ) {
+          const taskComments = await ctx.db.taskComment.findMany({
+            where: {
+              taskId: input.taskId,
+              task: {
+                project: {
+                  id: input.projectId,
+                  OR: [
+                    { ownerId: ctx.session.user.id },
+                    { users: { some: { id: ctx.session.user.id } } },
+                  ],
+                },
+              },
+            },
+            orderBy: { createdAt: "asc" },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          });
+
+          yield tracked(input.taskId, taskComments);
+        }
+      }
     }),
 });
 

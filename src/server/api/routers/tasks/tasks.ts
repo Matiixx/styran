@@ -483,7 +483,7 @@ const tasksRouter = createTRPCRouter({
     });
   }),
 
-  onTaskUpsert: projectMemberProcedure
+  onTasksUpsert: projectMemberProcedure
     .input(z.object({ projectId: z.string() }))
     .subscription(async function* ({ input, ctx }) {
       for await (const [task] of on(taskEventEmitter, "taskUpdate")) {
@@ -513,6 +513,34 @@ const tasksRouter = createTRPCRouter({
           });
 
           yield tracked(input.projectId, tasks);
+        }
+      }
+    }),
+
+  onTaskUpsert: projectMemberProcedure
+    .input(
+      z.object({
+        taskId: z.string(),
+      }),
+    )
+    .subscription(async function* ({ input, ctx }) {
+      for await (const [taskEvent] of on(taskEventEmitter, "taskUpdate")) {
+        if ((taskEvent as Task).id === input.taskId) {
+          const task = await ctx.db.task.findUnique({
+            where: {
+              id: input.taskId,
+              projectId: input.projectId,
+              project: {
+                OR: [
+                  { users: { some: { id: ctx.session.user.id } } },
+                  { ownerId: ctx.session.user.id },
+                ],
+              },
+            },
+            include: { asignee: true },
+          });
+
+          yield tracked(input.taskId, task);
         }
       }
     }),

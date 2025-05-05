@@ -2,10 +2,10 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-import { api } from "~/trpc/react";
 import { Drawer } from "~/components/ui/drawer";
 
 import TaskDrawerContent from "./taskDrawerContent";
+import { useLiveTask } from "./hooks";
 
 type TaskDrawerProps = {
   userId: string;
@@ -16,12 +16,7 @@ type TaskDrawerProps = {
 const TaskDrawer = ({ userId, taskId, projectId }: TaskDrawerProps) => {
   const router = useRouter();
   const [open, setOpen] = useState(true);
-  const [task] = api.tasks.getTask.useSuspenseQuery({ taskId, projectId });
-  const [comments] = api.taskComments.getComments.useSuspenseQuery({
-    taskId,
-    projectId,
-  });
-  const [trackTimes] = api.timeTracker.getTimes.useSuspenseQuery({ taskId });
+  const { task, comments, trackTimes } = useLiveTask(projectId, taskId);
 
   const closeDrawer = useCallback(() => {
     setOpen(false);

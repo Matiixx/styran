@@ -20,7 +20,7 @@ const useLiveTasks = (projectId: string) => {
     addTask(tasksQuery);
   }, [addTask, tasksQuery]);
 
-  const subscription = api.tasks.onTaskUpsert.useSubscription(
+  const subscription = api.tasks.onTasksUpsert.useSubscription(
     { projectId },
     { onData: (tasks) => addTask(tasks.data) },
   );
