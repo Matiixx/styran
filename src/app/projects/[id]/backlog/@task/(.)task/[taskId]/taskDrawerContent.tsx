@@ -83,6 +83,7 @@ export default function TaskDrawerContent({
             <div className="flex flex-1 items-center gap-2">
               <Badge className="text-nowrap">{task.ticker}</Badge>
               <EditableInput
+                key={task.title}
                 value={task.title}
                 className="flex-1 text-lg md:text-lg"
                 onBlur={saveTitle}
@@ -117,6 +118,7 @@ export default function TaskDrawerContent({
         </div>
 
         <TaskDescription
+          key={task.description}
           description={task.description}
           updateDescription={(description) =>
             updateTask({
