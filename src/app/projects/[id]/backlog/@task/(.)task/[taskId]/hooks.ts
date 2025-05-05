@@ -19,19 +19,40 @@ const useLiveTask = (projectId: string, taskId: string) => {
 
   const taskSubscription = api.tasks.onTaskUpsert.useSubscription(
     { projectId, taskId },
-    { onData: (task) => setTask(task.data) },
+    {
+      onData: (task) => {
+        if (!task.data || "_heartbeat" in task.data) {
+          return;
+        }
+        setTask(task.data);
+      },
+    },
   );
 
   const commentsSubscription =
     api.taskComments.onTaskCommentUpsert.useSubscription(
       { projectId, taskId },
-      { onData: (comments) => setComments(comments.data) },
+      {
+        onData: (comments) => {
+          if (!comments.data || "_heartbeat" in comments.data) {
+            return;
+          }
+          setComments(comments.data);
+        },
+      },
     );
 
   const trackTimesSubscription =
     api.timeTracker.onTrackTimesUpsert.useSubscription(
       { projectId, taskId },
-      { onData: (trackTimes) => setTrackTimes(trackTimes.data) },
+      {
+        onData: (trackTimes) => {
+          if (!trackTimes.data || "_heartbeat" in trackTimes.data) {
+            return;
+          }
+          setTrackTimes(trackTimes.data);
+        },
+      },
     );
 
   useEffect(() => {
