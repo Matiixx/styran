@@ -486,6 +486,9 @@ const tasksRouter = createTRPCRouter({
   onTasksUpsert: projectMemberProcedure
     .input(z.object({ projectId: z.string() }))
     .subscription(async function* ({ input, ctx }) {
+      const HEARTBEAT_INTERVAL = 15000;
+      let lastUpdate = Date.now();
+
       for await (const [task] of on(taskEventEmitter, "taskUpdate")) {
         if ((task as Task).projectId === input.projectId) {
           const tasks = await ctx.db.task.findMany({
@@ -514,16 +517,20 @@ const tasksRouter = createTRPCRouter({
 
           yield tracked(input.projectId, tasks);
         }
+
+        if (Date.now() - lastUpdate > HEARTBEAT_INTERVAL) {
+          yield tracked(input.projectId, { _heartbeat: Date.now() });
+          lastUpdate = Date.now();
+        }
       }
     }),
 
   onTaskUpsert: projectMemberProcedure
-    .input(
-      z.object({
-        taskId: z.string(),
-      }),
-    )
+    .input(z.object({ taskId: z.string() }))
     .subscription(async function* ({ input, ctx }) {
+      const HEARTBEAT_INTERVAL = 15000;
+      let lastUpdate = Date.now();
+
       for await (const [taskEvent] of on(taskEventEmitter, "taskUpdate")) {
         if ((taskEvent as Task).id === input.taskId) {
           const task = await ctx.db.task.findUnique({
@@ -541,6 +548,11 @@ const tasksRouter = createTRPCRouter({
           });
 
           yield tracked(input.taskId, task);
+        }
+
+        if (Date.now() - lastUpdate > HEARTBEAT_INTERVAL) {
+          yield tracked(input.taskId, { _heartbeat: Date.now() });
+          lastUpdate = Date.now();
         }
       }
     }),

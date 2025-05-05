@@ -192,6 +192,9 @@ const taskCommentsRouter = createTRPCRouter({
   onTaskCommentUpsert: projectMemberProcedure
     .input(z.object({ taskId: z.string(), projectId: z.string() }))
     .subscription(async function* ({ input, ctx }) {
+      const HEARTBEAT_INTERVAL = 15000;
+      let lastUpdate = Date.now();
+
       for await (const [taskComment] of on(
         taskCommentEventEmitter,
         "onTaskCommentUpsert",
@@ -226,6 +229,11 @@ const taskCommentsRouter = createTRPCRouter({
           });
 
           yield tracked(input.taskId, taskComments);
+        }
+
+        if (Date.now() - lastUpdate > HEARTBEAT_INTERVAL) {
+          yield tracked(input.taskId, { _heartbeat: Date.now() });
+          lastUpdate = Date.now();
         }
       }
     }),

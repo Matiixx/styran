@@ -226,6 +226,9 @@ const timeTrackerRouter = createTRPCRouter({
   onTrackTimesUpsert: projectMemberProcedure
     .input(z.object({ taskId: z.string() }))
     .subscription(async function* ({ input, ctx }) {
+      const HEARTBEAT_INTERVAL = 15000;
+      let lastUpdate = Date.now();
+
       for await (const [timeTrack] of on(
         timeTrackEventEmitter,
         "onTrackTimesUpsert",
@@ -246,6 +249,11 @@ const timeTrackerRouter = createTRPCRouter({
             include: { user: true },
           });
           yield tracked(input.taskId, times);
+        }
+
+        if (Date.now() - lastUpdate > HEARTBEAT_INTERVAL) {
+          yield tracked(input.taskId, { _heartbeat: Date.now() });
+          lastUpdate = Date.now();
         }
       }
     }),
