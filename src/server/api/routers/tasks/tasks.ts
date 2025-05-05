@@ -1,4 +1,4 @@
-import { type Prisma, type Task, TaskStatus } from "@prisma/client";
+import { type Prisma, TaskStatus } from "@prisma/client";
 import {
   type inferRouterInputs,
   type inferRouterOutputs,
@@ -6,7 +6,6 @@ import {
   TRPCError,
 } from "@trpc/server";
 import { z } from "zod";
-import { EventEmitter, on } from "events";
 
 import map from "lodash/map";
 import padStart from "lodash/padStart";
@@ -18,6 +17,7 @@ import {
   UpdateTaskSchema,
 } from "~/lib/schemas/taskSchemas";
 import { ActivityType } from "~/lib/schemas/activityType";
+import { connectRedis } from "~/server/redis";
 
 import {
   createTRPCRouter,
@@ -26,7 +26,7 @@ import {
 } from "~/server/api/trpc";
 import dayjs from "~/utils/dayjs";
 
-const taskEventEmitter = new EventEmitter();
+const redisClient = await connectRedis();
 
 const tasksRouter = createTRPCRouter({
   createTask: projectMemberProcedure
@@ -66,7 +66,10 @@ const tasksRouter = createTRPCRouter({
         },
       });
 
-      taskEventEmitter.emit("taskUpdate", newTask);
+      await redisClient.publish(
+        `taskUpdate:${input.projectId}`,
+        JSON.stringify(newTask),
+      );
 
       await ctx.db.activityLog.create({
         data: {
@@ -211,7 +214,10 @@ const tasksRouter = createTRPCRouter({
         data: updates,
       });
 
-      taskEventEmitter.emit("taskUpdate", updatedTask);
+      await redisClient.publish(
+        `taskUpdate:${input.projectId}`,
+        JSON.stringify(updatedTask),
+      );
 
       await ctx.db.activityLog.create({
         data: {
@@ -290,7 +296,10 @@ const tasksRouter = createTRPCRouter({
         },
       });
 
-      taskEventEmitter.emit("taskUpdate", deletedTask);
+      await redisClient.publish(
+        `taskUpdate:${deletedTask.projectId}`,
+        JSON.stringify(deletedTask),
+      );
 
       await ctx.db.activityLog.create({
         data: {
@@ -486,59 +495,164 @@ const tasksRouter = createTRPCRouter({
   onTasksUpsert: projectMemberProcedure
     .input(z.object({ projectId: z.string() }))
     .subscription(async function* ({ input, ctx }) {
-      for await (const [task] of on(taskEventEmitter, "taskUpdate")) {
-        if ((task as Task).projectId === input.projectId) {
-          const tasks = await ctx.db.task.findMany({
-            where: {
-              projectId: input.projectId,
-              project: {
-                OR: [
-                  { users: { some: { id: ctx.session.user.id } } },
-                  { ownerId: ctx.session.user.id },
-                ],
-              },
-              OR: [{ Sprint: { isActive: true } }, { sprintId: null }],
-            },
-            orderBy: { createdAt: "asc" },
-            include: {
-              asignee: {
-                select: {
-                  id: true,
-                  email: true,
-                  firstName: true,
-                  lastName: true,
-                },
-              },
-            },
-          });
+      const channel = `taskUpdate:${input.projectId}`;
+      const subscriber = redisClient.duplicate();
 
-          yield tracked(input.projectId, tasks);
+      const getTasks = () =>
+        ctx.db.task.findMany({
+          where: {
+            projectId: input.projectId,
+            project: {
+              OR: [
+                { users: { some: { id: ctx.session.user.id } } },
+                { ownerId: ctx.session.user.id },
+              ],
+            },
+            OR: [{ Sprint: { isActive: true } }, { sprintId: null }],
+          },
+          orderBy: { createdAt: "asc" },
+          include: {
+            asignee: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        });
+
+      try {
+        // 1. Connect to Redis
+        await subscriber.connect();
+
+        // 2. Initial data fetch
+        const initialTasks = await getTasks();
+        yield tracked(input.projectId, initialTasks);
+
+        // 3. Proper message handling setup
+        const messageQueue: string[] = [];
+        let messageResolver: (() => void) | null = null;
+
+        // 4. Async subscription with error handling
+        try {
+          await new Promise<void>((resolve, reject) => {
+            void subscriber.subscribe(channel, (message) => {
+              messageQueue.push(message);
+              messageResolver?.();
+              resolve();
+            });
+          });
+        } catch (err) {
+          console.error("Subscription setup failed, aborting...");
+          throw err;
         }
+
+        // 5. Message processing loop
+        while (true) {
+          while (messageQueue.length > 0) {
+            messageQueue.shift()!;
+            const tasks = await getTasks();
+            yield tracked(input.projectId, tasks);
+          }
+
+          // Wait for new messages
+          await new Promise<void>((resolve) => {
+            messageResolver = resolve;
+          });
+        }
+      } finally {
+        // 6. Proper cleanup
+        await subscriber.unsubscribe(channel);
+        await subscriber.quit();
       }
     }),
 
   onTaskUpsert: projectMemberProcedure
     .input(z.object({ taskId: z.string() }))
     .subscription(async function* ({ input, ctx }) {
-      for await (const [taskEvent] of on(taskEventEmitter, "taskUpdate")) {
-        if ((taskEvent as Task).id === input.taskId) {
-          const task = await ctx.db.task.findUnique({
-            where: {
-              id: input.taskId,
-              projectId: input.projectId,
-              project: {
-                OR: [
-                  { users: { some: { id: ctx.session.user.id } } },
-                  { ownerId: ctx.session.user.id },
-                ],
-              },
-            },
-            include: { asignee: true },
-          });
+      const channel = `taskUpdate:${input.projectId}`;
+      const subscriber = redisClient.duplicate();
 
-          yield tracked(input.taskId, task);
+      const getTask = () =>
+        ctx.db.task.findUnique({
+          where: {
+            id: input.taskId,
+            projectId: input.projectId,
+            project: {
+              OR: [
+                { users: { some: { id: ctx.session.user.id } } },
+                { ownerId: ctx.session.user.id },
+              ],
+            },
+          },
+          include: { asignee: true },
+        });
+
+      try {
+        // 1. Connect to Redis
+        await subscriber.connect();
+
+        // 2. Initial data fetch
+        const initialTask = await getTask();
+        yield tracked(input.taskId, initialTask);
+
+        // 3. Proper message handling setup
+        const messageQueue: string[] = [];
+        let messageResolver: (() => void) | null = null;
+
+        // 4. Async subscription with error handling
+        try {
+          await new Promise<void>((resolve, reject) => {
+            void subscriber.subscribe(channel, (message) => {
+              messageQueue.push(message);
+              messageResolver?.();
+              resolve();
+            });
+          });
+        } catch (err) {
+          console.error("Subscription setup failed, aborting...");
+          throw err;
         }
+
+        // 5. Message processing loop
+        while (true) {
+          while (messageQueue.length > 0) {
+            messageQueue.shift()!;
+            const task = await getTask();
+            yield tracked(input.taskId, task);
+          }
+
+          // Wait for new messages
+          await new Promise<void>((resolve) => {
+            messageResolver = resolve;
+          });
+        }
+      } finally {
+        // 6. Proper cleanup
+        await subscriber.unsubscribe(channel);
+        await subscriber.quit();
       }
+
+      // for await (const [taskEvent] of on(taskEventEmitter, "taskUpdate")) {
+      //   if ((taskEvent as Task).id === input.taskId) {
+      //     const task = await ctx.db.task.findUnique({
+      //       where: {
+      //         id: input.taskId,
+      //         projectId: input.projectId,
+      //         project: {
+      //           OR: [
+      //             { users: { some: { id: ctx.session.user.id } } },
+      //             { ownerId: ctx.session.user.id },
+      //           ],
+      //         },
+      //       },
+      //       include: { asignee: true },
+      //     });
+      //     yield tracked(input.taskId, task);
+      //   }
+      // }
     }),
 });
 
