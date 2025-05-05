@@ -22,15 +22,18 @@ const useLiveTasks = (projectId: string) => {
 
   const subscription = api.tasks.onTasksUpsert.useSubscription(
     { projectId },
-    {
-      onData: (tasks) => {
-        if (!tasks.data || "_heartbeat" in tasks.data) {
-          return;
-        }
-        addTask(tasks.data);
-      },
-    },
+    { onData: (tasks) => addTask(tasks.data) },
   );
+
+  useEffect(() => {
+    const resetSubscription = () => {
+      subscription.reset();
+
+      setTimeout(resetSubscription, 50_000);
+    };
+
+    setTimeout(resetSubscription, 50_000);
+  }, [projectId]);
 
   return { tasks, subscription };
 };

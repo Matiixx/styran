@@ -19,40 +19,19 @@ const useLiveTask = (projectId: string, taskId: string) => {
 
   const taskSubscription = api.tasks.onTaskUpsert.useSubscription(
     { projectId, taskId },
-    {
-      onData: (task) => {
-        if (!task.data || "_heartbeat" in task.data) {
-          return;
-        }
-        setTask(task.data);
-      },
-    },
+    { onData: (task) => setTask(task.data) },
   );
 
   const commentsSubscription =
     api.taskComments.onTaskCommentUpsert.useSubscription(
       { projectId, taskId },
-      {
-        onData: (comments) => {
-          if (!comments.data || "_heartbeat" in comments.data) {
-            return;
-          }
-          setComments(comments.data);
-        },
-      },
+      { onData: (comments) => setComments(comments.data) },
     );
 
   const trackTimesSubscription =
     api.timeTracker.onTrackTimesUpsert.useSubscription(
       { projectId, taskId },
-      {
-        onData: (trackTimes) => {
-          if (!trackTimes.data || "_heartbeat" in trackTimes.data) {
-            return;
-          }
-          setTrackTimes(trackTimes.data);
-        },
-      },
+      { onData: (trackTimes) => setTrackTimes(trackTimes.data) },
     );
 
   useEffect(() => {
@@ -66,6 +45,18 @@ const useLiveTask = (projectId: string, taskId: string) => {
   useEffect(() => {
     setTrackTimes(trackTimesQuery);
   }, [trackTimesQuery]);
+
+  useEffect(() => {
+    const resetSubscriptions = () => {
+      taskSubscription.reset();
+      commentsSubscription.reset();
+      trackTimesSubscription.reset();
+
+      setTimeout(resetSubscriptions, 50_000);
+    };
+
+    setTimeout(resetSubscriptions, 50_000);
+  }, [taskId, projectId]);
 
   return {
     task,
