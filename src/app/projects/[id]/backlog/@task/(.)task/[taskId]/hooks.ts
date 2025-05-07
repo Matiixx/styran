@@ -19,19 +19,28 @@ const useLiveTask = (projectId: string, taskId: string) => {
 
   const taskSubscription = api.tasks.onTaskUpsert.useSubscription(
     { projectId, taskId },
-    { onData: (task) => setTask(task.data) },
+    {
+      onData: (task) => setTask(task.data),
+      onComplete: () => taskSubscription.reset(),
+    },
   );
 
   const commentsSubscription =
     api.taskComments.onTaskCommentUpsert.useSubscription(
       { projectId, taskId },
-      { onData: (comments) => setComments(comments.data) },
+      {
+        onData: (comments) => setComments(comments.data),
+        onComplete: () => commentsSubscription.reset(),
+      },
     );
 
   const trackTimesSubscription =
     api.timeTracker.onTrackTimesUpsert.useSubscription(
       { projectId, taskId },
-      { onData: (trackTimes) => setTrackTimes(trackTimes.data) },
+      {
+        onData: (trackTimes) => setTrackTimes(trackTimes.data),
+        onComplete: () => trackTimesSubscription.reset(),
+      },
     );
 
   useEffect(() => {
@@ -45,18 +54,6 @@ const useLiveTask = (projectId: string, taskId: string) => {
   useEffect(() => {
     setTrackTimes(trackTimesQuery);
   }, [trackTimesQuery]);
-
-  useEffect(() => {
-    const resetSubscriptions = () => {
-      taskSubscription.reset();
-      commentsSubscription.reset();
-      trackTimesSubscription.reset();
-
-      setTimeout(resetSubscriptions, 50_000);
-    };
-
-    setTimeout(resetSubscriptions, 50_000);
-  }, [taskId, projectId]);
 
   return {
     task,

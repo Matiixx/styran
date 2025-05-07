@@ -149,6 +149,7 @@ export default function TaskDrawerContent({
         />
 
         <TaskStoryPoints
+          key={task.storyPoints ?? "-"}
           storyPoints={
             task.storyPoints !== null ? task.storyPoints.toString() : null
           }

@@ -574,6 +574,8 @@ const tasksRouter = createTRPCRouter({
     .subscription(async function* ({ input, ctx }) {
       const channel = `taskUpdate:${input.projectId}`;
       const subscriber = redisClient.duplicate();
+      const TIMEOUT_MS = 55000;
+      const startTime = Date.now();
 
       const getTask = () =>
         ctx.db.task.findUnique({
@@ -594,30 +596,22 @@ const tasksRouter = createTRPCRouter({
         // 1. Connect to Redis
         await subscriber.connect();
 
-        // 2. Initial data fetch
-        const initialTask = await getTask();
-        yield tracked(input.taskId, initialTask);
-
         // 3. Proper message handling setup
         const messageQueue: string[] = [];
         let messageResolver: (() => void) | null = null;
 
         // 4. Async subscription with error handling
-        try {
-          await new Promise<void>((resolve, reject) => {
-            void subscriber.subscribe(channel, (message) => {
-              messageQueue.push(message);
-              messageResolver?.();
-              resolve();
-            });
-          });
-        } catch (err) {
-          console.error("Subscription setup failed, aborting...");
-          throw err;
-        }
+        void subscriber.subscribe(channel, (message) => {
+          messageQueue.push(message);
+          messageResolver?.();
+        });
 
         // 5. Message processing loop
         while (true) {
+          if (Date.now() - startTime > TIMEOUT_MS) {
+            break;
+          }
+
           while (messageQueue.length > 0) {
             messageQueue.shift()!;
             const task = await getTask();
@@ -625,34 +619,38 @@ const tasksRouter = createTRPCRouter({
           }
 
           // Wait for new messages
-          await new Promise<void>((resolve) => {
-            messageResolver = resolve;
-          });
+          try {
+            await Promise.race([
+              new Promise<void>((resolve) => {
+                messageResolver = resolve;
+              }),
+              new Promise((_, reject) => {
+                const remainingTime = TIMEOUT_MS - (Date.now() - startTime);
+                if (remainingTime <= 0) {
+                  reject(new Error("Timeout reached"));
+                }
+
+                setTimeout(
+                  () => reject(new Error("Timeout reached")),
+                  remainingTime,
+                );
+              }),
+            ]);
+          } catch (error) {
+            if (error instanceof Error && error.message === "Timeout reached") {
+              console.log(
+                "Subscription timeout reached, gracefully terminating...",
+              );
+              break;
+            }
+            throw error;
+          }
         }
       } finally {
         // 6. Proper cleanup
         await subscriber.unsubscribe(channel);
         await subscriber.quit();
       }
-
-      // for await (const [taskEvent] of on(taskEventEmitter, "taskUpdate")) {
-      //   if ((taskEvent as Task).id === input.taskId) {
-      //     const task = await ctx.db.task.findUnique({
-      //       where: {
-      //         id: input.taskId,
-      //         projectId: input.projectId,
-      //         project: {
-      //           OR: [
-      //             { users: { some: { id: ctx.session.user.id } } },
-      //             { ownerId: ctx.session.user.id },
-      //           ],
-      //         },
-      //       },
-      //       include: { asignee: true },
-      //     });
-      //     yield tracked(input.taskId, task);
-      //   }
-      // }
     }),
 });
 

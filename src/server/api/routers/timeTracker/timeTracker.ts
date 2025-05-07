@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { EventEmitter, on } from "events";
 
 import {
   tracked,
@@ -13,9 +12,10 @@ import {
   projectMemberProcedure,
   protectedProcedure,
 } from "~/server/api/trpc";
+import { connectRedis } from "~/server/redis";
 import { ActivityType } from "~/lib/schemas/activityType";
 
-const timeTrackEventEmitter = new EventEmitter();
+const redisClient = await connectRedis();
 
 const timeTrackerRouter = createTRPCRouter({
   addTime: protectedProcedure
@@ -69,11 +69,15 @@ const timeTrackerRouter = createTRPCRouter({
             where: { id: taskId },
             data: { updatedAt: new Date() },
           })
-          .then((task) => {
-            timeTrackEventEmitter.emit("onTrackTimesUpsert", {
-              taskId: task.id,
-              projectId: task.projectId,
-            });
+          .then(async (task) => {
+            const channel = `trackTimesUpsert:${task.id}`;
+            await redisClient.publish(
+              channel,
+              JSON.stringify({
+                taskId: task.id,
+                projectId: task.projectId,
+              }),
+            );
             return task;
           });
       });
@@ -151,11 +155,15 @@ const timeTrackerRouter = createTRPCRouter({
 
           return timeTrack;
         })
-        .then((timeTrack) => {
-          timeTrackEventEmitter.emit("onTrackTimesUpsert", {
-            taskId: timeTrack.task.id,
-            projectId: timeTrack.task.projectId,
-          });
+        .then(async (timeTrack) => {
+          const channel = `trackTimesUpsert:${timeTrack.task.id}`;
+          await redisClient.publish(
+            channel,
+            JSON.stringify({
+              taskId: timeTrack.task.id,
+              projectId: timeTrack.task.projectId,
+            }),
+          );
           return timeTrack;
         });
     }),
@@ -214,11 +222,15 @@ const timeTrackerRouter = createTRPCRouter({
 
           return timeTrack;
         })
-        .then((timeTrack) => {
-          timeTrackEventEmitter.emit("onTrackTimesUpsert", {
-            taskId: timeTrack.task.id,
-            projectId: timeTrack.task.projectId,
-          });
+        .then(async (timeTrack) => {
+          const channel = `trackTimesUpsert:${timeTrack.task.id}`;
+          await redisClient.publish(
+            channel,
+            JSON.stringify({
+              taskId: timeTrack.task.id,
+              projectId: timeTrack.task.projectId,
+            }),
+          );
           return timeTrack;
         });
     }),
@@ -226,27 +238,85 @@ const timeTrackerRouter = createTRPCRouter({
   onTrackTimesUpsert: projectMemberProcedure
     .input(z.object({ taskId: z.string() }))
     .subscription(async function* ({ input, ctx }) {
-      for await (const [timeTrack] of on(
-        timeTrackEventEmitter,
-        "onTrackTimesUpsert",
-      )) {
-        if ((timeTrack as { taskId: string }).taskId === input.taskId) {
-          const times = await ctx.db.timeTrack.findMany({
-            where: {
-              taskId: input.taskId,
-              task: {
-                project: {
-                  OR: [
-                    { ownerId: ctx.session.user.id },
-                    { users: { some: { id: ctx.session.user.id } } },
-                  ],
-                },
+      const channel = `trackTimesUpsert:${input.taskId}`;
+      const subscriber = redisClient.duplicate();
+      const TIMEOUT_MS = 55000;
+      const startTime = Date.now();
+
+      const getTimeTracks = () => {
+        return ctx.db.timeTrack.findMany({
+          where: {
+            taskId: input.taskId,
+            task: {
+              project: {
+                OR: [
+                  { ownerId: ctx.session.user.id },
+                  { users: { some: { id: ctx.session.user.id } } },
+                ],
               },
             },
-            include: { user: true },
-          });
-          yield tracked(input.taskId, times);
+          },
+          include: { user: true },
+        });
+      };
+
+      try {
+        // 1. Connect to Redis
+        await subscriber.connect();
+
+        // 3. Proper message handling setup
+        const messageQueue: string[] = [];
+        let messageResolver: (() => void) | null = null;
+
+        // 4. As  ync subscription with error handling
+        void subscriber.subscribe(channel, (message) => {
+          messageQueue.push(message);
+          messageResolver?.();
+        });
+
+        // 5. Message processing loop
+        while (true) {
+          if (Date.now() - startTime > TIMEOUT_MS) {
+            break;
+          }
+
+          while (messageQueue.length > 0) {
+            messageQueue.shift()!;
+            const timeTracks = await getTimeTracks();
+            yield tracked(input.taskId, timeTracks);
+          }
+
+          try {
+            await Promise.race([
+              new Promise<void>((resolve) => {
+                messageResolver = resolve;
+              }),
+              new Promise((_, reject) => {
+                const remainingTime = TIMEOUT_MS - (Date.now() - startTime);
+                if (remainingTime <= 0) {
+                  reject(new Error("Timeout reached"));
+                }
+
+                setTimeout(
+                  () => reject(new Error("Timeout reached")),
+                  remainingTime,
+                );
+              }),
+            ]);
+          } catch (error) {
+            if (error instanceof Error && error.message === "Timeout reached") {
+              console.log(
+                "Subscription timeout reached, gracefully terminating...",
+              );
+              break;
+            }
+            throw error;
+          }
         }
+      } finally {
+        // 6. Proper cleanup
+        await subscriber.unsubscribe(channel);
+        await subscriber.quit();
       }
     }),
 });

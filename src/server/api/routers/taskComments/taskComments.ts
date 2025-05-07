@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { EventEmitter, on } from "events";
 
 import {
   tracked,
@@ -13,9 +12,10 @@ import {
   projectMemberProcedure,
   protectedProcedure,
 } from "~/server/api/trpc";
+import { connectRedis } from "~/server/redis";
 import { ActivityType } from "~/lib/schemas/activityType";
 
-const taskCommentEventEmitter = new EventEmitter();
+const redisClient = await connectRedis();
 
 const taskCommentsRouter = createTRPCRouter({
   addComment: protectedProcedure
@@ -70,11 +70,15 @@ const taskCommentsRouter = createTRPCRouter({
             data: { updatedAt: new Date() },
             select: { id: true },
           })
-          .then(() => {
-            taskCommentEventEmitter.emit("onTaskCommentUpsert", {
-              taskId,
-              projectId,
-            });
+          .then(async () => {
+            const channel = `taskCommentUpsert:${taskId}`;
+            await redisClient.publish(
+              channel,
+              JSON.stringify({
+                taskId,
+                projectId,
+              }),
+            );
           });
       });
     }),
@@ -138,11 +142,15 @@ const taskCommentsRouter = createTRPCRouter({
             where: { TaskComment: { some: { id: commentId } } },
             data: { updatedAt: new Date() },
           })
-          .then(() => {
-            taskCommentEventEmitter.emit("onTaskCommentUpsert", {
-              taskId: deletedComment.task.id,
-              projectId,
-            });
+          .then(async () => {
+            const channel = `taskCommentUpsert:${deletedComment.task.id}`;
+            await redisClient.publish(
+              channel,
+              JSON.stringify({
+                taskId: deletedComment.task.id,
+                projectId,
+              }),
+            );
           });
       });
     }),
@@ -180,11 +188,15 @@ const taskCommentsRouter = createTRPCRouter({
             where: { TaskComment: { some: { id: commentId } } },
             data: { updatedAt: new Date() },
           })
-          .then(() => {
-            taskCommentEventEmitter.emit("onTaskCommentUpsert", {
-              taskId: updatedComment.task.id,
-              projectId,
-            });
+          .then(async () => {
+            const channel = `taskCommentUpsert:${updatedComment.task.id}`;
+            await redisClient.publish(
+              channel,
+              JSON.stringify({
+                taskId: updatedComment.task.id,
+                projectId,
+              }),
+            );
           });
       });
     }),
@@ -192,41 +204,98 @@ const taskCommentsRouter = createTRPCRouter({
   onTaskCommentUpsert: projectMemberProcedure
     .input(z.object({ taskId: z.string(), projectId: z.string() }))
     .subscription(async function* ({ input, ctx }) {
-      for await (const [taskComment] of on(
-        taskCommentEventEmitter,
-        "onTaskCommentUpsert",
-      )) {
-        if (
-          (taskComment as { projectId: string }).projectId === input.projectId
-        ) {
-          const taskComments = await ctx.db.taskComment.findMany({
-            where: {
-              taskId: input.taskId,
-              task: {
-                project: {
-                  id: input.projectId,
-                  OR: [
-                    { ownerId: ctx.session.user.id },
-                    { users: { some: { id: ctx.session.user.id } } },
-                  ],
-                },
-              },
-            },
-            orderBy: { createdAt: "asc" },
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  email: true,
-                },
-              },
-            },
-          });
+      const channel = `taskCommentUpsert:${input.taskId}`;
+      const subscriber = redisClient.duplicate();
+      const TIMEOUT_MS = 55000;
+      const startTime = Date.now();
 
-          yield tracked(input.taskId, taskComments);
+      const getTaskComments = () =>
+        ctx.db.taskComment.findMany({
+          where: {
+            taskId: input.taskId,
+            task: {
+              project: {
+                id: input.projectId,
+                OR: [
+                  { ownerId: ctx.session.user.id },
+                  { users: { some: { id: ctx.session.user.id } } },
+                ],
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" },
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+        });
+
+      try {
+        // 1. Connect to Redis
+        await subscriber.connect();
+
+        // 3. Proper message handling setup
+        const messageQueue: string[] = [];
+        let messageResolver: (() => void) | null = null;
+
+        // 4. Async subscription with error handling
+        void subscriber.subscribe(channel, (message) => {
+          messageQueue.push(message);
+          messageResolver?.();
+        });
+
+        // 5. Message processing loop with timeout check
+        while (true) {
+          // Check if we've exceeded the timeout
+          if (Date.now() - startTime > TIMEOUT_MS) {
+            break;
+          }
+
+          while (messageQueue.length > 0) {
+            messageQueue.shift()!;
+            const taskComments = await getTaskComments();
+            yield tracked(input.taskId, taskComments);
+          }
+
+          // Wait for new messages with timeout
+          try {
+            await Promise.race([
+              new Promise<void>((resolve) => {
+                messageResolver = resolve;
+              }),
+              new Promise((_, reject) => {
+                const remainingTime = TIMEOUT_MS - (Date.now() - startTime);
+                if (remainingTime <= 0) {
+                  reject(new Error("Timeout reached"));
+                }
+                console.log("remainingTime", remainingTime);
+
+                setTimeout(
+                  () => reject(new Error("Timeout reached")),
+                  remainingTime,
+                );
+              }),
+            ]);
+          } catch (error) {
+            if (error instanceof Error && error.message === "Timeout reached") {
+              console.log(
+                "Subscription timeout reached, gracefully terminating...",
+              );
+              break;
+            }
+            throw error;
+          }
         }
+      } finally {
+        // 6. Proper cleanup
+        await subscriber.unsubscribe(channel);
+        await subscriber.quit();
       }
     }),
 });
