@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect } from "next/navigation";
 
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
@@ -9,17 +9,20 @@ import withDragAndDrop, {
 } from "react-big-calendar/lib/addons/dragAndDrop";
 
 import compact from "lodash/compact";
+import filter from "lodash/filter";
 import map from "lodash/map";
+import toLower from "lodash/toLower";
 import upperFirst from "lodash/upperFirst";
 
 import { api } from "~/trpc/react";
 
 import dayjs from "~/utils/dayjs";
+import { combinedTypeKey, taskTypesOptions } from "~/utils/taskUtils";
+import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./customCalendarStyles.css";
-import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 
 import {
   Select,
@@ -39,6 +42,7 @@ import {
   CalendarCreateEventDialog,
   CalendarTaskDialog,
 } from "./CalendarTaskDialog";
+
 import ProjectPageShell from "../projectPageShell";
 import {
   sprintToCalendarEvent,
@@ -51,12 +55,7 @@ import {
   filterTasks,
   SortTasksHeader,
 } from "../backlog/sortHeader";
-import {
-  combinedTypeKey,
-  splitTypeKey,
-  taskTypesOptions,
-} from "~/utils/taskUtils";
-import { filter, toLower } from "lodash";
+import { useLiveTasks } from "../backlog/hooks";
 
 const localizer = dayjsLocalizer(dayjs);
 const DnDCalendar = withDragAndDrop<TaskEvent>(Calendar);
@@ -78,7 +77,7 @@ export default function CalendarComponent({
 }: CalendarComponentProps) {
   const utils = api.useUtils();
   const [project] = api.projects.getProject.useSuspenseQuery({ id: projectId });
-  const [tasks] = api.tasks.getTasks.useSuspenseQuery({ projectId });
+  const { tasks } = useLiveTasks(projectId);
 
   const [tempTasks, setTempTasks] = useState<Tasks>(tasks);
   const [selectedEvent, setSelectedEvent] = useState<TaskEvent | null>(null);
