@@ -142,6 +142,7 @@ export default function TaskDrawerContent({
         />
 
         <TaskDeadline
+          key={`${task.startAt?.valueOf()}-${task.doneAt?.valueOf()}`}
           taskId={task.id}
           endAt={task.doneAt}
           startAt={task.startAt}
