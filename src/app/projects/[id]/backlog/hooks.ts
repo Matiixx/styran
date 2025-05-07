@@ -25,16 +25,6 @@ const useLiveTasks = (projectId: string) => {
     { onData: (tasks) => addTask(tasks.data) },
   );
 
-  useEffect(() => {
-    const resetSubscription = () => {
-      subscription.reset();
-
-      setTimeout(resetSubscription, 50_000);
-    };
-
-    setTimeout(resetSubscription, 50_000);
-  }, [projectId]);
-
   return { tasks, subscription };
 };
 
