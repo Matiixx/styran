@@ -8,6 +8,8 @@ import map from "lodash/map";
 import toLower from "lodash/toLower";
 import upperFirst from "lodash/upperFirst";
 
+import { Trash2 } from "lucide-react";
+
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { api } from "~/trpc/react";
 
@@ -53,13 +55,18 @@ const CalendarTaskDialog = ({
   setOpen: (open: boolean) => void;
 }) => {
   const utils = api.useUtils();
-
   const [title, setTitle] = useState(task?.title);
   const [description, setDescription] = useState(task?.description);
   const [startAt, setStartAt] = useState(dayjs(task?.startAt));
   const [doneAt, setDoneAt] = useState(dayjs(task?.doneAt));
 
   const { mutateAsync: updateTask } = api.tasks.updateTask.useMutation({
+    onSuccess: () => {
+      setOpen(false);
+      return utils.tasks.getTasks.invalidate();
+    },
+  });
+  const { mutateAsync: deleteTask } = api.tasks.deleteTask.useMutation({
     onSuccess: () => {
       setOpen(false);
       return utils.tasks.getTasks.invalidate();
@@ -137,6 +144,15 @@ const CalendarTaskDialog = ({
           </div>
         </div>
         <DialogFooter>
+          {task && (
+            <Button
+              variant="outline"
+              className="mr-2"
+              onClick={() => deleteTask({ taskId: task.id })}
+            >
+              <Trash2 className="text-red-500" />
+            </Button>
+          )}
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
