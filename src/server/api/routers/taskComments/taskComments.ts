@@ -14,6 +14,7 @@ import {
 } from "~/server/api/trpc";
 import { connectRedis } from "~/server/redis";
 import { ActivityType } from "~/lib/schemas/activityType";
+import { env } from "~/env";
 
 const redisClient = await connectRedis();
 
@@ -206,7 +207,7 @@ const taskCommentsRouter = createTRPCRouter({
     .subscription(async function* ({ input, ctx }) {
       const channel = `taskCommentUpsert:${input.taskId}`;
       const subscriber = redisClient.duplicate();
-      const TIMEOUT_MS = 55000;
+      const TIMEOUT_MS = Number(env.FN_TIMEOUT_MS);
       const startTime = Date.now();
 
       const getTaskComments = () =>
@@ -274,7 +275,6 @@ const taskCommentsRouter = createTRPCRouter({
                 if (remainingTime <= 0) {
                   reject(new Error("Timeout reached"));
                 }
-                console.log("remainingTime", remainingTime);
 
                 setTimeout(
                   () => reject(new Error("Timeout reached")),

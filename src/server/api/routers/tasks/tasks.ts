@@ -11,6 +11,8 @@ import map from "lodash/map";
 import padStart from "lodash/padStart";
 import reduce from "lodash/reduce";
 
+import { env } from "~/env";
+
 import {
   NewTaskSchema,
   UNASSIGNED_USER_ID,
@@ -574,7 +576,7 @@ const tasksRouter = createTRPCRouter({
     .subscription(async function* ({ input, ctx }) {
       const channel = `taskUpdate:${input.projectId}`;
       const subscriber = redisClient.duplicate();
-      const TIMEOUT_MS = 55000;
+      const TIMEOUT_MS = Number(env.FN_TIMEOUT_MS);
       const startTime = Date.now();
 
       const getTask = () =>

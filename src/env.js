@@ -24,6 +24,7 @@ export const env = createEnv({
     CUSTOM_PASSWORD: z.string(),
     OPEN_SECRET: z.string(),
     APP_URL: z.string().url(),
+    FN_TIMEOUT_MS: z.string(),
   },
 
   /**
@@ -52,6 +53,7 @@ export const env = createEnv({
     CUSTOM_PASSWORD: process.env.CUSTOM_PASSWORD,
     OPEN_SECRET: process.env.OPEN_SECRET,
     APP_URL: process.env.APP_URL,
+    FN_TIMEOUT_MS: process.env.FN_TIMEOUT_MS,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

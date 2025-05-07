@@ -14,6 +14,7 @@ import {
 } from "~/server/api/trpc";
 import { connectRedis } from "~/server/redis";
 import { ActivityType } from "~/lib/schemas/activityType";
+import { env } from "~/env";
 
 const redisClient = await connectRedis();
 
@@ -240,7 +241,7 @@ const timeTrackerRouter = createTRPCRouter({
     .subscription(async function* ({ input, ctx }) {
       const channel = `trackTimesUpsert:${input.taskId}`;
       const subscriber = redisClient.duplicate();
-      const TIMEOUT_MS = 55000;
+      const TIMEOUT_MS = Number(env.FN_TIMEOUT_MS);
       const startTime = Date.now();
 
       const getTimeTracks = () => {
