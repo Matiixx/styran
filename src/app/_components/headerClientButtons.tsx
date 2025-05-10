@@ -5,6 +5,14 @@ import { type Session } from "next-auth";
 import Link from "next/link";
 
 import { Button } from "~/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { UserAvatar } from "./UserAvatar";
 
 type HeaderClientButtonsProps = {
   session: Session | null;
@@ -23,9 +31,22 @@ const HeaderClientButtons: FC<HeaderClientButtonsProps> = ({ session }) => {
       </div>
       <div>
         {session?.user ? (
-          <Link href="/api/auth/logout">
-            <Button variant="ghostDesctructive">Logout</Button>
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              {/* @ts-expect-error: UserAvatar expects additional props */}
+              <UserAvatar user={session.user} />
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent className="p-2">
+              <DropdownMenuItem>
+                <Link href="/my-profile">My profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-red-500 focus:text-red-600">
+                <Link href="/api/auth/logout">Logout</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           <Link href="/api/auth/signin">
             <Button variant="ghost">Login</Button>
