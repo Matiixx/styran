@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { api } from "~/trpc/react";
 
 const useLiveTask = (projectId: string, taskId: string) => {
+  const unsubscribeRef = useRef(false);
   const [taskQuery] = api.tasks.getTask.useSuspenseQuery({ projectId, taskId });
   const [task, setTask] = useState(taskQuery);
 
@@ -21,7 +22,7 @@ const useLiveTask = (projectId: string, taskId: string) => {
     { projectId, taskId },
     {
       onData: (task) => setTask(task.data),
-      onComplete: () => taskSubscription.reset(),
+      onComplete: () => !unsubscribeRef.current && taskSubscription.reset(),
     },
   );
 
@@ -30,7 +31,8 @@ const useLiveTask = (projectId: string, taskId: string) => {
       { projectId, taskId },
       {
         onData: (comments) => setComments(comments.data),
-        onComplete: () => commentsSubscription.reset(),
+        onComplete: () =>
+          !unsubscribeRef.current && commentsSubscription.reset(),
       },
     );
 
@@ -39,7 +41,8 @@ const useLiveTask = (projectId: string, taskId: string) => {
       { projectId, taskId },
       {
         onData: (trackTimes) => setTrackTimes(trackTimes.data),
-        onComplete: () => trackTimesSubscription.reset(),
+        onComplete: () =>
+          !unsubscribeRef.current && trackTimesSubscription.reset(),
       },
     );
 
@@ -54,6 +57,12 @@ const useLiveTask = (projectId: string, taskId: string) => {
   useEffect(() => {
     setTrackTimes(trackTimesQuery);
   }, [trackTimesQuery]);
+
+  useEffect(() => {
+    return () => {
+      unsubscribeRef.current = true;
+    };
+  }, []);
 
   return {
     task,
