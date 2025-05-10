@@ -528,63 +528,38 @@ const tasksRouter = createTRPCRouter({
         });
 
       try {
-        // 1. Connect to Redis
         await subscriber.connect();
 
-        // 3. Proper message handling setup
-        const messageQueue: string[] = [];
-        let messageResolver: (() => void) | null = null;
+        // Initial task fetch
+        const initialTasks = await getTasks();
+        yield tracked(input.projectId, initialTasks);
 
-        // 4. Async subscription with error handling
-        void subscriber.subscribe(channel, (message) => {
-          messageQueue.push(message);
-          messageResolver?.();
+        // Set up message handling
+        let shouldUpdate = false;
+        await subscriber.subscribe(channel, () => {
+          shouldUpdate = true;
         });
 
-        // 5. Message processing loop
-        while (true) {
-          if (Date.now() - startTime > TIMEOUT_MS) {
-            break;
-          }
-
-          while (messageQueue.length > 0) {
-            messageQueue.shift()!;
+        // Process updates
+        while (Date.now() - startTime < TIMEOUT_MS) {
+          if (shouldUpdate) {
             const tasks = await getTasks();
             yield tracked(input.projectId, tasks);
+            shouldUpdate = false;
           }
-
-          // Wait for new messages
-          try {
-            await Promise.race([
-              new Promise<void>((resolve) => {
-                messageResolver = resolve;
-              }),
-              new Promise((_, reject) => {
-                const remainingTime = TIMEOUT_MS - (Date.now() - startTime);
-                if (remainingTime <= 0) {
-                  reject(new Error("Timeout reached"));
-                }
-
-                setTimeout(
-                  () => reject(new Error("Timeout reached")),
-                  remainingTime,
-                );
-              }),
-            ]);
-          } catch (error) {
-            if (error instanceof Error && error.message === "Timeout reached") {
-              console.log(
-                "Subscription timeout reached, gracefully terminating...",
-              );
-              break;
-            }
-            throw error;
-          }
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
+      } catch (error) {
+        console.error("Subscription error:", error);
+        throw error;
       } finally {
-        // 6. Proper cleanup
-        await subscriber.unsubscribe(channel);
-        await subscriber.close();
+        try {
+          await subscriber.unsubscribe(channel);
+          await subscriber.close();
+          return;
+        } catch (error) {
+          console.error("Error cleaning up subscription:", error);
+        }
       }
     }),
 
@@ -612,63 +587,38 @@ const tasksRouter = createTRPCRouter({
         });
 
       try {
-        // 1. Connect to Redis
         await subscriber.connect();
 
-        // 3. Proper message handling setup
-        const messageQueue: string[] = [];
-        let messageResolver: (() => void) | null = null;
+        // Initial task fetch
+        const initialTask = await getTask();
+        yield tracked(input.taskId, initialTask);
 
-        // 4. Async subscription with error handling
-        void subscriber.subscribe(channel, (message) => {
-          messageQueue.push(message);
-          messageResolver?.();
+        // Set up message handling
+        let shouldUpdate = false;
+        await subscriber.subscribe(channel, () => {
+          shouldUpdate = true;
         });
 
-        // 5. Message processing loop
-        while (true) {
-          if (Date.now() - startTime > TIMEOUT_MS) {
-            break;
-          }
-
-          while (messageQueue.length > 0) {
-            messageQueue.shift()!;
+        // Process updates
+        while (Date.now() - startTime < TIMEOUT_MS) {
+          if (shouldUpdate) {
             const task = await getTask();
             yield tracked(input.taskId, task);
+            shouldUpdate = false;
           }
-
-          // Wait for new messages
-          try {
-            await Promise.race([
-              new Promise<void>((resolve) => {
-                messageResolver = resolve;
-              }),
-              new Promise((_, reject) => {
-                const remainingTime = TIMEOUT_MS - (Date.now() - startTime);
-                if (remainingTime <= 0) {
-                  reject(new Error("Timeout reached"));
-                }
-
-                setTimeout(
-                  () => reject(new Error("Timeout reached")),
-                  remainingTime,
-                );
-              }),
-            ]);
-          } catch (error) {
-            if (error instanceof Error && error.message === "Timeout reached") {
-              console.log(
-                "Subscription timeout reached, gracefully terminating...",
-              );
-              break;
-            }
-            throw error;
-          }
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
+      } catch (error) {
+        console.error("Subscription error:", error);
+        throw error;
       } finally {
-        // 6. Proper cleanup
-        await subscriber.unsubscribe(channel);
-        await subscriber.close();
+        try {
+          await subscriber.unsubscribe(channel);
+          await subscriber.close();
+          return;
+        } catch (error) {
+          console.error("Error cleaning up subscription:", error);
+        }
       }
     }),
 });
