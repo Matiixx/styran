@@ -295,7 +295,7 @@ const taskCommentsRouter = createTRPCRouter({
       } finally {
         // 6. Proper cleanup
         await subscriber.unsubscribe(channel);
-        await subscriber.quit();
+        await subscriber.close();
       }
     }),
 });
