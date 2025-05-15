@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { google } from "googleapis";
 
 import isEmpty from "lodash/isEmpty";
 import size from "lodash/size";
@@ -204,6 +205,81 @@ const integrationsRouter = createTRPCRouter({
 
       return { success: true };
     }),
+
+  integrateGoogleCalendar: protectedProcedure
+    .input(z.object({ checked: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        REDIRECT_URI,
+      );
+
+      if (!input.checked) {
+        const userRefreshToken = await ctx.db.user.findUnique({
+          where: { id: ctx.session.user.id },
+          select: { gclRefreshToken: true },
+        });
+
+        if (userRefreshToken?.gclRefreshToken) {
+          oauth2Client.setCredentials({
+            refresh_token: userRefreshToken.gclRefreshToken,
+          });
+          const { token } = await oauth2Client.getAccessToken();
+          oauth2Client.setCredentials({ access_token: token });
+          await oauth2Client.revokeCredentials();
+          await ctx.db.user.update({
+            where: { id: ctx.session.user.id },
+            data: { gclRefreshToken: null },
+          });
+          return { success: true };
+        }
+
+        return { success: true };
+      }
+
+      const authUrl = oauth2Client.generateAuthUrl({
+        access_type: "offline",
+        scope: SCOPES,
+      });
+
+      return { authUrl };
+    }),
+
+  googleCalendarRedirect: protectedProcedure
+    .input(z.object({ code: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      if (!input.code) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No code provided",
+        });
+      }
+
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        REDIRECT_URI,
+      );
+
+      const { tokens } = await oauth2Client.getToken({ code: input.code });
+      if (tokens.refresh_token) {
+        await ctx.db.user.update({
+          where: { id: ctx.session.user.id },
+          data: { gclRefreshToken: tokens.refresh_token },
+        });
+
+        return { success: true };
+      }
+
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "No refresh token provided",
+      });
+    }),
 });
+
+const SCOPES = ["https://www.googleapis.com/auth/calendar.events"];
+const REDIRECT_URI = "http://localhost:3000/my-profile/gcl-integration";
 
 export default integrationsRouter;

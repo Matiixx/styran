@@ -22,6 +22,7 @@ model User {
     bio      String?
 
     discordWebhookUrl String?
+    gclRefreshToken   String?
 
     ownedProjects Project[]
     projects      Project[] @relation("ProjectUsers")

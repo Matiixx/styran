@@ -22,13 +22,19 @@ type AccountPreferencesProps = {
 const AccountPreferences = ({ userInfo }: AccountPreferencesProps) => {
   const router = useRouter();
   const [open, setOpen] = useState(Boolean(userInfo.discordWebhookUrl));
+  const [googleCalendarOpen, setGoogleCalendarOpen] = useState(
+    Boolean(userInfo.gclRefreshToken),
+  );
   const [discordWebhookUrl, setDiscordWebhookUrl] = useState(
     userInfo.discordWebhookUrl ?? "",
   );
+
   const { mutateAsync: updateUserInfo, isPending } =
     api.user.updateUserInfo.useMutation({ onSuccess: () => router.refresh() });
   const { mutateAsync: testWebhook } =
     api.integrations.testDiscordPersonalWebhook.useMutation();
+  const { mutateAsync: integrateGoogleCalendar } =
+    api.integrations.integrateGoogleCalendar.useMutation();
 
   const onOpenChange = (value: boolean) => {
     setOpen(value);
@@ -110,6 +116,26 @@ const AccountPreferences = ({ userInfo }: AccountPreferencesProps) => {
               </Button>
             </div>
           </Collapse>
+        </div>
+
+        <div className="flex flex-col gap-2 border-b py-4">
+          <div className="flex justify-between gap-1">
+            <div className="font-medium">Google Calendar</div>
+            <Switch
+              checked={googleCalendarOpen}
+              onCheckedChange={(checked) => {
+                setGoogleCalendarOpen(checked);
+                return integrateGoogleCalendar({ checked }).then(
+                  ({ authUrl }) => {
+                    if (authUrl) {
+                      window.location.href = authUrl;
+                    }
+                  },
+                );
+              }}
+              disabled={isPending}
+            />
+          </div>
         </div>
       </CardContent>
     </>
