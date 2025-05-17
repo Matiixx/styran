@@ -21,11 +21,6 @@ export class GoogleCalendarApi {
     this.calendar = google.calendar({ version: "v3", auth: this.oauth2Client });
   }
 
-  async initializeUserToken() {
-    const { token } = await this.oauth2Client.getAccessToken();
-    this.userToken = token ?? undefined;
-  }
-
   async getEvents(ctx: {
     timeMin?: Dayjs;
     timeMax?: Dayjs;

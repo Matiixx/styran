@@ -14,9 +14,7 @@ describe("google calendar api", () => {
     const user = await db.user.findUnique({ where: { id: UID } });
     expect(user).toBeDefined();
     expect(user?.gclRefreshToken).toBeDefined();
-
     googleCalendarApi = new GoogleCalendarApi(user?.gclRefreshToken);
-    await googleCalendarApi.initializeUserToken();
   });
 
   afterAll(async () => {
