@@ -166,7 +166,7 @@ export const projectMemberProcedure = protectedProcedure
         message: "Project not found",
       });
     }
-    return next({ ctx: { projectId } });
+    return next({ ctx: { projectId, project } });
   });
 
 export const protectedOpenProcedure = publicProcedure
