@@ -27,6 +27,9 @@ import {
   projectMemberProcedure,
 } from "~/server/api/trpc";
 import dayjs from "~/utils/dayjs";
+import { executePromisesBatch } from "~/utils/promiseUtils";
+
+import { GoogleCalendarApi } from "../integrations/google-api/google-calendar-api";
 
 const redisClient = await connectRedis();
 
@@ -34,23 +37,9 @@ const tasksRouter = createTRPCRouter({
   createTask: projectMemberProcedure
     .input(NewTaskSchema)
     .mutation(async ({ ctx, input }) => {
-      const validatedProject = await ctx.db.project.findUnique({
-        where: {
-          id: input.projectId,
-          OR: [
-            { users: { some: { id: ctx.session.user.id } } },
-            { ownerId: ctx.session.user.id },
-          ],
-        },
-        select: { id: true, ticker: true, _count: { select: { tasks: true } } },
+      const taskCount = await ctx.db.task.count({
+        where: { projectId: input.projectId },
       });
-
-      if (!validatedProject) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "You are not a member of this project",
-        });
-      }
 
       const newTask = await ctx.db.task.create({
         data: {
@@ -58,11 +47,8 @@ const tasksRouter = createTRPCRouter({
           type: input.type,
           customType: input.customType || null,
           createdById: ctx.session.user.id,
-          projectId: validatedProject.id,
-          ticker: generateTaskTicker(
-            validatedProject.ticker,
-            validatedProject._count.tasks,
-          ),
+          projectId: input.projectId,
+          ticker: generateTaskTicker(ctx.project.ticker, taskCount),
           startAt: input.startAt,
           doneAt: input.doneAt,
         },
@@ -78,11 +64,38 @@ const tasksRouter = createTRPCRouter({
           activityType: ActivityType.TaskCreated,
           description: `Task [${newTask.ticker}] ${newTask.title} (${newTask.type}) was created`,
           userId: ctx.session.user.id,
-          projectId: validatedProject.id,
+          projectId: input.projectId,
           taskId: newTask.id,
           newValue: JSON.stringify(newTask),
         },
       });
+
+      if (!!newTask.startAt && !!newTask.doneAt) {
+        const usersWithGcl = await ctx.db.user.findMany({
+          where: {
+            gclRefreshToken: { not: null },
+            projects: { some: { id: input.projectId } },
+          },
+          select: { gclRefreshToken: true, id: true },
+        });
+
+        await executePromisesBatch(
+          usersWithGcl.map((user) => () => {
+            console.log("Create GCL event for user", user.id);
+            const gclClient = new GoogleCalendarApi(user.gclRefreshToken);
+            return gclClient.createEvent({
+              summary: `[${newTask.ticker}] ${newTask.title}`,
+              description: newTask.description,
+              start: { dateTime: newTask.startAt!.toISOString() },
+              end: { dateTime: newTask.doneAt!.toISOString() },
+              extendedProperties: {
+                private: generateTaskGclExtendedProperty(newTask.id),
+              },
+            });
+          }),
+          20,
+        );
+      }
 
       return newTask;
     }),
@@ -233,6 +246,40 @@ const tasksRouter = createTRPCRouter({
         },
       });
 
+      if (!!updatedTask.startAt && !!updatedTask.doneAt) {
+        const usersWithGcl = await ctx.db.user.findMany({
+          where: {
+            gclRefreshToken: { not: null },
+            projects: { some: { id: input.projectId } },
+          },
+          select: { gclRefreshToken: true, id: true },
+        });
+
+        await executePromisesBatch(
+          usersWithGcl.map((user) => async () => {
+            const gclClient = new GoogleCalendarApi(user.gclRefreshToken);
+            const events = await gclClient.getEvents({
+              privateExtendedProperty: parseTaskGclExtendedProperty(
+                updatedTask.id,
+              ),
+            });
+
+            if (events && events.length > 0) {
+              const event = events[0];
+              console.log("Updating event", event!.id, "for user", user.id);
+              return gclClient.updateEvent(event!.id!, {
+                ...event,
+                summary: `[${updatedTask.ticker}] ${updatedTask.title}`,
+                description: updatedTask.description,
+                start: { dateTime: updatedTask.startAt!.toISOString() },
+                end: { dateTime: updatedTask.doneAt!.toISOString() },
+              });
+            }
+          }),
+          10,
+        );
+      }
+
       return updatedTask;
     }),
 
@@ -312,6 +359,34 @@ const tasksRouter = createTRPCRouter({
           oldValue: JSON.stringify(deletedTask),
         },
       });
+
+      if (!!deletedTask.startAt && !!deletedTask.doneAt) {
+        const usersWithGcl = await ctx.db.user.findMany({
+          where: {
+            gclRefreshToken: { not: null },
+            projects: { some: { id: deletedTask.projectId } },
+          },
+          select: { gclRefreshToken: true, id: true },
+        });
+
+        await executePromisesBatch(
+          usersWithGcl.map((user) => async () => {
+            const gclClient = new GoogleCalendarApi(user.gclRefreshToken);
+            const events = await gclClient.getEvents({
+              privateExtendedProperty: parseTaskGclExtendedProperty(
+                deletedTask.id,
+              ),
+            });
+
+            if (events && events.length > 0) {
+              const event = events[0];
+              console.log("Deleting event", event!.id, "for user", user.id);
+              return gclClient.deleteEvent(event!.id!);
+            }
+          }),
+          10,
+        );
+      }
 
       return deletedTask;
     }),
@@ -629,6 +704,13 @@ export const generateTaskTicker = (
 ) => {
   const paddedTaskCount = padStart(`${taskCount + 1}`, 3, "0");
   return `${projectTicker}-${paddedTaskCount}`;
+};
+
+const generateTaskGclExtendedProperty = (taskId: string) => {
+  return { taskId };
+};
+const parseTaskGclExtendedProperty = (taskId: string) => {
+  return [`taskId=${taskId}`];
 };
 
 export type TasksRouterOutput = inferRouterOutputs<typeof tasksRouter>;
