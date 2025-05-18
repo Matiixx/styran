@@ -1,5 +1,3 @@
-"use client";
-
 import { type FC } from "react";
 import { type Session } from "next-auth";
 import Link from "next/link";
