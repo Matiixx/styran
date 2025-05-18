@@ -16,12 +16,14 @@ import {
 import { auth } from "~/server/auth";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Header } from "./_components/header";
+import { map } from "lodash";
 
 export const metadata = {
   title: "Styran - #1 Project Management Tool",
@@ -39,6 +41,8 @@ export default async function Home() {
             <Features />
 
             <HowItWorks />
+
+            <Pricing />
           </div>
         </div>
       </div>
@@ -244,6 +248,47 @@ const HowItWorks = () => {
           </div>
         ))}
       </div>
+    </div>
+  );
+};
+
+const PRICING_FEATURES = [
+  "Unlimited projects and tasks",
+  "Unlimited team members",
+  "Real-time collaboration",
+  "Project timeline & Gantt charts",
+  "Resource tracking & analytics",
+  "Task management & assignments",
+  "Time tracking & reporting",
+  "Team communication tools",
+  "Customizable workflows",
+  "Integration capabilities",
+  "24/7 support access",
+];
+
+const Pricing = () => {
+  return (
+    <div className="flex flex-col items-center gap-8 px-12 py-24">
+      <h2 className="text-3xl font-bold">Simple, Transparent Pricing</h2>
+
+      <Card className="w-80 border-purple-700">
+        <CardHeader>
+          <CardTitle>Free</CardTitle>
+          <div>
+            <span className="text-xl font-bold">0$</span>/month
+          </div>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            {map(PRICING_FEATURES, (feature) => (
+              <li key={feature} className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-purple-700" />
+                {feature}
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
     </div>
   );
 };
