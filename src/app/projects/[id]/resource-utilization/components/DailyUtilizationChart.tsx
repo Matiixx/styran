@@ -32,7 +32,7 @@ const DailyUtilizationChart = ({
   daysDuration: number;
   usersUtilization: ProjectRouterOutput["getProjectResourceUtilization"];
 }) => {
-  const groupedUsersUtilization = useMemo(
+  const { data: groupedUsersUtilization, domain: YAxisDomain } = useMemo(
     () => groupUtilzationByDay(startDate, daysDuration, usersUtilization),
     [startDate, daysDuration, usersUtilization],
   );
@@ -45,7 +45,7 @@ const DailyUtilizationChart = ({
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="dayString" />
-        <YAxis allowDecimals={false} domain={["dataMin", "dataMax"]} />
+        <YAxis allowDecimals={false} domain={YAxisDomain} />
         <Tooltip content={<CustomTooltip />} />
 
         {map(groupedUsersUtilization, (dayData, index) => (
@@ -124,11 +124,14 @@ const groupUtilzationByDay = (
   startDate: Date,
   daysDuration: number,
   usersUtilization: ProjectRouterOutput["getProjectResourceUtilization"],
-): Array<{
-  users: UserUtilization[];
-  day: Dayjs;
-  dayString: string;
-}> => {
+): {
+  data: Array<{
+    users: UserUtilization[];
+    day: Dayjs;
+    dayString: string;
+  }>;
+  domain: [number, number];
+} => {
   const days = [];
   const startDay = dayjs(startDate);
 
@@ -168,7 +171,6 @@ const groupUtilzationByDay = (
     }),
   }));
 
-  // Now create cumulative results
   const result = dailyUtilization.map((dayData, dayIndex) => {
     return {
       ...dayData,
@@ -191,7 +193,16 @@ const groupUtilzationByDay = (
     };
   });
 
-  return result;
+  const maxUtilization = Math.max(
+    ...result.flatMap((dayData) =>
+      dayData.users.map((user) => user.utilization),
+    ),
+  );
+
+  return {
+    data: result,
+    domain: [0, Math.ceil(maxUtilization)] as [number, number],
+  };
 };
 
 export default DailyUtilizationChart;
