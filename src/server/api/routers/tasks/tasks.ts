@@ -168,21 +168,13 @@ const tasksRouter = createTRPCRouter({
           updates.startAt = new Date();
         }
 
-        if (updates.status === TaskStatus.DONE) {
+        if (updates.status === TaskStatus.DONE && !currentState?.doneAt) {
           updates.doneAt = new Date();
         }
       }
 
       if (input.title) {
         updates.title = input.title;
-      }
-
-      if (input.startAt) {
-        updates.startAt = input.startAt;
-      }
-
-      if (input.doneAt) {
-        updates.doneAt = input.doneAt;
       }
 
       if (input.priority) {
@@ -207,11 +199,11 @@ const tasksRouter = createTRPCRouter({
         updates.storyPoints = input.storyPoints;
       }
 
-      if (input.startAt !== currentState?.startAt) {
+      if (input.startAt && input.startAt !== currentState?.startAt) {
         updates.startAt = input.startAt;
       }
 
-      if (input.doneAt !== currentState?.doneAt) {
+      if (input.doneAt && input.doneAt !== currentState?.doneAt) {
         updates.doneAt = input.doneAt;
       }
 
