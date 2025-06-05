@@ -87,7 +87,10 @@ const getBurndownData = (
     const storyPointsInDay = reduce(
       sprint.tasks,
       (acc, task) => {
-        if (task.status === TaskStatus.DONE && day.isAfter(task.doneAt)) {
+        if (
+          task.status === TaskStatus.DONE &&
+          (!task.doneAt || day.isAfter(task.doneAt))
+        ) {
           return acc + (task.storyPoints ?? 0);
         }
         return acc;
