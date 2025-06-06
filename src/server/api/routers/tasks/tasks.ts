@@ -82,7 +82,10 @@ const tasksRouter = createTRPCRouter({
         await executePromisesBatch(
           usersWithGcl.map((user) => () => {
             console.log("Create GCL event for user", user.id);
-            const gclClient = new GoogleCalendarApi(user.gclRefreshToken);
+            const gclClient = new GoogleCalendarApi(
+              user.id,
+              user.gclRefreshToken,
+            );
             return gclClient.createEvent({
               summary: `[${newTask.ticker}] ${newTask.title}`,
               description: newTask.description,
@@ -249,7 +252,10 @@ const tasksRouter = createTRPCRouter({
 
         await executePromisesBatch(
           usersWithGcl.map((user) => async () => {
-            const gclClient = new GoogleCalendarApi(user.gclRefreshToken);
+            const gclClient = new GoogleCalendarApi(
+              user.id,
+              user.gclRefreshToken,
+            );
             const events = await gclClient.getEvents({
               privateExtendedProperty: parseTaskGclExtendedProperty(
                 updatedTask.id,
@@ -363,7 +369,10 @@ const tasksRouter = createTRPCRouter({
 
         await executePromisesBatch(
           usersWithGcl.map((user) => async () => {
-            const gclClient = new GoogleCalendarApi(user.gclRefreshToken);
+            const gclClient = new GoogleCalendarApi(
+              user.id,
+              user.gclRefreshToken,
+            );
             const events = await gclClient.getEvents({
               privateExtendedProperty: parseTaskGclExtendedProperty(
                 deletedTask.id,
