@@ -1,5 +1,7 @@
 # Styran - Advanced Project Management System 🚀
 
+## https://styran.vercel.app/
+
 ![Styran](https://kf9zqq869t.ufs.sh/f/UXq6fJAGg0ksa5HUXgnwUrjWuRN3c5vzyk4816q9HfGlOeDp)
 
 **Styran** to nowoczesna aplikacja webowa do zarządzania projektami, zaprojektowana z myślą o zespołach programistycznych wykorzystujących metodyki Agile/Scrum. Nazwa pochodzi od starego angielskiego słowa oznaczającego "kierowanie", "prowadzenie" symbolizującego prowadzenie projektów ku sukcesowi.
@@ -56,7 +58,7 @@
 - **Next.js 15** - React framework z SSR/SSG
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Utility-first styling
-- **Radix UI** - Accessibility-first components
+- **Shadcn UI** - Accessibility-first components
 - **React Hook Form + Zod** - Forms & validation
 - **@dnd-kit** - Drag and drop functionality
 - **React Big Calendar** - Calendar components
@@ -66,7 +68,7 @@
 - **tRPC** - Type-safe API
 - **Prisma ORM** - Database management
 - **PostgreSQL** - Primary database
-- **Redis** - Caching & real-time subscriptions
+- **Redis** - Real-time subscriptions
 - **NextAuth.js** - Authentication
 
 ### DevOps & Tools
@@ -163,12 +165,6 @@ npm run db:generate     # Generowanie Prisma client
 npm run db:push         # Push schema do bazy
 npm run db:studio       # Prisma Studio
 
-# Code Quality
-npm run lint            # Linting
-npm run lint:fix        # Auto-fix lint errors
-npm run format:check    # Sprawdzenie formatowania
-npm run format:write    # Formatowanie kodu
-
 # Testing
 npm run test            # Uruchomienie testów
 npm run typecheck       # Type checking
@@ -181,7 +177,6 @@ npm run typecheck       # Type checking
 - **WebSocket connections** via Redis
 - **Live updates** statusów zadań
 - **Collaborative editing** komentarzy
-- **Instant notifications** o zmianach
 
 ### Zaawansowane filtrowanie
 
@@ -195,7 +190,6 @@ npm run typecheck       # Type checking
 - **Timezone-aware** Discord notifications
 - **Weekly summaries** projektów
 - **Deadline reminders**
-- **Sprint completion** alerts
 
 ## 🔒 Bezpieczeństwo
 
@@ -210,27 +204,17 @@ npm run typecheck       # Type checking
 - **Server-side rendering** dla SEO
 - **Static generation** gdzie możliwe
 - **React Query** caching
-- **Redis** dla session storage
 - **Optimized bundle** z Next.js
 
 ## 🤝 Rozwój projektu
 
 ### Planowane funkcjonalności
 
-- [ ] **Mobile app** (React Native)
+- [ ] **Mobile app** (PWA)
 - [ ] **Advanced analytics** dashboard
 - [ ] **AI-powered** task estimation
 - [ ] **Slack integration**
 - [ ] **GitHub/GitLab** sync
-- [ ] **Multi-tenant** architecture
-
-### Contributing
-
-1. Fork projektu
-2. Stwórz feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push do branch (`git push origin feature/amazing-feature`)
-5. Otwórz Pull Request
 
 ## 📝 Licencja
 
