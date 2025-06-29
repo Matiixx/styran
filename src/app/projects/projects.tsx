@@ -35,7 +35,7 @@ export default function ProjectsComponent() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <AddNewProjectDialog open={open} setOpen={setOpen} />
 
-        {map(data, ({ name, ticker, users, id }) => {
+        {map(data, ({ name, ticker, users, description, id }) => {
           return (
             <ProjectCard
               key={id}
@@ -43,6 +43,7 @@ export default function ProjectsComponent() {
               name={name}
               users={users}
               ticker={ticker}
+              description={description}
               taskStats={tasksStats[id] ?? []}
             />
           );
@@ -58,9 +59,11 @@ const ProjectCard = ({
   users,
   ticker,
   taskStats,
+  description,
 }: {
   id: string;
   name: string;
+  description: string | null;
   users: ProjectRouterOutput["getProjects"][number]["users"];
   ticker: string;
   taskStats: TasksRouterOutput["getProjectsTasksStats"][string];
@@ -84,7 +87,9 @@ const ProjectCard = ({
           <CardTitle className="truncate">
             [{ticker}] - {name}
           </CardTitle>
-          <CardDescription className="truncate">Description</CardDescription>
+          <CardDescription className="truncate">
+            {description ?? "No description"}
+          </CardDescription>
         </CardHeader>
 
         <CardContent className="flex flex-1 flex-col gap-4">
