@@ -14,9 +14,8 @@ const UserBio = ({ firstName, bio }: UserBioProps) => {
           <CardHeader>
             <CardTitle>About {firstName}</CardTitle>
           </CardHeader>
-
           <CardContent>
-            {bio ?? `${firstName} doesn't fill information about himself`}
+            {bio ? bio : `${firstName} doesn't fill information about himself`}
           </CardContent>
         </>
       ) : (
