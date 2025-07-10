@@ -190,13 +190,20 @@ const integrationsRouter = createTRPCRouter({
 
       const sendMessagePromises = tasksDueInNextHour.map((task) => () => {
         const message = `**${task.title}** deadline within the next hour!\n${getDayInTimezone(task.doneAt!, task.project.timezone).format("DD.MM.YYYY HH:mm")}`;
+        const taskEmbed = generateDiscordTaskEmbed({
+          ...task,
+          timezone: task.project.timezone,
+        });
 
         return sendDiscordMessage(task.project.discordWebhookUrl!, message, [
-          generateDiscordTaskEmbed({
-            ...task,
-            timezone: task.project.timezone,
-          }),
-        ]);
+          taskEmbed,
+        ]).then(() => {
+          if (task.asignee?.discordWebhookUrl) {
+            return sendDiscordMessage(task.asignee.discordWebhookUrl, message, [
+              taskEmbed,
+            ]);
+          }
+        });
       });
 
       await executePromisesBatch(sendMessagePromises, 10);
