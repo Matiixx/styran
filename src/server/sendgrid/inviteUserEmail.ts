@@ -64,7 +64,7 @@ const inviteUserEmailTemplate = (tempPassword: string) => {
   </head>
   <body>
     <div class="header">
-      <a href="http://localhost:3000">Styran</a>
+      <a href="https://styran.vercel.app">Styran</a>
     </div>
     <div class="content">
       <h2>Welcome to Styran!</h2>
@@ -74,10 +74,10 @@ const inviteUserEmailTemplate = (tempPassword: string) => {
       </div>
       <p>You'll be asked to create a new password after your first login.</p>
       <div style="text-align: center;">
-        <a href="http://localhost:3000" class="btn">Open App</a>
+        <a href="https://styran.vercel.app" class="btn">Open App</a>
       </div>
       <p>If the button doesn't work, you can copy and paste the following link into your browser:</p>
-      <p class="plain-url">http://localhost:3000</p>
+      <p class="plain-url">"https://styran.vercel.app"</p>
     </div>
     <div class="footer">
       <p>© ${new Date().getFullYear()} Styran. All rights reserved.</p>

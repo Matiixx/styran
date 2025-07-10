@@ -55,7 +55,7 @@ const forgetPasswordEmailTemplate = (urlWithCode: string) => {
   </head>
   <body>
     <div class="header">
-      <a href="http://localhost:3000">Styran</a>
+      <a href="https://styran.vercel.app">Styran</a>
     </div>
     <div class="content">
       <h2>Reset Your Password</h2>

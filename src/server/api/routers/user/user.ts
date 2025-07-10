@@ -83,7 +83,7 @@ const userRouter = createTRPCRouter({
         env.RESET_PASSWORD_SECRET,
       );
 
-      const urlWithCode = `http://localhost:3000/api/auth/reset/${encryptedCode}`;
+      const urlWithCode = `https://styran.vercel.app/api/auth/reset/${encryptedCode}`;
 
       if (SHOULD_SEND_EMAIL) {
         const html = forgetPasswordEmailTemplate(urlWithCode);
@@ -204,11 +204,9 @@ const userRouter = createTRPCRouter({
             } satisfies EmailVerificationCode,
             env.RESET_PASSWORD_SECRET,
           );
-          const urlWithCode = `http://localhost:3000/api/auth/verify-email/${emailVerificationCode}`;
+          const urlWithCode = `https://styran.vercel.app/api/auth/verify-email/${emailVerificationCode}`;
           const html = emailVerificationTemplate(urlWithCode);
-          await sendEmail("Verify Email", html, "wolija2434@dmener.com").then(
-            noop,
-          );
+          await sendEmail("Verify Email", html, input.email).then(noop);
         } else {
           update.email = input.email;
         }
