@@ -287,6 +287,6 @@ const integrationsRouter = createTRPCRouter({
 });
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar.events"];
-const REDIRECT_URI = "http://localhost:3000/my-profile/gcl-integration";
+const REDIRECT_URI = "https://styran.vercel.app/my-profile/gcl-integration";
 
 export default integrationsRouter;
