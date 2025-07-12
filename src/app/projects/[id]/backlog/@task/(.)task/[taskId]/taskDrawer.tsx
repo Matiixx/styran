@@ -20,7 +20,10 @@ const TaskDrawer = ({ userId, taskId, projectId }: TaskDrawerProps) => {
 
   const closeDrawer = useCallback(() => {
     setOpen(false);
-  }, []);
+    setTimeout(() => {
+      router.push(`/projects/${projectId}/backlog`);
+    }, 300);
+  }, [router, projectId]);
 
   const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
