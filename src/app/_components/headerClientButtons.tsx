@@ -20,12 +20,16 @@ const HeaderClientButtons: FC<HeaderClientButtonsProps> = ({ session }) => {
   return (
     <div className="ml-8 flex w-full items-center justify-between">
       <div>
-        <Link href="/projects">
-          <Button variant="ghost">Projects</Button>
-        </Link>
-        <Link href="/my-profile">
-          <Button variant="ghost">My Profile</Button>
-        </Link>
+        {session?.user && (
+          <>
+            <Link href="/projects">
+              <Button variant="ghost">Projects</Button>
+            </Link>
+            <Link href="/my-profile">
+              <Button variant="ghost">My Profile</Button>
+            </Link>
+          </>
+        )}
       </div>
       <div>
         {session?.user ? (
