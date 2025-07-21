@@ -6,12 +6,21 @@ import { redirect } from "next/navigation";
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 
+import filter from "lodash/filter";
 import groupBy from "lodash/groupBy";
+import isEmpty from "lodash/isEmpty";
 import map from "lodash/map";
 
 import { type TasksRouterOutput } from "~/server/api/routers/tasks";
 import { api } from "~/trpc/react";
 import { cn } from "~/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 import { UserAvatar } from "~/app/_components/UserAvatar";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -34,7 +43,6 @@ export default function BoardComponent({
   const utils = api.useUtils();
   const [project] = api.projects.getProject.useSuspenseQuery({ id: projectId });
   const [tasks] = api.tasks.getTasks.useSuspenseQuery({ projectId });
-
   const [tempTasks, setTempTasks] = useState<Tasks>(tasks);
   const [disabledTasks, setDisabledTasks] = useState<string[]>([]);
 
@@ -44,15 +52,19 @@ export default function BoardComponent({
 
   const [search, setSearch] = useState("");
   const [userFilter, setUserFilter] = useState(ALL_SELECT);
+  const [taskScope, setTaskScope] = useState<"ALL" | "SPRINT">("ALL");
 
   if (!project) {
     redirect("/projects");
   }
 
-  const filteredTasks = useMemo(
-    () => filterTasks(tempTasks, search, userFilter),
-    [tempTasks, userFilter, search],
-  );
+  const filteredTasks = useMemo(() => {
+    const filtered = filterTasks(tempTasks, search, userFilter);
+    if (taskScope === "SPRINT") {
+      return filter(filtered, (task) => !!task.sprintId);
+    }
+    return filtered;
+  }, [tempTasks, userFilter, search, taskScope]);
 
   const groupedTasks = useMemo(() => {
     return groupBy(filteredTasks, (t) => t.status);
@@ -92,7 +104,23 @@ export default function BoardComponent({
           userFilter={userFilter}
           setSearch={setSearch}
           setUserFilter={setUserFilter}
-        />
+        >
+          {!isEmpty(project.sprint) && (
+            <Select
+              value={taskScope}
+              onValueChange={(e) => setTaskScope(e as "ALL" | "SPRINT")}
+            >
+              <SelectTrigger className="w-[160px] text-black">
+                <SelectValue placeholder="Select task scope" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value={"ALL"}>All tasks</SelectItem>
+                <SelectItem value={"SPRINT"}>Sprint tasks</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </SortTasksHeader>
 
         <div className="mt-4 w-full flex-1">
           <div className="flex min-h-full flex-row justify-between gap-4 overflow-visible">
