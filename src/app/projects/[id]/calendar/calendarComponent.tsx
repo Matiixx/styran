@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { redirect } from "next/navigation";
 
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
@@ -56,6 +56,13 @@ import {
   SortTasksHeader,
 } from "../backlog/sortHeader";
 import { useLiveTasks } from "../backlog/hooks";
+import {
+  DropdownMenu,
+  DropdownMenuLabel,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "~/components/ui/dropdown-menu";
 
 const localizer = dayjsLocalizer(dayjs);
 const DnDCalendar = withDragAndDrop<TaskEvent>(Calendar);
@@ -160,9 +167,13 @@ export default function CalendarComponent({
     [projectId, tasks, updateTask],
   );
 
+  const ignoreNextSlot = useRef(false);
+
   const handleCreateEvent = () => {
     if (contextDate) {
       setSelectedDate(contextDate);
+      setContextDate(null);
+      ignoreNextSlot.current = false;
     }
   };
 
@@ -206,49 +217,72 @@ export default function CalendarComponent({
         </div>
 
         <div className="mt-4 min-h-[750px] flex-1">
-          <ContextMenu modal={false}>
-            <ContextMenuTrigger>
-              <DnDCalendar
-                localizer={localizer}
-                defaultDate={dayjs().toDate()}
-                defaultView="month"
-                resizable
-                selectable
-                views={["month"]}
-                events={events}
-                style={{ height: "100%", color: "white" }}
-                components={{
-                  dateCellWrapper: (props) => (
-                    <DayCellWrapper
-                      {...props}
-                      setSelectedDate={setContextDate}
-                    />
-                  ),
-                }}
-                eventPropGetter={(taskEvent) => {
-                  const { background, foreground } = stringToRGB(
-                    taskEvent.resource.id,
-                  );
-                  return {
-                    className: disabledTasks.includes(taskEvent.resource.id)
-                      ? "opacity-50"
-                      : "",
-                    style: { backgroundColor: background, color: foreground },
-                  };
-                }}
-                onEventResize={onEventResize}
-                onSelectEvent={setSelectedEvent}
-              />
-            </ContextMenuTrigger>
-            <ContextMenuContent>
-              <ContextMenuLabel>
-                {dayjs(contextDate).format("LL")}
-              </ContextMenuLabel>
-              <ContextMenuItem onClick={handleCreateEvent}>
-                Create New Event
-              </ContextMenuItem>
-            </ContextMenuContent>
-          </ContextMenu>
+          <DnDCalendar
+            localizer={localizer}
+            defaultDate={dayjs().toDate()}
+            defaultView="month"
+            resizable
+            selectable
+            views={["month"]}
+            events={events}
+            onSelectSlot={(e) => {
+              if (ignoreNextSlot.current) {
+                ignoreNextSlot.current = false;
+                return;
+              }
+              if (contextDate) {
+                return setContextDate(null);
+              }
+              setContextDate(e.slots[0]!);
+            }}
+            style={{ height: "100%", color: "white" }}
+            components={{
+              dateCellWrapper: (props) => {
+                return (
+                  <DropdownMenu
+                    open={props.value.valueOf() === contextDate?.valueOf()}
+                    onOpenChange={(open) => {
+                      if (!open) {
+                        ignoreNextSlot.current = true;
+                        setContextDate(null);
+                      }
+                    }}
+                  >
+                    <DropdownMenuTrigger
+                      asChild
+                      className="pointer-events-none"
+                    >
+                      <div
+                        className="flex h-full w-full overflow-visible border-l-[1px]"
+                        {...props}
+                      />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuLabel>
+                        {dayjs(contextDate).format("LL")}
+                      </DropdownMenuLabel>
+                      <DropdownMenuItem onClick={handleCreateEvent}>
+                        Create New Event
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                );
+              },
+            }}
+            eventPropGetter={(taskEvent) => {
+              const { background, foreground } = stringToRGB(
+                taskEvent.resource.id,
+              );
+              return {
+                className: disabledTasks.includes(taskEvent.resource.id)
+                  ? "opacity-50"
+                  : "",
+                style: { backgroundColor: background, color: foreground },
+              };
+            }}
+            onEventResize={onEventResize}
+            onSelectEvent={setSelectedEvent}
+          />
         </div>
       </div>
 
@@ -258,6 +292,7 @@ export default function CalendarComponent({
       />
 
       <CalendarCreateEventDialog
+        key={selectedDate?.valueOf()}
         day={selectedDate}
         projectId={projectId}
         customTaskTypes={project.customTaskTypes}
@@ -269,26 +304,3 @@ export default function CalendarComponent({
     </ProjectPageShell>
   );
 }
-
-const DayCellWrapper = ({
-  value,
-  children,
-  setSelectedDate,
-}: {
-  value: Date;
-  children: React.ReactNode;
-  setSelectedDate: (date: Date) => void;
-}) => {
-  const handleContextMenu = () => {
-    setSelectedDate(value);
-  };
-
-  return (
-    <div
-      onContextMenu={handleContextMenu}
-      className="flex h-full w-full overflow-visible border-l-[1px]"
-    >
-      {children}
-    </div>
-  );
-};
