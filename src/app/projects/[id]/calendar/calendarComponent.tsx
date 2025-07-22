@@ -32,12 +32,12 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuLabel,
-  ContextMenuTrigger,
-} from "~/components/ui/context-menu";
+  DropdownMenu,
+  DropdownMenuLabel,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "~/components/ui/dropdown-menu";
 import {
   CalendarCreateEventDialog,
   CalendarTaskDialog,
@@ -56,13 +56,6 @@ import {
   SortTasksHeader,
 } from "../backlog/sortHeader";
 import { useLiveTasks } from "../backlog/hooks";
-import {
-  DropdownMenu,
-  DropdownMenuLabel,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-} from "~/components/ui/dropdown-menu";
 
 const localizer = dayjsLocalizer(dayjs);
 const DnDCalendar = withDragAndDrop<TaskEvent>(Calendar);
