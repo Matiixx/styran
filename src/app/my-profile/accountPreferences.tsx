@@ -70,7 +70,7 @@ const AccountPreferences = ({ userInfo }: AccountPreferencesProps) => {
         Manage how you receive notifications here
       </CardDescription>
       <CardContent className="mt-6">
-        <div className="flex justify-between gap-1 border-b py-4">
+        {/* <div className="flex justify-between gap-1 border-b py-4">
           <div className="font-medium">Email notifications</div>
           <Switch disabled />
         </div>
@@ -81,7 +81,7 @@ const AccountPreferences = ({ userInfo }: AccountPreferencesProps) => {
         <div className="flex justify-between gap-1 border-b py-4">
           <div className="font-medium">Marketing emails</div>
           <Switch disabled />
-        </div>
+        </div> */}
 
         <div className="flex flex-col gap-2 border-b py-4">
           <div className="flex justify-between gap-1">
