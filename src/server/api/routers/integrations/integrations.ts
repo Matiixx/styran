@@ -248,6 +248,7 @@ const integrationsRouter = createTRPCRouter({
       const authUrl = oauth2Client.generateAuthUrl({
         access_type: "offline",
         scope: SCOPES,
+        prompt: "consent",
       });
 
       return { authUrl };
