@@ -8,9 +8,7 @@ const sendEmail = async (subject: string, html: string, to: string) => {
     clientId: env.GMAIL_CLIENT_ID,
     clientSecret: env.GMAIL_CLIENT_SECRET,
   });
-  oauth2Client.setCredentials({
-    refresh_token: env.GMAIL_REFRESH_TOKEN,
-  });
+  oauth2Client.setCredentials({ refresh_token: env.GMAIL_REFRESH_TOKEN });
 
   const gmail = google.gmail({ version: "v1", auth: oauth2Client });
 
